@@ -117,8 +117,7 @@ previously created jobs that has a status other than `SUCCEEDED`.
 ```sh
 node dist/simulator.js -s gps
 ```
-3. Shut down the script (CMD or CTRL + C).
-4. Restart the simulator with all the services enabled:
+Or restart the simulator with all the services enabled:
 ```sh
 node dist/simulator.js -s gps,acc,device,temp
 ```
