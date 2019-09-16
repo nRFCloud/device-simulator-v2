@@ -1,0 +1,27 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 10
+    commands:
+      - echo "updating git ..."; apt-get update; apt-get install -y python-software-properties software-properties-common; add-apt-repository ppa:git-core/ppa; apt-get update; apt-get install -y git
+      - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      - echo "machine github.com login ${GH_USERNAME} password ${GH_TOKEN}" > ~/.netrc
+      - npm install -g npm@
+      - export GK_LOCK_DEFAULT_BRANCH=saga
+      - npm i -g greenkeeper-lockfile@2
+      - npx greenkeeper-lockfile-update
+      - npm ci --no-audit
+      - node -e 'const {version} = require("./package.json"); if(version !== "0.0.0-development") { console.error("\033[0;31mversion in package.json must be 0.0.0-development, but is " + version + "!\033[0m"); process.exit(1); }'
+  pre_build:
+    commands:
+    - npm run lint
+  build:
+    commands:
+      - npx tsc
+      - npx greenkeeper-lockfile-upload
+      - mkdir bin
+      - echo "#!/usr/bin/env node" > bin/simulator.js
+      - cat dist/simulator.js >> bin/simulator.js
+      - chmod +x bin/simulator.js
+      - npm i semantic-release; npx semantic-release || true
