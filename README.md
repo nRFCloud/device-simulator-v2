@@ -1,8 +1,6 @@
 ## nRF91 Device Simulator v2
 
-This project combines the device-simulator, dfu-device-simulator, and jitp-example projects.
-
-This is an AWS IoT Thing simulator for nRF91. README steps use the Device API to provision and associate devices, create DFU jobs, etc. You can also enable simulated sensors and services.
+This is an AWS IoT Thing simulator for nRF91. This project combines the [device-simulator](https://github.com/nRFCloud/device-simulator) and [dfu-device-simulator](https://github.com/nRFCloud/dfu-device-simulator). It omits the legacy pairing mechanism and uses the Device API for creating JITP certs and associating a newly provisioned device with your tenant.
 
 ### Getting Started
 ```sh
