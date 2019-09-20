@@ -40,7 +40,7 @@ export DEVICE_PIN=123456
 export CERTS_RESPONSE=$(curl -X POST $API_HOST/v1/devices/$DEVICE_ID/certificates -d "$DEVICE_PIN" -H "Authorization: Bearer $API_KEY")
 
 # set the MQTT_ENDPOINT
-export MQTT_ENDPOINT=$(aws iot describe-endpoint --endpoint-type iot:Data-ATS | grep endpointAddress | awk '{ print  $2; }' | tr -d '"')
+export MQTT_ENDPOINT=$(aws iot describe-endpoint --endpoint-type iot:Data-ATS | jq -r .endpointAddress);
 ```
 
 5. Run the simulator, which will just-in-time provision (JITP) the device on nRFCloud and subscribe it to the job updates topic (*NOTE*: JITP can take 20-30 seconds, so be patient...):
@@ -63,6 +63,8 @@ curl -X PUT $API_HOST/v1/association/$DEVICE_ID -d "$DEVICE_PIN" -H "Authorizati
 ```sh
 curl $API_HOST/v1/devices/$DEVICE_ID -H "Authorization: Bearer $API_KEY" | jq
 ```
+If you get a `404` error, try again. It can take a few seconds for the database to record the new device association.
+
 4. Set the `MQTT_MESSAGES_PREFIX` enviroment variable:
 ```sh
 export MQTT_MESSAGES_PREFIX=$(curl $API_HOST/v1/account -H "Authorization: Bearer $API_KEY" | jq -r '.topics.messagesPrefix')
