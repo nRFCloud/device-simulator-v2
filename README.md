@@ -34,10 +34,10 @@ export API_HOST=<your_api_host, e.g., https://api.dev.nrfcloud.com>
 export AWS_REGION=us-east-1 #if your region is different, change it here
 export DEVICE_RAND=$(node -e 'process.stdout.write(Math.floor(1000000000 + Math.random() * 9000000000).toString())')
 export DEVICE_ID=nrf-$DEVICE_RAND
-export DEVICE_PIN=123456
+export DEVICE_OWNERSHIP_CODE=123456
 
 # create device certificates
-export CERTS_RESPONSE=$(curl -X POST $API_HOST/v1/devices/$DEVICE_ID/certificates -d "$DEVICE_PIN" -H "Authorization: Bearer $API_KEY")
+export CERTS_RESPONSE=$(curl -X POST $API_HOST/v1/devices/$DEVICE_ID/certificates -d "$DEVICE_OWNERSHIP_CODE" -H "Authorization: Bearer $API_KEY")
 
 # set the MQTT_ENDPOINT
 export MQTT_ENDPOINT=$(aws iot describe-endpoint --endpoint-type iot:Data-ATS | jq -r .endpointAddress);
@@ -57,7 +57,7 @@ This indicates that the device connected to AWS, was provisioned, and updated it
 1. Shut down the script (CMD or CTRL + C).
 2. Call the `association` endpoint:
 ```sh
-curl -X PUT $API_HOST/v1/association/$DEVICE_ID -d "$DEVICE_PIN" -H "Authorization: Bearer $API_KEY"
+curl -X PUT $API_HOST/v1/association/$DEVICE_ID -d "$DEVICE_OWNERSHIP_CODE" -H "Authorization: Bearer $API_KEY"
 ```
 3. View your device:
 ```sh
