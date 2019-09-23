@@ -1,6 +1,4 @@
-import * as program from 'commander';
 import { cyan, red, yellow } from 'colors';
-import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { nrfdevice, DeviceConfig } from './nrfDevice';
 import { ISensor } from './sensors/Sensor';
@@ -9,15 +7,30 @@ import { FakeAccelerometer } from './sensors/FakeAccelerometer';
 import { FakeThermometer } from './sensors/FakeThermometer';
 import { FakeDevice } from './sensors/FakeDevice';
 
-dotenv.config();
+export type SimulatorConfig = {
+  deviceId: string,
+  endpoint: string,
+  mqttMessagesPrefix: string
+  certsResponse: string,
+  certificate?: any,
+  key?: any,
+  appFwVersion?: string,
+  services?: string,
+};
 
-const simulator = async ({
+export const simulator = async ({
   certsResponse,
   endpoint,
   appFwVersion,
   mqttMessagesPrefix,
   services,
 }: program.Command) => {
+
+  if (!deviceId) {
+    console.error(red('A device id is required!'));
+    return;
+  }
+
   const certs = JSON.parse(certsResponse);
   const caCert = Buffer.from(certs.caCert, 'utf-8');
   const clientCert = Buffer.from(certs.clientCert, 'utf-8');
@@ -36,6 +49,7 @@ const simulator = async ({
   console.log(cyan(`connecting to ${yellow(endpoint)}...`));
 
   const sensors = new Map<string, ISensor>();
+
   if (services) {
     services.split(',').map((service: string) => {
       const sensorDataFilePath = (filename: string) =>
@@ -81,33 +95,3 @@ const simulator = async ({
   nrfdevice(config, sensors);
 };
 
-program
-  .option(
-    '-cr, --certs-response <certsResponse>',
-    'JSON returned by call to the Device API endpoint: POST /devices/{deviceid}/certificates',
-    process.env.CERTS_RESPONSE,
-  )
-  .option(
-    '-e, --endpoint <endpoint>',
-    'AWS IoT MQTT endpoint',
-    process.env.MQTT_ENDPOINT,
-  )
-  .option(
-    '-a, --app-fw-version <appFwVersion>',
-    'Version of the app firmware',
-    1,
-  )
-  .option(
-    '-m, --mqtt-messages-prefix <mqttMessagesPrefix>',
-    'The prefix for the MQTT unique to this tenant for sending and receiving device messages',
-    process.env.MQTT_MESSAGES_PREFIX,
-  )
-  .option(
-    '-s, --services <services>',
-    'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]',
-  )
-  .parse(process.argv);
-
-simulator(program).catch(error => {
-  process.stderr.write(`${red(error)}\n`);
-});
