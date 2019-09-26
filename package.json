@@ -3,6 +3,7 @@
   "version": "0.0.0-development",
   "description": "AWS IoT Thing simulator for nRF91",
   "scripts": {
+    "build": "npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "npm run tslint && npm run prettier:lint",
     "tslint": "tslint --project ./tsconfig.json",
