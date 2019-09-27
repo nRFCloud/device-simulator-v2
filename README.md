@@ -30,7 +30,7 @@ See [simulator.ts](src/simulator.ts) for the options. Most of these are set with
 
 ```sh
 export API_KEY=<your_api_key>
-export API_HOST=<your_api_host, e.g., https://api.dev.nrfcloud.com>
+export API_HOST=<your_api_host, e.g., https://api.nrfcloud.com>
 export AWS_REGION=us-east-1 #if your region is different, change it here
 export DEVICE_RAND=$(node -e 'process.stdout.write(Math.floor(1000000000 + Math.random() * 9000000000).toString())')
 export DEVICE_ID=nrf-$DEVICE_RAND
