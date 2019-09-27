@@ -8,24 +8,22 @@ import { FakeThermometer } from './sensors/FakeThermometer';
 import { FakeDevice } from './sensors/FakeDevice';
 
 export type SimulatorConfig = {
-  deviceId: string,
-  endpoint: string,
-  mqttMessagesPrefix: string
-  certsResponse: string,
-  certificate?: any,
-  key?: any,
-  appFwVersion?: string,
-  services?: string,
+  certsResponse: string;
+  endpoint: string;
+  appFwVersion: string;
+  deviceId: string;
+  mqttMessagesPrefix: string;
+  services?: string;
 };
 
 export const simulator = async ({
   certsResponse,
   endpoint,
   appFwVersion,
+  deviceId,
   mqttMessagesPrefix,
-  services,
-}: program.Command) => {
-
+  services = '',
+}: SimulatorConfig): Promise<void> => {
   if (!deviceId) {
     console.error(red('A device id is required!'));
     return;
