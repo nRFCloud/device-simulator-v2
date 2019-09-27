@@ -1,21 +1,22 @@
-import * as path from 'path';
 import { device } from 'aws-iot-device-sdk';
 
 export const mqttClient = ({
   id,
   endpoint,
-  key,
-  certificate,
+  caCert,
+  privateKey,
+  clientCert,
 }: {
-  certificate: string;
-  key: string;
+  caCert: Buffer | string;
+  clientCert: Buffer | string;
+  privateKey: Buffer | string;
   id: string;
   endpoint: string;
 }) =>
   new device({
-    privateKey: key,
-    clientCert: certificate,
-    caCert: path.resolve(__dirname, '..', 'data', 'AmazonRootCA1.pem'),
+    privateKey,
+    clientCert,
+    caCert,
     clientId: id,
     host: endpoint,
     region: endpoint.split('.')[2],

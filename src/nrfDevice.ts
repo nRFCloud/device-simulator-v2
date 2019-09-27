@@ -52,8 +52,9 @@ type JobExecution = {
 
 export type DeviceConfig = {
   deviceId: string;
-  certificate: string;
-  key: string;
+  caCert: Buffer | string;
+  clientCert: Buffer | string;
+  privateKey: Buffer | string;
   endpoint: string;
   appFwVersion: string;
   mqttMessagesPrefix: string;
@@ -65,8 +66,9 @@ export const nrfdevice = (
 ) => {
   const {
     deviceId,
-    certificate,
-    key,
+    caCert,
+    clientCert,
+    privateKey,
     endpoint,
     appFwVersion,
     mqttMessagesPrefix,
@@ -88,8 +90,6 @@ export const nrfdevice = (
 
   console.log({
     deviceId,
-    key,
-    certificate,
     endpoint,
     region: endpoint.split('.')[2],
     topics,
@@ -101,8 +101,9 @@ export const nrfdevice = (
 
   const client = mqttClient({
     id: deviceId,
-    certificate,
-    key,
+    caCert,
+    clientCert,
+    privateKey,
     endpoint,
   });
 

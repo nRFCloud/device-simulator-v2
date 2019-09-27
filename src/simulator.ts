@@ -13,32 +13,21 @@ dotenv.config();
 
 const simulator = async ({
   certsResponse,
-  deviceId,
-  certificate,
-  key,
   endpoint,
   appFwVersion,
   mqttMessagesPrefix,
   services,
 }: program.Command) => {
-  if (!deviceId) {
-    console.error(red('A device id is required!'));
-    return;
-  }
-
-  if (certsResponse) {
-    const config = JSON.parse(certsResponse);
-    key = Buffer.from(config.privateKey, 'utf-8');
-    certificate = Buffer.from(config.certificate, 'utf-8');
-  } else {
-    key = path.resolve(key);
-    certificate = path.resolve(certificate);
-  }
+  const certs = JSON.parse(certsResponse);
+  const caCert = Buffer.from(certs.caCert, 'utf-8');
+  const clientCert = Buffer.from(certs.clientCert, 'utf-8');
+  const privateKey = Buffer.from(certs.privateKey, 'utf-8');
 
   const config: DeviceConfig = {
-    deviceId,
-    key,
-    certificate,
+    deviceId: certs.clientId,
+    caCert,
+    privateKey,
+    clientCert,
     endpoint,
     appFwVersion,
     mqttMessagesPrefix,
@@ -97,21 +86,6 @@ program
     '-cr, --certs-response <certsResponse>',
     'JSON returned by call to the Device API endpoint: POST /devices/{deviceid}/certificates',
     process.env.CERTS_RESPONSE,
-  )
-  .option(
-    '-d, --deviceId <deviceId>',
-    'id of the device',
-    process.env.DEVICE_ID,
-  )
-  .option(
-    '-c, --certificate <certificate>',
-    'location of the device certificate',
-    process.env.DEVICE_CERTIFICATE,
-  )
-  .option(
-    '-k, --key <key>',
-    'location of the device private key',
-    process.env.DEVICE_KEY,
   )
   .option(
     '-e, --endpoint <endpoint>',
