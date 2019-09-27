@@ -23,7 +23,7 @@ See [simulator.ts](src/simulator.ts) for the options. Most of these are set with
 
 ### Connect a device and subscribe to the job updates MQTT topic
 
-1. Login to [nrfcloud.com](https://nrfcloud.com) and go to the accounts page and grab your API key.
+1. Log in to [nrfcloud.com](https://nrfcloud.com) and go to the accounts page and grab your API key.
 1. Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 1. If running this on your own AWS account, ensure that Event-based Messages for jobs are enabled in [AWS IoT Settings](https://us-east-1.console.aws.amazon.com/iot/home?region=us-east-1#/settings).
 1. Setup your environment:
