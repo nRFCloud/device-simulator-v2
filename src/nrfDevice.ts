@@ -1,4 +1,5 @@
 import { green, yellow, magenta, blue, cyan } from 'colors';
+import { device } from 'aws-iot-device-sdk';
 import { mqttClient } from './mqttClient';
 import { ISensor } from './sensors/Sensor';
 import { createService } from './app/services/createService';
@@ -63,6 +64,7 @@ export type DeviceConfig = {
 export const nrfdevice = (
   config: DeviceConfig,
   sensors: Map<string, ISensor>,
+  onConnect?: (deviceId: string, device: device) => void,
 ) => {
   const {
     deviceId,
@@ -73,6 +75,7 @@ export const nrfdevice = (
     appFwVersion,
     mqttMessagesPrefix,
   } = config;
+
   const topics = (deviceId: string) => ({
     jobs: {
       notifyNext: `$aws/things/${deviceId}/jobs/notify-next`,
@@ -113,6 +116,11 @@ export const nrfdevice = (
 
   client.on('connect', async () => {
     console.log(green('connected'));
+
+    if (onConnect) {
+      onConnect(deviceId, client);
+    }
+
     await waitForJobs(appFwVersion);
   });
 
@@ -121,6 +129,7 @@ export const nrfdevice = (
     const p = payload ? JSON.parse(payload.toString()) : {};
     console.log(magenta(`<`));
     console.log(magenta(JSON.stringify(p, null, 2)));
+
     if (listeners[topic]) {
       listeners[topic]({
         topic,

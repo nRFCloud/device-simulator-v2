@@ -6,6 +6,7 @@ import { FakeGps } from './sensors/FakeGps';
 import { FakeAccelerometer } from './sensors/FakeAccelerometer';
 import { FakeThermometer } from './sensors/FakeThermometer';
 import { FakeDevice } from './sensors/FakeDevice';
+import { device } from 'aws-iot-device-sdk';
 
 export type SimulatorConfig = {
   certsResponse: string;
@@ -14,6 +15,7 @@ export type SimulatorConfig = {
   deviceId: string;
   mqttMessagesPrefix: string;
   services?: string;
+  onConnect?: (deviceId: string, device: device) => void;
 };
 
 export const simulator = async ({
@@ -23,13 +25,22 @@ export const simulator = async ({
   deviceId,
   mqttMessagesPrefix,
   services = '',
+  onConnect,
 }: SimulatorConfig): Promise<void> => {
   if (!deviceId) {
     console.error(red('A device id is required!'));
     return;
   }
 
-  const certs = JSON.parse(certsResponse);
+  let certs;
+
+  try {
+    certs = JSON.parse(certsResponse);
+  } catch (err) {
+    console.log('certsReponse', certsResponse);
+    throw new Error(`Error parsing certsResponse ${err} ${certsResponse}`);
+  }
+
   const caCert = Buffer.from(certs.caCert, 'utf-8');
   const clientCert = Buffer.from(certs.clientCert, 'utf-8');
   const privateKey = Buffer.from(certs.privateKey, 'utf-8');
@@ -90,6 +101,5 @@ export const simulator = async ({
     });
   }
 
-  nrfdevice(config, sensors);
+  nrfdevice(config, sensors, onConnect);
 };
-
