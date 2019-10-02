@@ -136,5 +136,5 @@ GPS data is based on NMEA sentences. If you want to make your own GPS data, go t
 ```sh
 curl -X DELETE $API_HOST/v1/dfu-jobs/<your-jobId> -H "Authorization: Bearer $API_KEY"
 curl -X DELETE $API_HOST/v1/firmwares/$FILENAME -H "Authorization: Bearer $API_KEY"
-curl -X DELETE $API_HOST/v1/devices/$DEVICE_ID -H "Authorization: Bearer $API_KEY"
+curl -X DELETE $API_HOST/v1/devices/$DEVICE_ID -d $DEVICE_OWNERSHIP_CODE -H "Authorization: Bearer $API_KEY"
 ```
