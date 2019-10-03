@@ -18,6 +18,11 @@ program
     process.env.MQTT_ENDPOINT,
   )
   .option(
+    '-d, --device-id <deviceId>',
+    'ID of the device',
+    process.env.DEVICE_ID,
+  )
+  .option(
     '-a, --app-fw-version <appFwVersion>',
     'Version of the app firmware',
     1,
