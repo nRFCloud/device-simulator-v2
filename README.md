@@ -6,20 +6,40 @@
 
 This is an AWS IoT Thing simulator for nRF91. This project combines the [device-simulator](https://github.com/nRFCloud/device-simulator) and [dfu-device-simulator](https://github.com/nRFCloud/dfu-device-simulator) projects. It omits the legacy pairing mechanism and uses the Device API for creating JITP certs and associating a newly provisioned device with your tenant.
 
-### Getting Started
+## Getting Started
 ```sh
 # install deps
-npm i
+npm ci
 
 # compile to js
-npx tsc
+npm run build
 
 # install jq
 https://stedolan.github.io/jq/download/
 ```
 
-### Commands
-See [simulator.ts](src/simulator.ts) for the options. Most of these are set with environment variables.
+## Commands
+These are the options. Most of them are set with environment variables.
+
+```
+  -c, --certs-response <certsResponse>             Response from our device API (default: process.env.CERTS_RESPONSE)
+
+  -e, --endpoint <endpoint>                        AWS IoT MQTT endpoint (default: process.env.MQTT_ENDPOINT)
+
+  -d, --device-id <deviceId>                       ID of the device (default: process.env.DEVICE_ID)
+
+  -a, --app-fw-version <appFwVersion>              Version of the app firmware (default: 1)
+
+  -m, --mqtt-messages-prefix <mqttMessagesPrefix>  The prefix used by tenant for sending and receiving messages
+
+  -s, --services <services>                        Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]
+
+  -h, --help                                       Output usage information
+```
+
+Use `node dist/index.js --help` to see the most recent list of options.
+
+## Usage
 
 ### Connect a device and subscribe to the job updates MQTT topic
 
@@ -45,7 +65,7 @@ export MQTT_ENDPOINT=$(aws iot describe-endpoint --endpoint-type iot:Data-ATS | 
 
 5. Run the simulator, which will just-in-time provision (JITP) the device on nRFCloud and subscribe it to the job updates topic (*NOTE*: JITP can take 20-30 seconds, so be patient...):
 ```sh
-node dist/simulator.js
+node dist/index.js
 ```
 You should see some JSON output, with something like this at the end:
 ```sh
@@ -71,7 +91,7 @@ export MQTT_MESSAGES_PREFIX=$(curl $API_HOST/v1/account -H "Authorization: Beare
 ```
 5. Restart the simulator:
 ```sh
-node dist/simulator.js
+node dist/index.js
 ```
 You should now see an additional line of JSON output indicating that your device has successfully subscribed to the jobs topic for DFU:
 ```sh
@@ -106,7 +126,7 @@ curl -X POST $API_HOST/v1/dfu-jobs -H "Authorization: Bearer $API_KEY" -d '{ "de
 curl $API_HOST/v1/dfu-jobs -H "Authorization: Bearer $API_KEY" | jq
 ```
 
-8. Verify the job succeeded in the other tab where you ran `node dist/simulator.js`. You should see something like:
+8. Verify the job succeeded in the other tab where you ran `node dist/index.js`. You should see something like:
 ```sh
 < $aws/things/nrf-9354733136/jobs/notify-next
 <
@@ -121,11 +141,11 @@ previously created jobs that has a status other than `SUCCEEDED`.
 1. Shut down the script (CMD or CTRL + C).
 2. Restart the simulator with the GPS service enabled:
 ```sh
-node dist/simulator.js -s gps
+node dist/index.js -s gps
 ```
 Or restart the simulator with all the services enabled:
 ```sh
-node dist/simulator.js -s gps,acc,device,temp
+node dist/index.js -s gps,acc,device,temp
 ```
 If you want to use different data simply replace the appropriate file in [./data/sensors](https://github.com/nRFCloud/device-simulator-v2/tree/master/data/sensors) or change tne appropriate file path(s) in [simulator.ts](src/simulator.ts). (There is some additional GPS data in this repo for routes around Portland, Oregon.)
 

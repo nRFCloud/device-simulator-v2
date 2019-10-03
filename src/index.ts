@@ -8,7 +8,7 @@ dotenv.config();
 
 program
   .option(
-    '-cr, --certs-response <certsResponse>',
+    '-c, --certs-response <certsResponse>',
     'JSON returned by call to the Device API endpoint: POST /devices/{deviceid}/certificates',
     process.env.CERTS_RESPONSE,
   )
