@@ -22,19 +22,25 @@ https://stedolan.github.io/jq/download/
 These are the options. Most of them are set with environment variables.
 
 ```
-  -c, --certs-response <certsResponse>             Response from our device API (default: process.env.CERTS_RESPONSE)
+  -c, --certs-response <certsResponse>               Response from our device API (default: process.env.CERTS_RESPONSE)
 
-  -e, --endpoint <endpoint>                        AWS IoT MQTT endpoint (default: process.env.MQTT_ENDPOINT)
+  -e, --endpoint <endpoint>                          AWS IoT MQTT endpoint (default: process.env.MQTT_ENDPOINT)
 
-  -d, --device-id <deviceId>                       ID of the device (default: process.env.DEVICE_ID)
+  -d, --device-id <deviceId>                         ID of the device (default: process.env.DEVICE_ID)
 
-  -a, --app-fw-version <appFwVersion>              Version of the app firmware (default: 1)
+  -o, --device-ownership-code <deviceOwnershipCode>  PIN/ownership code of the device (default: process.env.DEVICE_OWNERSHIP_CODE)
 
-  -m, --mqtt-messages-prefix <mqttMessagesPrefix>  The prefix used by tenant for sending and receiving messages
+  -k, --api-key <apiKey>                             API key for nRF Cloud (default: process.env.API_KEY)
 
-  -s, --services <services>                        Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]
+  -h, --api-host <apiHost>                           API host for nRF Cloud (default: process.env.API_HOST || "https://api.dev.nrfcloud.com")
 
-  -h, --help                                       Output usage information
+  -a, --app-fw-version <appFwVersion>                Version of the app firmware (default: 1)
+
+  -m, --mqtt-messages-prefix <mqttMessagesPrefix>    The prefix used by tenant for sending and receiving messages
+
+  -s, --services <services>                          Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]
+
+  -h, --help                                         Output usage information
 ```
 
 Use `node dist/index.js --help` to see the most recent list of options.

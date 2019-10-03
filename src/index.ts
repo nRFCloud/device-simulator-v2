@@ -62,12 +62,12 @@ const getConfig = (env: any): SimulatorConfig =>
 
 (async (): Promise<void> => {
   const config: SimulatorConfig = getConfig(process.env);
-  const { 
-    deviceId, 
-    apiKey, 
-    apiHost, 
-    certsResponse, 
-    endpoint, 
+  const {
+    deviceId,
+    apiKey,
+    apiHost,
+    certsResponse,
+    endpoint,
     mqttMessagesPrefix,
     deviceOwnershipCode,
   } = config;
@@ -91,7 +91,7 @@ const getConfig = (env: any): SimulatorConfig =>
       baseURL: apiHost,
       headers: {
         Authorization: `Bearer ${apiKey}`,
-      }
+      },
     });
 
     // const interceptor = conn.interceptors.request.use(config => {
@@ -101,10 +101,10 @@ const getConfig = (env: any): SimulatorConfig =>
 
     if (!endpoint || !mqttMessagesPrefix) {
       const {
-        data: { 
-          mqttEndpoint, 
-          topics: { messagesPrefix}
-        }
+        data: {
+          mqttEndpoint,
+          topics: { messagesPrefix},
+        },
       } = await conn.get(`/v1/account`);
 
       if (!endpoint) {
@@ -125,6 +125,6 @@ const getConfig = (env: any): SimulatorConfig =>
   simulator(config).catch(error => {
     process.stderr.write(`${red(error)}\n`);
   });
-})()
+})();
 
 
