@@ -1,4 +1,4 @@
-import { cyan, red, yellow } from 'colors';
+import { cyan, yellow } from 'colors';
 import * as path from 'path';
 import { nrfdevice, DeviceConfig } from './nrfDevice';
 import { ISensor } from './sensors/Sensor';
@@ -15,6 +15,9 @@ export type SimulatorConfig = {
   deviceId: string;
   mqttMessagesPrefix: string;
   services?: string;
+  apiKey?: string,
+  apiHost?: string,
+  deviceOwnershipCode?: string,
   onConnect?: (deviceId: string, device: device) => void;
 };
 
@@ -22,16 +25,10 @@ export const simulator = async ({
   certsResponse,
   endpoint,
   appFwVersion,
-  deviceId,
   mqttMessagesPrefix,
   services = '',
   onConnect,
 }: SimulatorConfig): Promise<void> => {
-  if (!deviceId) {
-    console.error(red('A device id is required!'));
-    return;
-  }
-
   let certs;
 
   try {
