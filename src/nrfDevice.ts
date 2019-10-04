@@ -64,7 +64,7 @@ export type DeviceConfig = {
 export const nrfdevice = (
   config: DeviceConfig,
   sensors: Map<string, ISensor>,
-  onConnect?: (deviceId: string, device: device) => void,
+  onConnect?: (deviceId: string, client: device) => void,
 ) => {
   const {
     deviceId,

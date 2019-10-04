@@ -3,6 +3,7 @@ import * as program from 'commander';
 import { red, yellow, cyan } from 'colors';
 import { simulator, SimulatorConfig } from './simulator';
 const axios = require('axios');
+const cache = require('ez-cache')();
 
 const DEVICE_RAND: string = 'rand';
 
@@ -29,6 +30,20 @@ const getConfig = (args: any, env: any): SimulatorConfig =>
       env.DEVICE_OWNERSHIP_CODE || '123456',
     )
     .option(
+      '-m, --mqtt-messages-prefix <mqttMessagesPrefix>',
+      'The prefix for the MQTT unique to this tenant for sending and receiving device messages',
+      env.MQTT_MESSAGES_PREFIX,
+    )
+    .option(
+      '-s, --services <services>',
+      'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]',
+    )
+    .option(
+      '-a, --app-fw-version <appFwVersion>',
+      'Version of the app firmware',
+      1,
+    )
+    .option(
       '-k, --api-key <apiKey>',
       'API key for nRF Cloud',
       process.env.API_KEY,
@@ -38,25 +53,8 @@ const getConfig = (args: any, env: any): SimulatorConfig =>
       'API host for nRF Cloud',
       process.env.API_HOST || 'https://api.dev.nrfcloud.com',
     )
-    .option(
-      '-s, --services <services>',
-      'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]',
-    )
+    .option('-l, --link', 'link to account', false)
     .option('-v, --verbose', 'verbose', false)
-    .option(
-      '-a, --app-fw-version <appFwVersion>',
-      'Version of the app firmware',
-      1,
-    )
-    .option(
-      '-m, --mqtt-messages-prefix <mqttMessagesPrefix>',
-      'The prefix for the MQTT unique to this tenant for sending and receiving device messages',
-      env.MQTT_MESSAGES_PREFIX,
-    )
-    .option(
-      '-s, --services <services>',
-      'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]',
-    )
     .parse(args)
     .opts() as SimulatorConfig;
 
@@ -75,10 +73,12 @@ void (async (): Promise<void> => {
     mqttMessagesPrefix,
     deviceOwnershipCode,
     verbose,
+    link,
   } = config;
 
   const debug = (message: string) => verbose && console.log(cyan(message));
   const info = (message: string) => console.log(yellow(message));
+  const error = (message: string) => console.log(red(message));
 
   if (deviceId === DEVICE_RAND) {
     config.deviceId = `nrfsim-${Math.floor(
@@ -86,31 +86,30 @@ void (async (): Promise<void> => {
     )}`;
   }
 
+  // create a connection to the device API
+  const conn = axios.create({
+    baseURL: apiHost,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  });
+
+  conn.interceptors.request.use((config: any) => {
+    debug(config);
+    return config;
+  });
+
   // grab the defaults from the API
   if (!(certsResponse && endpoint && mqttMessagesPrefix)) {
     if (!(apiKey && apiHost && deviceOwnershipCode)) {
-      console.error(
-        red(
-          'apiKey, apiHost, and deviceOwnershipCode are required to set sensible defaults',
-        ),
+      error(
+        'apiKey, apiHost, and deviceOwnershipCode are required to set sensible defaults',
       );
       return;
     }
 
-    const conn = axios.create({
-      baseURL: apiHost,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-    });
-
-    conn.interceptors.request.use((config: any) => {
-      debug(config);
-      return config;
-    });
-
     if (!endpoint || !mqttMessagesPrefix) {
-      debug(`Grabbing mqttEndpoint and messagesPrefix...`);
+      info(`Grabbing mqttEndpoint and messagesPrefix...`);
 
       const {
         data: {
@@ -129,12 +128,26 @@ void (async (): Promise<void> => {
     }
 
     if (!certsResponse) {
-      debug('Grabbing cert...');
-      const { data } = await conn.post(
-        `/v1/devices/${config.deviceId}/certificates`,
-        deviceOwnershipCode,
-      );
-      config.certsResponse = JSON.stringify(data);
+      info('Grabbing cert...');
+      let jsonCert: string;
+
+      // check the cache for a cert
+      const cacheFile = cache.getFilePath(config.deviceId);
+
+      if (cache.exists(cacheFile)) {
+        jsonCert = await cache.get(cacheFile);
+        info(`Grabbed cert from ${cacheFile}`);
+      } else {
+        const { data } = await conn.post(
+          `/v1/devices/${config.deviceId}/certificates`,
+          deviceOwnershipCode,
+        );
+
+        jsonCert = data;
+        await cache.set(cacheFile, jsonCert);
+      }
+
+      config.certsResponse = JSON.stringify(jsonCert);
     }
   }
 
@@ -147,6 +160,23 @@ API KEY: ${config.apiKey}
 
 Starting simulator...
   `);
+
+  if (link) {
+    config.onConnect = async () => {
+      info(`LINKING ${config.deviceId} WITH ACCOUNT #${config.apiKey}`);
+
+      try {
+        await conn.put(
+          `/v1/association/${config.deviceId}`,
+          config.deviceOwnershipCode,
+        );
+
+        info('DEVICE LINKED!');
+      } catch (err) {
+        error(`Failed to link: ${err}`);
+      }
+    };
+  }
 
   simulator(config).catch(error => {
     process.stderr.write(`${red(error)}\n`);

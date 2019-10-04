@@ -19,7 +19,8 @@ export type SimulatorConfig = {
   apiHost?: string;
   deviceOwnershipCode?: string;
   verbose?: boolean;
-  onConnect?: (deviceId: string, device: device) => void;
+  link?: boolean;
+  onConnect?: (deviceId: string, client: device) => void;
 };
 
 export const simulator = async ({
