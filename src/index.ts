@@ -56,7 +56,6 @@ const getConfig = (args: any, env: any): SimulatorConfig =>
     .parse(args)
     .opts() as SimulatorConfig;
 
-// i don't understand this 'no-floating-promises' rule.
 // so I'm using the javascript 'void' operator:  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void
 // ¯\_(ツ)_/¯
 (async (): Promise<void> => {
