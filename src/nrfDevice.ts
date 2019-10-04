@@ -1,4 +1,5 @@
 import { green, yellow, magenta, blue, cyan } from 'colors';
+import { device } from 'aws-iot-device-sdk';
 import { mqttClient } from './mqttClient';
 import { ISensor } from './sensors/Sensor';
 import { createService } from './app/services/createService';
@@ -63,6 +64,7 @@ export type DeviceConfig = {
 export const nrfdevice = (
   config: DeviceConfig,
   sensors: Map<string, ISensor>,
+  onConnect?: (deviceId: string, client: device) => void,
 ) => {
   const {
     deviceId,
@@ -73,6 +75,7 @@ export const nrfdevice = (
     appFwVersion,
     mqttMessagesPrefix,
   } = config;
+
   const topics = (deviceId: string) => ({
     jobs: {
       notifyNext: `$aws/things/${deviceId}/jobs/notify-next`,
@@ -107,12 +110,31 @@ export const nrfdevice = (
     endpoint,
   });
 
+  let connectedOrReconnected: boolean = false;
+
+  const notifyOfConnection = (eventName: string) => {
+    if (!onConnect) {
+      return;
+    }
+
+    console.log(yellow(`TRIGGERING ONCONNECT CALLBACK ON "${eventName}"`));
+
+    if (connectedOrReconnected) {
+      console.log(yellow(`ALREADY TRIGGERED. BAILING...`));
+      return;
+    }
+
+    connectedOrReconnected = true;
+    onConnect(deviceId, client);
+  };
+
   client.on('error', (error: any) => {
     console.error(`AWS IoT error ${error.message}`);
   });
 
   client.on('connect', async () => {
     console.log(green('connected'));
+    notifyOfConnection('connect');
     await waitForJobs(appFwVersion);
   });
 
@@ -121,6 +143,7 @@ export const nrfdevice = (
     const p = payload ? JSON.parse(payload.toString()) : {};
     console.log(magenta(`<`));
     console.log(magenta(JSON.stringify(p, null, 2)));
+
     if (listeners[topic]) {
       listeners[topic]({
         topic,
@@ -137,6 +160,7 @@ export const nrfdevice = (
 
   client.on('reconnect', () => {
     console.log(magenta('reconnect'));
+    notifyOfConnection('reconnect');
   });
 
   const publish = (topic: string, payload: object): Promise<void> =>
