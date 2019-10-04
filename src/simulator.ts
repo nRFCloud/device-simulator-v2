@@ -15,9 +15,10 @@ export type SimulatorConfig = {
   deviceId: string;
   mqttMessagesPrefix: string;
   services?: string;
-  apiKey?: string,
-  apiHost?: string,
-  deviceOwnershipCode?: string,
+  apiKey?: string;
+  apiHost?: string;
+  deviceOwnershipCode?: string;
+  verbose?: boolean;
   onConnect?: (deviceId: string, device: device) => void;
 };
 

@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 import * as program from 'commander';
-import { red } from 'colors';
-import * as dotenv from 'dotenv';
+import { red, yellow, cyan } from 'colors';
 import { simulator, SimulatorConfig } from './simulator';
 const axios = require('axios');
 
-dotenv.config();
+const DEVICE_RAND: string = 'rand';
 
-const getConfig = (env: any): SimulatorConfig =>
+const getConfig = (args: any, env: any): SimulatorConfig =>
   program
     .option(
       '-c, --certs-response <certsResponse>',
@@ -22,12 +21,12 @@ const getConfig = (env: any): SimulatorConfig =>
     .option(
       '-d, --device-id <deviceId>',
       'ID of the device',
-      env.DEVICE_ID,
+      env.DEVICE_ID || DEVICE_RAND,
     )
     .option(
       '-o, --device-ownership-code <deviceOwnershipCode>',
       'PIN/ownership code of the device',
-      env.DEVICE_OWNERSHIP_CODE,
+      env.DEVICE_OWNERSHIP_CODE || '123456',
     )
     .option(
       '-k, --api-key <apiKey>',
@@ -35,7 +34,7 @@ const getConfig = (env: any): SimulatorConfig =>
       process.env.API_KEY,
     )
     .option(
-      '-k, --api-host <apiHost>',
+      '-h, --api-host <apiHost>',
       'API host for nRF Cloud',
       process.env.API_HOST || 'https://api.dev.nrfcloud.com',
     )
@@ -43,6 +42,7 @@ const getConfig = (env: any): SimulatorConfig =>
       '-s, --services <services>',
       'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]',
     )
+    .option('-v, --verbose', 'verbose', false)
     .option(
       '-a, --app-fw-version <appFwVersion>',
       'Version of the app firmware',
@@ -57,11 +57,15 @@ const getConfig = (env: any): SimulatorConfig =>
       '-s, --services <services>',
       'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]',
     )
-    .parse(process.argv) as unknown as SimulatorConfig;
+    .parse(args)
+    .opts() as SimulatorConfig;
 
+// i don't understand this 'no-floating-promises' rule.
+// so I'm using the javascript 'void' operator:  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void
+// ¯\_(ツ)_/¯
+void (async (): Promise<void> => {
+  const config: SimulatorConfig = getConfig(process.argv, process.env);
 
-(async (): Promise<void> => {
-  const config: SimulatorConfig = getConfig(process.env);
   const {
     deviceId,
     apiKey,
@@ -70,20 +74,26 @@ const getConfig = (env: any): SimulatorConfig =>
     endpoint,
     mqttMessagesPrefix,
     deviceOwnershipCode,
+    verbose,
   } = config;
 
-  if (!deviceId) {
-    console.error(red('A device id is required!'));
-    return;
+  const debug = (message: string) => verbose && console.log(cyan(message));
+  const info = (message: string) => console.log(yellow(message));
+
+  if (deviceId === DEVICE_RAND) {
+    config.deviceId = `nrfsim-${Math.floor(
+      Math.random() * 1000000000000000000000,
+    )}`;
   }
 
-  if (!(
-    certsResponse &&
-    endpoint &&
-    mqttMessagesPrefix
-  )) {
+  // grab the defaults from the API
+  if (!(certsResponse && endpoint && mqttMessagesPrefix)) {
     if (!(apiKey && apiHost && deviceOwnershipCode)) {
-      console.error('apiKey, apiHost, and deviceOwnershipCode are required to set sensible defaults');
+      console.error(
+        red(
+          'apiKey, apiHost, and deviceOwnershipCode are required to set sensible defaults',
+        ),
+      );
       return;
     }
 
@@ -94,16 +104,18 @@ const getConfig = (env: any): SimulatorConfig =>
       },
     });
 
-    // const interceptor = conn.interceptors.request.use(config => {
-    // 	console.log(config)
-    // 	return config;
-    // });
+    conn.interceptors.request.use((config: any) => {
+      debug(config);
+      return config;
+    });
 
     if (!endpoint || !mqttMessagesPrefix) {
+      debug(`Grabbing mqttEndpoint and messagesPrefix...`);
+
       const {
         data: {
           mqttEndpoint,
-          topics: { messagesPrefix},
+          topics: { messagesPrefix },
         },
       } = await conn.get(`/v1/account`);
 
@@ -117,14 +129,26 @@ const getConfig = (env: any): SimulatorConfig =>
     }
 
     if (!certsResponse) {
-      const {data} = await conn.post(`/v1/devices/${deviceId}/certificates`, deviceOwnershipCode);
+      debug('Grabbing cert...');
+      const { data } = await conn.post(
+        `/v1/devices/${config.deviceId}/certificates`,
+        deviceOwnershipCode,
+      );
       config.certsResponse = JSON.stringify(data);
     }
   }
+
+  info(`
+DEVICE ID: ${config.deviceId}
+DEVICE PIN: ${config.deviceOwnershipCode}
+
+API HOST: ${config.apiHost}
+API KEY: ${config.apiKey}
+
+Starting simulator...
+  `);
 
   simulator(config).catch(error => {
     process.stderr.write(`${red(error)}\n`);
   });
 })();
-
-
