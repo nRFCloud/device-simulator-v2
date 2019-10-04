@@ -5,8 +5,6 @@ import { simulator, SimulatorConfig } from './simulator';
 const axios = require('axios');
 const cache = require('ez-cache')();
 
-const DEVICE_RAND: string = 'rand';
-
 const getConfig = (args: any, env: any): SimulatorConfig =>
   program
     .option(
@@ -19,11 +17,7 @@ const getConfig = (args: any, env: any): SimulatorConfig =>
       'AWS IoT MQTT endpoint',
       env.MQTT_ENDPOINT,
     )
-    .option(
-      '-d, --device-id <deviceId>',
-      'ID of the device',
-      env.DEVICE_ID || DEVICE_RAND,
-    )
+    .option('-d, --device-id <deviceId>', 'ID of the device', env.DEVICE_ID)
     .option(
       '-o, --device-ownership-code <deviceOwnershipCode>',
       'PIN/ownership code of the device',
@@ -39,7 +33,7 @@ const getConfig = (args: any, env: any): SimulatorConfig =>
       'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]',
     )
     .option(
-      '-a, --app-fw-version <appFwVersion>',
+      '-f, --app-fw-version <appFwVersion>',
       'Version of the app firmware',
       1,
     )
@@ -53,15 +47,19 @@ const getConfig = (args: any, env: any): SimulatorConfig =>
       'API host for nRF Cloud',
       process.env.API_HOST || 'https://api.dev.nrfcloud.com',
     )
-    .option('-l, --link', 'link to account', false)
-    .option('-v, --verbose', 'verbose', false)
+    .option(
+      '-a, --associate',
+      'automatically associate device to account',
+      false,
+    )
+    .option('-v, --verbose', 'output debug info', false)
     .parse(args)
     .opts() as SimulatorConfig;
 
 // i don't understand this 'no-floating-promises' rule.
 // so I'm using the javascript 'void' operator:  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void
 // ¯\_(ツ)_/¯
-void (async (): Promise<void> => {
+(async (): Promise<void> => {
   const config: SimulatorConfig = getConfig(process.argv, process.env);
 
   const {
@@ -73,14 +71,17 @@ void (async (): Promise<void> => {
     mqttMessagesPrefix,
     deviceOwnershipCode,
     verbose,
-    link,
+    associate,
   } = config;
 
   const debug = (message: string) => verbose && console.log(cyan(message));
   const info = (message: string) => console.log(yellow(message));
   const error = (message: string) => console.log(red(message));
 
-  if (deviceId === DEVICE_RAND) {
+  const divider: string = '********************************************';
+  info(divider);
+
+  if (!deviceId) {
     config.deviceId = `nrfsim-${Math.floor(
       Math.random() * 1000000000000000000000,
     )}`;
@@ -159,11 +160,12 @@ API HOST: ${config.apiHost}
 API KEY: ${config.apiKey}
 
 Starting simulator...
+${divider}
   `);
 
-  if (link) {
+  if (associate) {
     config.onConnect = async () => {
-      info(`LINKING ${config.deviceId} WITH ACCOUNT #${config.apiKey}`);
+      info(`ASSOCIATING ${config.deviceId} WITH ACCOUNT #${config.apiKey}`);
 
       try {
         await conn.put(
@@ -171,9 +173,9 @@ Starting simulator...
           config.deviceOwnershipCode,
         );
 
-        info('DEVICE LINKED!');
+        info('DEVICE ASSOCIATED!');
       } catch (err) {
-        error(`Failed to link: ${err}`);
+        error(`Failed to associate: ${err}`);
       }
     };
   }
@@ -181,4 +183,4 @@ Starting simulator...
   simulator(config).catch(error => {
     process.stderr.write(`${red(error)}\n`);
   });
-})();
+})().catch(_ => undefined);

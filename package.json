@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "nrfsim": "./dist/index.js"
+    "device-simulator-v2": "./dist/index.js"
   },
   "scripts": {
     "build": "npx tsc",

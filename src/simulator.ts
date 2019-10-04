@@ -19,7 +19,7 @@ export type SimulatorConfig = {
   apiHost?: string;
   deviceOwnershipCode?: string;
   verbose?: boolean;
-  link?: boolean;
+  associate?: boolean;
   onConnect?: (deviceId: string, client: device) => void;
 };
 
