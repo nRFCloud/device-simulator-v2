@@ -110,17 +110,31 @@ export const nrfdevice = (
     endpoint,
   });
 
+  let connectedOrReconnected: boolean = false;
+
+  const notifyOfConnection = (eventName: string) => {
+    if (!onConnect) {
+      return;
+    }
+
+    console.log(yellow(`TRIGGERING ONCONNECT CALLBACK ON "${eventName}"`));
+
+    if (connectedOrReconnected) {
+      console.log(yellow(`ALREADY TRIGGERED. BAILING...`));
+      return;
+    }
+
+    connectedOrReconnected = true;
+    onConnect(deviceId, client);
+  };
+
   client.on('error', (error: any) => {
     console.error(`AWS IoT error ${error.message}`);
   });
 
   client.on('connect', async () => {
     console.log(green('connected'));
-
-    if (onConnect) {
-      onConnect(deviceId, client);
-    }
-
+    notifyOfConnection('connect');
     await waitForJobs(appFwVersion);
   });
 
@@ -146,6 +160,7 @@ export const nrfdevice = (
 
   client.on('reconnect', () => {
     console.log(magenta('reconnect'));
+    notifyOfConnection('reconnect');
   });
 
   const publish = (topic: string, payload: object): Promise<void> =>
