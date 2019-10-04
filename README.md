@@ -11,6 +11,9 @@ This is an AWS IoT Thing simulator for nRF91. This project combines the [device-
 # install deps
 npm ci
 
+# create cache dir (for certs)
+mkdir cache
+
 # compile to js
 npm run build
 
@@ -18,7 +21,7 @@ npm run build
 https://stedolan.github.io/jq/download/
 ```
 
-## Commands
+## Options
 These are the options. Most of them are set with environment variables.
 
 ```
@@ -38,9 +41,13 @@ These are the options. Most of them are set with environment variables.
 
 Use `npx nrfsim --help` to see the most recent list of options.
 
-## Installation
-```
+## Installation (in another repo)
+```bash
+# install package
 npm i -D @nrfcloud/device-simulator-v2
+
+# create directory to cache device certificates
+mkdir cache
 ```
 
 ## Usage
@@ -56,9 +63,15 @@ npx nrfsim -k <api key>
 ### Link device to your account
 This will create a new device and link it to the account associated with the API key.
 ```
-npx nrfsim -k <api key> -l
+npx nrfsim -k <api key> -d <device id (optional)> -l
 ```
 
+### Run GPS sensor
+```
+npx nrfsim -k <api key> -d <device id> -s gps
+```
+
+## Recipes
 ### Connect a device and subscribe to the job updates MQTT topic
 
 1. Log in to [nrfcloud.com](https://nrfcloud.com) and go to the accounts page and grab your API key.
