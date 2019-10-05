@@ -5,6 +5,11 @@ import { simulator, SimulatorConfig } from './simulator';
 const axios = require('axios');
 const cache = require('ez-cache')();
 
+const debug = (message: string, verbose: boolean) =>
+  verbose && console.log(cyan(message));
+const info = (message: string) => console.log(yellow(message));
+const error = (message: string) => console.log(red(message));
+
 const getConfig = (args: any, env: any): SimulatorConfig =>
   program
     .option(
@@ -73,10 +78,6 @@ const getConfig = (args: any, env: any): SimulatorConfig =>
     associate,
   } = config;
 
-  const debug = (message: string) => verbose && console.log(cyan(message));
-  const info = (message: string) => console.log(yellow(message));
-  const error = (message: string) => console.log(red(message));
-
   const divider: string = '********************************************';
   info(divider);
 
@@ -95,7 +96,7 @@ const getConfig = (args: any, env: any): SimulatorConfig =>
   });
 
   conn.interceptors.request.use((config: any) => {
-    debug(config);
+    debug(config, !!verbose);
     return config;
   });
 
@@ -182,4 +183,4 @@ ${divider}
   simulator(config).catch(error => {
     process.stderr.write(`${red(error)}\n`);
   });
-})().catch(_ => undefined);
+})().catch(err => error(`Simulator failed: ${err}`));
