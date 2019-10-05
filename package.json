@@ -2,7 +2,13 @@
   "name": "@nrfcloud/device-simulator-v2",
   "version": "0.0.0-development",
   "description": "AWS IoT Thing simulator for nRF91",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "device-simulator-v2": "./dist/index.js"
+  },
   "scripts": {
+    "build": "npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "npm run tslint && npm run prettier:lint",
     "tslint": "tslint --project ./tsconfig.json",
@@ -29,6 +35,7 @@
     "@types/jest": "^24.0.11",
     "@types/node": "^12.0.7",
     "@types/uuid": "^3.4.4",
+    "axios": "^0.19.0",
     "husky": "^2.4.0",
     "json-schema-to-typescript": "^7.1.0",
     "lint-staged": "^8.2.0",
@@ -41,8 +48,8 @@
     "aws-sdk": "^2.470.0",
     "colors": "^1.3.2",
     "commander": "^2.19.0",
-    "dotenv": "^8.0.0",
     "event-stream": "^4.0.1",
+    "ez-cache": "^1.0.1",
     "tcomb": "^3.2.28",
     "uuid": "^3.3.2"
   },
