@@ -1,27 +1,13 @@
 import { cyan, yellow } from 'colors';
 import * as path from 'path';
+
 import { nrfdevice, DeviceConfig } from './nrfDevice';
 import { ISensor } from './sensors/Sensor';
 import { FakeGps } from './sensors/FakeGps';
 import { FakeAccelerometer } from './sensors/FakeAccelerometer';
 import { FakeThermometer } from './sensors/FakeThermometer';
 import { FakeDevice } from './sensors/FakeDevice';
-import { device } from 'aws-iot-device-sdk';
-
-export type SimulatorConfig = {
-  certsResponse: string;
-  endpoint: string;
-  appFwVersion: string;
-  deviceId: string;
-  mqttMessagesPrefix: string;
-  services?: string;
-  apiKey?: string;
-  apiHost?: string;
-  deviceOwnershipCode?: string;
-  verbose?: boolean;
-  associate?: boolean;
-  onConnect?: (deviceId: string, client: device) => void;
-};
+import { SimulatorConfig } from './index';
 
 export const simulator = async ({
   certsResponse,

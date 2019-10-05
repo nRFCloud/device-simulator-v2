@@ -4,9 +4,7 @@
   "description": "AWS IoT Thing simulator for nRF91",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": {
-    "device-simulator-v2": "./dist/index.js"
-  },
+  "bin": "./dist/cli.js",
   "scripts": {
     "build": "npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1",

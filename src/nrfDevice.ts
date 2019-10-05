@@ -113,17 +113,11 @@ export const nrfdevice = (
   let connectedOrReconnected: boolean = false;
 
   const notifyOfConnection = (eventName: string) => {
-    if (!onConnect) {
+    if (!onConnect || connectedOrReconnected) {
       return;
     }
 
     console.log(yellow(`TRIGGERING ONCONNECT CALLBACK ON "${eventName}"`));
-
-    if (connectedOrReconnected) {
-      console.log(yellow(`ALREADY TRIGGERED. BAILING...`));
-      return;
-    }
-
     connectedOrReconnected = true;
     onConnect(deviceId, client);
   };

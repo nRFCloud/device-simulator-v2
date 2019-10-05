@@ -1,71 +1,137 @@
-#!/usr/bin/env node
-import * as program from 'commander';
 import { red, yellow, cyan } from 'colors';
-import { simulator, SimulatorConfig } from './simulator';
-const axios = require('axios');
+import { AxiosInstance } from 'axios/index';
+import { simulator } from './simulator';
+import axios from 'axios';
+
 const cache = require('ez-cache')();
+let conn: AxiosInstance;
 
-const debug = (message: string, verbose: boolean) =>
+const getConn = (apiHost: string, apiKey: string, verbose: boolean) => {
+  if (!conn) {
+    // create a connection to the device API
+    conn = axios.create({
+      baseURL: apiHost,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+
+    conn.interceptors.request.use((config: any) => {
+      debug(config, !!verbose);
+      return config;
+    });
+  }
+
+  return conn;
+};
+
+export const error = (message: string) => console.log(red(message));
+export const info = (message: string) => console.log(yellow(message));
+export const debug = (message: string, verbose: boolean) =>
   verbose && console.log(cyan(message));
-const info = (message: string) => console.log(yellow(message));
-const error = (message: string) => console.log(red(message));
+export const generateDeviceId = () =>
+  `nrfsim-${Math.floor(Math.random() * 1000000000000000000000)}`;
 
-const getConfig = (args: any, env: any): SimulatorConfig =>
-  program
-    .option(
-      '-c, --certs-response <certsResponse>',
-      'JSON returned by call to the Device API endpoint: POST /devices/{deviceid}/certificates',
-      env.CERTS_RESPONSE,
-    )
-    .option(
-      '-e, --endpoint <endpoint>',
-      'AWS IoT MQTT endpoint',
-      env.MQTT_ENDPOINT,
-    )
-    .option('-d, --device-id <deviceId>', 'ID of the device', env.DEVICE_ID)
-    .option(
-      '-o, --device-ownership-code <deviceOwnershipCode>',
-      'PIN/ownership code of the device',
-      env.DEVICE_OWNERSHIP_CODE || '123456',
-    )
-    .option(
-      '-m, --mqtt-messages-prefix <mqttMessagesPrefix>',
-      'The prefix for the MQTT unique to this tenant for sending and receiving device messages',
-      env.MQTT_MESSAGES_PREFIX,
-    )
-    .option(
-      '-s, --services <services>',
-      'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]',
-    )
-    .option(
-      '-f, --app-fw-version <appFwVersion>',
-      'Version of the app firmware',
-      1,
-    )
-    .option(
-      '-k, --api-key <apiKey>',
-      'API key for nRF Cloud',
-      process.env.API_KEY,
-    )
-    .option(
-      '-h, --api-host <apiHost>',
-      'API host for nRF Cloud',
-      process.env.API_HOST || 'https://api.dev.nrfcloud.com',
-    )
-    .option(
-      '-a, --associate',
-      'automatically associate device to account',
-      false,
-    )
-    .option('-v, --verbose', 'output debug info', false)
-    .parse(args)
-    .opts() as SimulatorConfig;
+export type DeviceDefaults = {
+  endpoint: string;
+  mqttMessagesPrefix: string;
+  certsResponse: string;
+};
 
-// so I'm using the javascript 'void' operator:  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void
-// ¯\_(ツ)_/¯
-(async (): Promise<void> => {
-  const config: SimulatorConfig = getConfig(process.argv, process.env);
+export type SimulatorConfig = {
+  certsResponse: string;
+  endpoint: string;
+  appFwVersion: string;
+  deviceId: string;
+  mqttMessagesPrefix: string;
+  services?: string;
+  apiKey?: string;
+  apiHost?: string;
+  deviceOwnershipCode?: string;
+  verbose?: boolean;
+  associate?: boolean;
+  onConnect?: (deviceId: string, client: any) => void;
+};
 
+export const associateDevice = ({
+  deviceId,
+  deviceOwnershipCode,
+  apiHost,
+  apiKey,
+  verbose,
+}: Partial<SimulatorConfig>): Promise<void> =>
+  getConn(apiHost as string, apiKey as string, !!verbose).put(
+    `/v1/association/${deviceId}`,
+    deviceOwnershipCode,
+  );
+
+export const getDefaults = async ({
+  deviceId,
+  endpoint,
+  mqttMessagesPrefix,
+  certsResponse,
+  apiHost,
+  apiKey,
+  deviceOwnershipCode,
+  verbose,
+}: Partial<SimulatorConfig>): Promise<DeviceDefaults> => {
+  const conn = getConn(apiHost as string, apiKey as string, !!verbose);
+
+  const defaults: DeviceDefaults = {
+    endpoint: endpoint || '',
+    mqttMessagesPrefix: mqttMessagesPrefix || '',
+    certsResponse: certsResponse || '',
+  };
+
+  const cacheFile = cache.getFilePath(deviceId);
+
+  const cachedDefaults: DeviceDefaults = cache.exists(cacheFile)
+    ? await cache.get(cacheFile)
+    : {};
+
+  if (!(endpoint && !mqttMessagesPrefix)) {
+    debug(`Grabbing mqttEndpoint and messagesPrefix...`, !!verbose);
+    let defaultEndpoint = cachedDefaults.endpoint || '',
+      defaultMqttMessagesPrefix = cachedDefaults.mqttMessagesPrefix || '';
+
+    if (!(defaultEndpoint && defaultMqttMessagesPrefix)) {
+      debug('Fetching endpoints from device API.\n', !!verbose);
+      const { data } = await conn.get(`/v1/account`);
+      defaultMqttMessagesPrefix = data.topics.messagesPrefix;
+      defaultEndpoint = data.mqttEndpoint;
+    }
+
+    if (!endpoint) {
+      defaults.endpoint = defaultEndpoint;
+    }
+
+    if (!mqttMessagesPrefix) {
+      defaults.mqttMessagesPrefix = defaultMqttMessagesPrefix;
+    }
+  }
+
+  if (!certsResponse) {
+    debug('Grabbing cert...', !!verbose);
+    let defaultJsonCert = cachedDefaults.certsResponse || '';
+
+    if (!defaultJsonCert) {
+      debug('Fetching cert from device API.\n', !!verbose);
+      const { data } = await conn.post(
+        `/v1/devices/${deviceId}/certificates`,
+        deviceOwnershipCode,
+      );
+
+      defaultJsonCert = data;
+    }
+
+    defaults.certsResponse = defaultJsonCert;
+  }
+
+  await cache.set(cacheFile, defaults);
+  return defaults;
+};
+
+export const run = async (config: SimulatorConfig): Promise<void> => {
   const {
     deviceId,
     apiKey,
@@ -74,31 +140,14 @@ const getConfig = (args: any, env: any): SimulatorConfig =>
     endpoint,
     mqttMessagesPrefix,
     deviceOwnershipCode,
-    verbose,
     associate,
+    verbose,
   } = config;
 
   const divider: string = '********************************************';
   info(divider);
 
-  if (!deviceId) {
-    config.deviceId = `nrfsim-${Math.floor(
-      Math.random() * 1000000000000000000000,
-    )}`;
-  }
-
-  // create a connection to the device API
-  const conn = axios.create({
-    baseURL: apiHost,
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
-  });
-
-  conn.interceptors.request.use((config: any) => {
-    debug(config, !!verbose);
-    return config;
-  });
+  config.deviceId = deviceId || generateDeviceId();
 
   // grab the defaults from the API
   if (!(certsResponse && endpoint && mqttMessagesPrefix)) {
@@ -109,47 +158,20 @@ const getConfig = (args: any, env: any): SimulatorConfig =>
       return;
     }
 
-    if (!endpoint || !mqttMessagesPrefix) {
-      info(`Grabbing mqttEndpoint and messagesPrefix...`);
+    const defaults: DeviceDefaults = await getDefaults({
+      deviceId: config.deviceId,
+      deviceOwnershipCode,
+      mqttMessagesPrefix,
+      certsResponse,
+      endpoint,
+      apiHost,
+      apiKey,
+      verbose,
+    });
 
-      const {
-        data: {
-          mqttEndpoint,
-          topics: { messagesPrefix },
-        },
-      } = await conn.get(`/v1/account`);
-
-      if (!endpoint) {
-        config.endpoint = mqttEndpoint;
-      }
-
-      if (!mqttMessagesPrefix) {
-        config.mqttMessagesPrefix = messagesPrefix;
-      }
-    }
-
-    if (!certsResponse) {
-      info('Grabbing cert...');
-      let jsonCert: string;
-
-      // check the cache for a cert
-      const cacheFile = cache.getFilePath(config.deviceId);
-
-      if (cache.exists(cacheFile)) {
-        jsonCert = await cache.get(cacheFile);
-        info(`Grabbed cert from ${cacheFile}`);
-      } else {
-        const { data } = await conn.post(
-          `/v1/devices/${config.deviceId}/certificates`,
-          deviceOwnershipCode,
-        );
-
-        jsonCert = data;
-        await cache.set(cacheFile, jsonCert);
-      }
-
-      config.certsResponse = JSON.stringify(jsonCert);
-    }
+    config.certsResponse = JSON.stringify(defaults.certsResponse);
+    config.mqttMessagesPrefix = defaults.mqttMessagesPrefix;
+    config.endpoint = defaults.endpoint;
   }
 
   info(`
@@ -168,10 +190,14 @@ ${divider}
       info(`ASSOCIATING ${config.deviceId} WITH ACCOUNT #${config.apiKey}`);
 
       try {
-        await conn.put(
-          `/v1/association/${config.deviceId}`,
-          config.deviceOwnershipCode,
-        );
+        await associateDevice({
+          deviceId: config.deviceId,
+          deviceOwnershipCode,
+
+          apiHost,
+          apiKey,
+          verbose,
+        });
 
         info('DEVICE ASSOCIATED!');
       } catch (err) {
@@ -180,7 +206,7 @@ ${divider}
     };
   }
 
-  simulator(config).catch(error => {
-    process.stderr.write(`${red(error)}\n`);
+  simulator(config).catch(err => {
+    error(err);
   });
-})().catch(err => error(`Simulator failed: ${err}`));
+};
