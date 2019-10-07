@@ -26,9 +26,12 @@ const getConn = (apiHost: string, apiKey: string, verbose: boolean) => {
 };
 
 export const error = (message: string) => console.log(red(message));
+
 export const info = (message: string) => console.log(yellow(message));
+
 export const debug = (message: string, verbose: boolean) =>
   verbose && console.log(cyan(message));
+
 export const generateDeviceId = () =>
   `nrfsim-${Math.floor(Math.random() * 1000000000000000000000)}`;
 
