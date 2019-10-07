@@ -154,7 +154,7 @@ export const nrfdevice = (
 
   client.on('reconnect', () => {
     console.log(magenta('reconnect'));
-    // notifyOfConnection('reconnect');
+    notifyOfConnection('reconnect');
   });
 
   const publish = (topic: string, payload: object): Promise<void> =>
