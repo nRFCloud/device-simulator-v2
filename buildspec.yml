@@ -18,10 +18,6 @@ phases:
     - npm run lint
   build:
     commands:
-      - npx tsc
+      - npm run build
       - npx greenkeeper-lockfile-upload
-      - mkdir bin
-      - echo "#!/usr/bin/env node" > bin/simulator.js
-      - cat dist/simulator.js >> bin/simulator.js
-      - chmod +x bin/simulator.js
       - npm i semantic-release; npx semantic-release || true
