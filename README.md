@@ -6,19 +6,26 @@
 
 This is an AWS IoT Thing simulator for nRF91. This project combines the [device-simulator](https://github.com/nRFCloud/device-simulator) and [dfu-device-simulator](https://github.com/nRFCloud/dfu-device-simulator) projects. It omits the legacy pairing mechanism and uses the Device API for creating JITP certs and associating a newly provisioned device with your tenant.
 
-## Getting Started
-```sh
-# install deps
-npm ci
 
-# create cache dir (for certs)
-mkdir cache
+## Usage
 
-# compile to js
-npm run build
+### Most basic usage
+The most basic usage is just creating a device. For that you just need an API key. The device ID will be randomly generated and the rest of the necessary information (mqtt endpoint, cert, and mqtt prefix) will be pulled from the device API. 
 
-# install jq
-https://stedolan.github.io/jq/download/
+This will create a new device with AWS IoT, it will not associate it to your account (use the `-a` flag) for that.
+```
+npx @nrfcloud/device-simulator-v2 -k <api key>
+```
+
+### Associate device to your account
+This will create a new device and associate it to the account for the API key.
+```
+npx @nrfcloud/device-simulator-v2 -k <api key> -d <device id (optional)> -a
+```
+
+### Run GPS sensor
+```
+npx @nrfcloud/device-simulator-v2 -k <api key> -d <device id (optional)> -s gps|acc|device|temp
 ```
 
 ## Options
@@ -39,40 +46,29 @@ These are the options. Most of them are set with environment variables.
   -h, --help                                         Output usage information
 ```
 
-Use `npx device-simulator-v2 --help` to see the most recent list of options.
+Use `npx @nrfcloud/device-simulator-v2 --help` to see the most recent list of options.
 
-## Installation (in another repo)
-```bash
-# install package
-npm i -D @nrfcloud/device-simulator-v2
+## Contributing
+```sh
+# install deps
+npm ci
 
-# create directory to cache device certificates
-mkdir cache
-```
+# install jq
+https://stedolan.github.io/jq/download/
 
-## Usage
+# modify your files
 
-### Most basic usage
-The most basic usage is just creating a device. For that you just need an API key. The device ID will be randomly generated and the rest of the necessary information (mqtt endpoint, cert, and mqtt prefix) will be pulled from the device API. 
+# compile
+npm run build
 
-This will create a new device with AWS IoT, it will not associate it to your account (use the `-a` flag) for that.
-```
-npx device-simulator-v2 -k <api key>
-```
-
-### Associate device to your account
-This will create a new device and associate it to the account for the API key.
-```
-npx device-simulator-v2 -k <api key> -d <device id (optional)> -a
-```
-
-### Run GPS sensor
-```
-npx device-simulator-v2 -k <api key> -d <device id (optional)> -s gps
+# test
+./dist/cli.js <options>
 ```
 
 ## Recipes
-### Connect a device and subscribe to the job updates MQTT topic
+### Connect a device and subscribe to the job updates MQTT topic. 
+
+*** The following commands require the environment variables to be set ***
 
 1. Log in to [nrfcloud.com](https://nrfcloud.com) and go to the accounts page and grab your API key.
 1. Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
@@ -96,7 +92,7 @@ export MQTT_ENDPOINT=$(aws iot describe-endpoint --endpoint-type iot:Data-ATS | 
 
 5. Run the simulator, which will just-in-time provision (JITP) the device on nRFCloud and subscribe it to the job updates topic (*NOTE*: JITP can take 20-30 seconds, so be patient...):
 ```sh
-npx device-simulator-v2
+npx @nrfcloud/device-simulator-v2
 ```
 You should see some JSON output, with something like this at the end:
 ```sh
@@ -122,7 +118,7 @@ export MQTT_MESSAGES_PREFIX=$(curl $API_HOST/v1/account -H "Authorization: Beare
 ```
 5. Restart the simulator:
 ```sh
-npx device-simulator-v2
+npx @nrfcloud/device-simulator-v2
 ```
 You should now see an additional line of JSON output indicating that your device has successfully subscribed to the jobs topic for DFU:
 ```sh
@@ -157,7 +153,7 @@ curl -X POST $API_HOST/v1/dfu-jobs -H "Authorization: Bearer $API_KEY" -d '{ "de
 curl $API_HOST/v1/dfu-jobs -H "Authorization: Bearer $API_KEY" | jq
 ```
 
-8. Verify the job succeeded in the other tab where you ran `npx device-simulator-v2`. You should see something like:
+8. Verify the job succeeded in the other tab where you ran `npx @nrfcloud/device-simulator-v2`. You should see something like:
 ```sh
 < $aws/things/nrf-9354733136/jobs/notify-next
 <
@@ -172,11 +168,11 @@ previously created jobs that has a status other than `SUCCEEDED`.
 1. Shut down the script (CMD or CTRL + C).
 2. Restart the simulator with the GPS service enabled:
 ```sh
-npx device-simulator-v2 -s gps
+npx @nrfcloud/device-simulator-v2 -s gps
 ```
 Or restart the simulator with all the services enabled:
 ```sh
-npx device-simulator-v2 -s gps,acc,device,temp
+npx @nrfcloud/device-simulator-v2 -s gps,acc,device,temp
 ```
 If you want to use different data simply replace the appropriate file in [./data/sensors](https://github.com/nRFCloud/device-simulator-v2/tree/master/data/sensors) or change tne appropriate file path(s) in [simulator.ts](src/simulator.ts). (There is some additional GPS data in this repo for routes around Portland, Oregon.)
 
