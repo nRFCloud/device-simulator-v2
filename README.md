@@ -50,8 +50,9 @@ node dist/simulator.js
 You should see some JSON output, with something like this at the end:
 ```sh
 reported firmware version 1
+subscribed to $aws/things/<deviceId>/jobs/notify-next
 ```
-This indicates that the device connected to AWS, was provisioned, and updated its shadow.
+This indicates that the device connected to AWS, was provisioned, and updated its shadow. It also has permission to subscribe to the topic for receiving IoT jobs. Note: the `mqttMessagesPrefix` should indicate `undefined` at this point.
 
 ### Associate the device with your account (tenant)
 1. Shut down the script (CMD or CTRL + C).
@@ -73,10 +74,7 @@ export MQTT_MESSAGES_PREFIX=$(curl $API_HOST/v1/account -H "Authorization: Beare
 ```sh
 node dist/simulator.js
 ```
-You should now see an additional line of JSON output indicating that your device has successfully subscribed to the jobs topic for DFU:
-```sh
-subscribed to $aws/things/<deviceId>/jobs/notify-next
-```
+You should now see the `mqttMessagesPrefix` populated with a value that consists of `<stage>/<tenantId>`.
 
 ### Create a new DFU job
 1. Open a new terminal window/tab.
@@ -93,7 +91,7 @@ export FILENAME=$(curl $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY
 
 5. Enable DFU on the device (if not already enabled)
 ```sh
-curl -X PATCH $API_HOST/v1/devices/$DEVICE_ID/state -d '{ "reported": { "device": { "serviceInfo": ["dfu"] } } }' -H "Authorization: Bearer $API_KEY"
+curl -X PATCH $API_HOST/v1/devices/$DEVICE_ID/state -d '{ "reported": { "device": { "serviceInfo": { "fota_v1": ["APP","MODEM"] } } } }' -H "Authorization: Bearer $API_KEY"
 ```
 
 6. Create the DFU job
