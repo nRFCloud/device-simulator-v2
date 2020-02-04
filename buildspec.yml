@@ -24,4 +24,4 @@ phases:
       - echo "#!/usr/bin/env node" > bin/simulator.js
       - cat dist/simulator.js >> bin/simulator.js
       - chmod +x bin/simulator.js
-      - npm i semantic-release; npx semantic-release || true
+      - npx semantic-release --debug || true

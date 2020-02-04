@@ -33,6 +33,7 @@
     "json-schema-to-typescript": "^7.1.0",
     "lint-staged": "^8.2.0",
     "prettier": "^1.18.1",
+    "semantic-release": "^17.0.1",
     "tslint": "^5.17.0",
     "typescript": "^3.5.1"
   },
@@ -54,7 +55,9 @@
     "access": "public"
   },
   "release": {
-    "branch": "saga",
+    "branches": [
+      "saga"
+    ],
     "remoteTags": true
   },
   "files": [
