@@ -57,8 +57,9 @@ export type DeviceConfig = {
   privateKey: Buffer | string;
   endpoint: string;
   appFwVersion: string;
-  mqttMessagesPrefix: string;
 };
+
+let mqttMessagesPrefix = '';
 
 export const nrfdevice = (
   config: DeviceConfig,
@@ -71,7 +72,6 @@ export const nrfdevice = (
     privateKey,
     endpoint,
     appFwVersion,
-    mqttMessagesPrefix,
   } = config;
   const topics = (deviceId: string) => ({
     jobs: {
@@ -82,6 +82,10 @@ export const nrfdevice = (
       }),
     },
     shadow: {
+      get: {
+        _: `$aws/things/${deviceId}/shadow/get`,
+        accepted: `$aws/things/${deviceId}/shadow/get/accepted`,
+      },
       update: {
         _: `$aws/things/${deviceId}/shadow/update`,
       },
@@ -94,7 +98,6 @@ export const nrfdevice = (
     region: endpoint.split('.')[2],
     topics,
     appFwVersion: parseInt(appFwVersion, 10),
-    mqttMessagesPrefix,
   });
 
   console.log(cyan(`connecting to ${yellow(endpoint)}...`));
@@ -113,12 +116,16 @@ export const nrfdevice = (
 
   client.on('connect', async () => {
     console.log(green('connected'));
+    await getShadow();
     await waitForJobs(appFwVersion);
   });
 
   client.on('message', (topic: string, payload: any) => {
     console.log(magenta(`< ${topic}`));
     const p = payload ? JSON.parse(payload.toString()) : {};
+    if (topic.match(/shadow\/get\/accepted/)) {
+      delete p.metadata;
+    }
     console.log(magenta(`<`));
     console.log(magenta(JSON.stringify(p, null, 2)));
     if (listeners[topic]) {
@@ -197,6 +204,22 @@ export const nrfdevice = (
 
   const unregisterListener = (topic: string) => {
     delete listeners[topic];
+  };
+
+  const getShadow = async () => {
+    const shadowGetAcceptedTopic = topics(deviceId).shadow.get.accepted;
+    await subscribe(shadowGetAcceptedTopic);
+    registerListener(shadowGetAcceptedTopic, ({ payload: { state } }) => {
+      const mqttTopicPrefix = state['desired']['nrfcloud_mqtt_topic_prefix'];
+      if (mqttTopicPrefix) {
+        mqttMessagesPrefix = `${mqttTopicPrefix}m`;
+        console.log(
+          green(`MQTT Messages Prefix set to ${cyan(mqttMessagesPrefix)}`),
+        );  
+      }
+      unregisterListener(shadowGetAcceptedTopic);
+    });
+    await publish(topics(deviceId).shadow.get._, {});
   };
 
   const waitForJobs = async (appFwVersion: string) => {
@@ -332,7 +355,9 @@ export const nrfdevice = (
     publish,
     registerListener,
     unregisterListener,
-    run: async (args: { appFwVersion: string }) =>
-      waitForJobs(args.appFwVersion),
+    run: async (args: { appFwVersion: string }) => {
+      getShadow();
+      waitForJobs(args.appFwVersion);
+    },
   };
 };

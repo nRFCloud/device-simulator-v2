@@ -15,7 +15,6 @@ const simulator = async ({
   certsResponse,
   endpoint,
   appFwVersion,
-  mqttMessagesPrefix,
   services,
 }: program.Command) => {
   const certs = JSON.parse(certsResponse);
@@ -30,7 +29,6 @@ const simulator = async ({
     clientCert,
     endpoint,
     appFwVersion,
-    mqttMessagesPrefix,
   };
 
   console.log(cyan(`connecting to ${yellow(endpoint)}...`));
@@ -96,11 +94,6 @@ program
     '-a, --app-fw-version <appFwVersion>',
     'Version of the app firmware',
     1,
-  )
-  .option(
-    '-m, --mqtt-messages-prefix <mqttMessagesPrefix>',
-    'The prefix for the MQTT unique to this tenant for sending and receiving device messages',
-    process.env.MQTT_MESSAGES_PREFIX,
   )
   .option(
     '-s, --services <services>',

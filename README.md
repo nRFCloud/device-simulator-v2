@@ -49,10 +49,42 @@ node dist/simulator.js
 ```
 You should see some JSON output, with something like this at the end:
 ```sh
+> $aws/things/nrf-6383894676/shadow/update
+>
+{
+  "state": {
+    "reported": {
+      "nrfcloud__dfu_v1__app_v": 1
+    }
+  }
+}
 reported firmware version 1
+< $aws/things/nrf-6383894676/shadow/get/accepted
+<
+{
+  "state": {
+    "desired": {
+      "pairing": {
+        "state": "not_associated"
+      }
+    },
+    "reported": {
+      "connected": true,
+      "sessionIdentifier": "2184d5cb-b40b-49a4-812d-4c7fdeb6afe9",
+      "nrfcloud__dfu_v1__app_v": 1
+    },
+    "delta": {
+      "pairing": {
+        "state": "not_associated"
+      }
+    }
+  },
+  "version": 57,
+  "timestamp": 1582239029
+}
 subscribed to $aws/things/<deviceId>/jobs/notify-next
 ```
-This indicates that the device connected to AWS, was provisioned, and updated its shadow. It also has permission to subscribe to the topic for receiving IoT jobs. Note: the `mqttMessagesPrefix` should indicate `undefined` at this point.
+This indicates that the device connected to AWS, was provisioned, and updated its shadow. It also has permission to subscribe to the topic for receiving IoT jobs.
 
 ### Associate the device with your account (tenant)
 1. Shut down the script (CMD or CTRL + C).
@@ -66,15 +98,11 @@ curl $API_HOST/v1/devices/$DEVICE_ID -H "Authorization: Bearer $API_KEY" | jq
 ```
 If you get a `404` error, try again. It can take a few seconds for the database to record the new device association.
 
-4. Set the `MQTT_MESSAGES_PREFIX` enviroment variable:
-```sh
-export MQTT_MESSAGES_PREFIX=$(curl $API_HOST/v1/account -H "Authorization: Bearer $API_KEY" | jq -r '.topics.messagesPrefix')
-```
-5. Restart the simulator:
+4. Restart the simulator:
 ```sh
 node dist/simulator.js
 ```
-You should now see the `mqttMessagesPrefix` populated with a value that consists of `<stage>/<tenantId>`.
+You should now see a lot more in the shadow JSON, as well as see something like `MQTT Messages Prefix set to dev/beb3c20a-e6e1-4d77-bfbb-c2e40490216f/m`. Your device is now associated with your account (tenant) and is ready to start sending and receiving device messages!
 
 ### Create a new DFU job
 1. Open a new terminal window/tab.
