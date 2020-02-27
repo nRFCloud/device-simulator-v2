@@ -107,29 +107,34 @@ You should now see a lot more in the shadow JSON, as well as see something like 
 ### Create a new DFU job
 1. Open a new terminal window/tab.
 2. Set up the environment variables (see above, but use the same `DEVICE_ID` that you had generated).
-3. Upload a dummy firmware file as a base64-encoded string.
+3. Upload a dummy firmware file as binary data.
 ```sh
-curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -d '{"file": "ewogICAgIm9wZXJhdGlvbiI6ImN1c3RvbUpvYiIsCiAgICAib3RoZXJJbmZvIjoic29tZVZhbHVlIgp9Cg==", "filename": "my-firmware.bin"}'
+curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/zip" --data-binary @data/dfu_mcuboot.zip | jq
+```
+Note that you can also upload your firmware as a base64-encoded string:
+```sh
+export FILE=$(base64 <absolute_path_to_the_data_folder>/dfu_mcuboot.zip)
+curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -H "Content-Type: text/plain" -d $FILE
 ```
 
-4. Set the `FILENAME` variable by calling the `firmwares` endpoint:
+4. Set the `FW_BUNDLE_ID` variable by calling the `firmwares` endpoint:
 ```sh
-export FILENAME=$(curl $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" | jq -r '.items[0].filename')
+export FW_BUNDLE_ID=$(curl $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" | jq -r '.items[0].bundleId')
 ```
 
-5. Enable DFU on the device (if not already enabled)
+1. Enable the "BOOT" type of DFU on the device (if not already enabled). (The other two types are "APP" and "MODEM").
 ```sh
-curl -X PATCH $API_HOST/v1/devices/$DEVICE_ID/state -d '{ "reported": { "device": { "serviceInfo": { "fota_v1": ["APP","MODEM"] } } } }' -H "Authorization: Bearer $API_KEY"
+curl -X PATCH $API_HOST/v1/devices/$DEVICE_ID/state -d '{ "reported": { "device": { "serviceInfo": { "fota_v1": ["BOOT"] } } } }' -H "Authorization: Bearer $API_KEY"
 ```
 
 6. Create the DFU job
 ```sh
-curl -X POST $API_HOST/v1/dfu-jobs -H "Authorization: Bearer $API_KEY" -d '{ "deviceIdentifiers": ["'$DEVICE_ID'"], "filename": "'$FILENAME'", "version": "1.1" }'
+export JOB_ID=$(curl -X POST $API_HOST/v1/dfu-jobs -H "Authorization: Bearer $API_KEY" -d '{ "deviceIdentifiers": ["'$DEVICE_ID'"], "bundleId": "'$FW_BUNDLE_ID'" }' | jq -r '.jobId')
 ```
 
 7. View your DFU job
 ```sh
-curl $API_HOST/v1/dfu-jobs -H "Authorization: Bearer $API_KEY" | jq
+curl $API_HOST/v1/dfu-jobs/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
 ```
 
 8. Verify the job succeeded in the other tab where you ran `node dist/simulator.js`. You should see something like:
@@ -140,8 +145,16 @@ curl $API_HOST/v1/dfu-jobs -H "Authorization: Bearer $API_KEY" | jq
   "timestamp": 1568062501
 }
 ```
-If you do not see this it's possible that a previously created job has not succeeded. This will block any newly created jobs from running. You can check this by using the `GET /dfu-jobs` endpoint (as you did above) and then using `DELETE $API_HOST/v1/dfu-jobs/<your-jobId>` for any 
-previously created jobs that has a status other than `SUCCEEDED`.
+If you do not see this it's possible that a previously created job has not succeeded. This will block any newly created jobs from running. You can check this by using the `GET /dfu-jobs` endpoint (as you did above) and then using `DELETE $API_HOST/v1/dfu-jobs/<your-jobId>` for any previously created jobs that has a status other than `SUCCEEDED`.
+
+8. You can also verify the job succeeded by using the Device API:
+```sh
+curl $API_HOST/v1/dfu-job-execution-statuses/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
+```
+or 
+```sh
+curl $API_HOST/v1/dfu-job-executions/$DEVICE_ID/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
+```
 
 ### Enable Sensors and Services
 1. Shut down the script (CMD or CTRL + C).
@@ -161,6 +174,6 @@ GPS data is based on NMEA sentences. If you want to make your own GPS data, go t
 
 ```sh
 curl -X DELETE $API_HOST/v1/dfu-jobs/<your-jobId> -H "Authorization: Bearer $API_KEY"
-curl -X DELETE $API_HOST/v1/firmwares/$FILENAME -H "Authorization: Bearer $API_KEY"
+curl -X DELETE $API_HOST/v1/firmwares/$BUNDLE_ID -H "Authorization: Bearer $API_KEY"
 curl -X DELETE $API_HOST/v1/devices/$DEVICE_ID -d $DEVICE_OWNERSHIP_CODE -H "Authorization: Bearer $API_KEY"
 ```
