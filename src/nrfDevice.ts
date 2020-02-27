@@ -215,7 +215,7 @@ export const nrfdevice = (
         mqttMessagesPrefix = `${mqttTopicPrefix}m`;
         console.log(
           green(`MQTT Messages Prefix set to ${cyan(mqttMessagesPrefix)}`),
-        );  
+        );
       }
       unregisterListener(shadowGetAcceptedTopic);
     });
