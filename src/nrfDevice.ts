@@ -96,7 +96,7 @@ export const nrfdevice = (
     deviceId,
     endpoint,
     region: endpoint.split('.')[2],
-    topics,
+    topics: topics(deviceId),
     appFwVersion: parseInt(appFwVersion, 10),
   });
 
