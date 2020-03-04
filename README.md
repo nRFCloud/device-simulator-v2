@@ -117,9 +117,9 @@ export FILE=$(base64 <absolute_path_to_the_data_folder>/dfu_mcuboot.zip)
 curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -H "Content-Type: text/plain" -d $FILE
 ```
 
-4. Set the `FW_FW_` variable by calling the `firmwares` endpoint:
+4. Set the `BUNDLE_ID` variable by calling the `firmwares` endpoint:
 ```sh
-export FW_FW_=$(curl $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" | jq -r '.items[0].bundleId')
+export BUNDLE_ID=$(curl $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" | jq -r '.items[0].bundleId')
 ```
 
 1. Enable the "BOOT" type of DFU on the device (if not already enabled). (The other two types are "APP" and "MODEM").
@@ -129,7 +129,7 @@ curl -X PATCH $API_HOST/v1/devices/$DEVICE_ID/state -d '{ "reported": { "device"
 
 6. Create the DFU job
 ```sh
-export JOB_ID=$(curl -X POST $API_HOST/v1/dfu-jobs -H "Authorization: Bearer $API_KEY" -d '{ "deviceIdentifiers": ["'$DEVICE_ID'"], "bundleId": "'$FW_FW_'" }' | jq -r '.jobId')
+export JOB_ID=$(curl -X POST $API_HOST/v1/dfu-jobs -H "Authorization: Bearer $API_KEY" -d '{ "deviceIdentifiers": ["'$DEVICE_ID'"], "bundleId": "'$BUNDLE_ID'" }' | jq -r '.jobId')
 ```
 
 7. View your DFU job
@@ -174,6 +174,6 @@ GPS data is based on NMEA sentences. If you want to make your own GPS data, go t
 
 ```sh
 curl -X DELETE $API_HOST/v1/dfu-jobs/<your-jobId> -H "Authorization: Bearer $API_KEY"
-curl -X DELETE $API_HOST/v1/firmwares/$FW_BUNDLE_ID -H "Authorization: Bearer $API_KEY"
+curl -X DELETE $API_HOST/v1/firmwares/$BUNDLE_ID -H "Authorization: Bearer $API_KEY"
 curl -X DELETE $API_HOST/v1/devices/$DEVICE_ID -d $DEVICE_OWNERSHIP_CODE -H "Authorization: Bearer $API_KEY"
 ```
