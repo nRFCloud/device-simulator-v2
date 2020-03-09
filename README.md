@@ -122,7 +122,7 @@ curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -H "Cont
 export BUNDLE_ID=$(curl $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" | jq -r '.items[0].bundleId')
 ```
 
-1. Enable the "BOOT" type of DFU on the device (if not already enabled). (The other two types are "APP" and "MODEM").
+5. Enable the "BOOT" type of DFU on the device (if not already enabled). (The other two types are "APP" and "MODEM").
 ```sh
 curl -X PATCH $API_HOST/v1/devices/$DEVICE_ID/state -d '{ "reported": { "device": { "serviceInfo": { "fota_v1": ["BOOT"] } } } }' -H "Authorization: Bearer $API_KEY"
 ```
@@ -147,7 +147,7 @@ curl $API_HOST/v1/dfu-jobs/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
 ```
 If you do not see this it's possible that a previously created job has not succeeded. This will block any newly created jobs from running. You can check this by using the `GET /dfu-jobs` endpoint (as you did above) and then using `DELETE $API_HOST/v1/dfu-jobs/<your-jobId>` for any previously created jobs that has a status other than `SUCCEEDED`.
 
-8. You can also verify the job succeeded by using the Device API:
+9. You can also verify the job succeeded by using the Device API:
 ```sh
 curl $API_HOST/v1/dfu-job-execution-statuses/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
 ```
