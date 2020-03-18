@@ -356,8 +356,8 @@ export const nrfdevice = (
     registerListener,
     unregisterListener,
     run: async (args: { appFwVersion: string }) => {
-      getShadow();
-      waitForJobs(args.appFwVersion);
+      getShadow().catch(e => console.error(e));
+      waitForJobs(args.appFwVersion).catch(e => console.error(e));
     },
   };
 };
