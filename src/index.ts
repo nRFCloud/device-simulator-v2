@@ -13,6 +13,7 @@ const getConn = (apiHost: string, apiKey: string, verbose: boolean) => {
       baseURL: apiHost,
       headers: {
         Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'text/plain',
       },
     });
 
