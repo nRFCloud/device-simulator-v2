@@ -57,6 +57,7 @@ export type DeviceConfig = {
   privateKey: Buffer | string;
   endpoint: string;
   appFwVersion: string;
+  mqttMessagesPrefix: string;
 };
 
 let mqttMessagesPrefix = '';

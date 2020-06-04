@@ -1,23 +1,31 @@
-import * as program from 'commander';
-import { cyan, red, yellow } from 'colors';
-import * as dotenv from 'dotenv';
+import { cyan, yellow } from 'colors';
 import * as path from 'path';
+
 import { nrfdevice, DeviceConfig } from './nrfDevice';
 import { ISensor } from './sensors/Sensor';
 import { FakeGps } from './sensors/FakeGps';
 import { FakeAccelerometer } from './sensors/FakeAccelerometer';
 import { FakeThermometer } from './sensors/FakeThermometer';
 import { FakeDevice } from './sensors/FakeDevice';
+import { SimulatorConfig } from './index';
 
-dotenv.config();
-
-const simulator = async ({
+export const simulator = async ({
   certsResponse,
   endpoint,
   appFwVersion,
-  services,
-}: program.Command) => {
-  const certs = JSON.parse(certsResponse);
+  mqttMessagesPrefix,
+  services = '',
+  onConnect,
+}: SimulatorConfig): Promise<void> => {
+  let certs;
+
+  try {
+    certs = JSON.parse(certsResponse);
+  } catch (err) {
+    console.log('certsReponse', certsResponse);
+    throw new Error(`Error parsing certsResponse ${err} ${certsResponse}`);
+  }
+
   const caCert = Buffer.from(certs.caCert, 'utf-8');
   const clientCert = Buffer.from(certs.clientCert, 'utf-8');
   const privateKey = Buffer.from(certs.privateKey, 'utf-8');
@@ -29,15 +37,17 @@ const simulator = async ({
     clientCert,
     endpoint,
     appFwVersion,
+    mqttMessagesPrefix,
   };
 
   console.log(cyan(`connecting to ${yellow(endpoint)}...`));
 
   const sensors = new Map<string, ISensor>();
+
   if (services) {
     services.split(',').map((service: string) => {
       const sensorDataFilePath = (filename: string) =>
-        path.resolve(__dirname, '..', 'data', 'sensors', filename);
+        path.resolve(__dirname, 'data', 'sensors', filename);
 
       switch (service) {
         case 'gps':
@@ -76,31 +86,5 @@ const simulator = async ({
     });
   }
 
-  nrfdevice(config, sensors);
+  nrfdevice(config, sensors, onConnect);
 };
-
-program
-  .option(
-    '-cr, --certs-response <certsResponse>',
-    'JSON returned by call to the Device API endpoint: POST /devices/{deviceid}/certificates',
-    process.env.CERTS_RESPONSE,
-  )
-  .option(
-    '-e, --endpoint <endpoint>',
-    'AWS IoT MQTT endpoint',
-    process.env.MQTT_ENDPOINT,
-  )
-  .option(
-    '-a, --app-fw-version <appFwVersion>',
-    'Version of the app firmware',
-    1,
-  )
-  .option(
-    '-s, --services <services>',
-    'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]',
-  )
-  .parse(process.argv);
-
-simulator(program).catch(error => {
-  process.stderr.write(`${red(error)}\n`);
-});
