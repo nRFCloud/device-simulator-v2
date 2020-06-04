@@ -155,10 +155,8 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
 
   // grab the defaults from the API
   if (!(certsResponse && endpoint && mqttMessagesPrefix)) {
-    if (!(apiKey && apiHost && deviceOwnershipCode)) {
-      error(
-        'apiKey, apiHost, and deviceOwnershipCode are required to set sensible defaults',
-      );
+    if (!(apiKey && apiHost)) {
+      error('apiKey is required');
       return;
     }
 
@@ -191,7 +189,9 @@ ${divider}
 
   if (associate) {
     config.onConnect = async () => {
-      info(`ASSOCIATING ${config.deviceId} WITH ACCOUNT #${config.apiKey}`);
+      info(
+        `ATTEMPTING TO ASSOCIATE ${config.deviceId} WITH API KEY ${config.apiKey}`,
+      );
 
       try {
         await associateDevice({

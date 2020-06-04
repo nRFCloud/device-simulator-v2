@@ -90,11 +90,6 @@ export const nrfdevice = (
       }),
     },
     shadow: {
-      // REMOVED?
-      get: {
-        _: `$aws/things/${deviceId}/shadow/get`,
-        accepted: `$aws/things/${deviceId}/shadow/get/accepted`,
-      },
       update: {
         _: `$aws/things/${deviceId}/shadow/update`,
       },
@@ -140,7 +135,6 @@ export const nrfdevice = (
     console.log(green('connected'));
     notifyOfConnection('connect');
     await initShadow(appFwVersion);
-    await getShadow();
     await updateFwVersion(appFwVersion);
     await waitForJobs();
   });
@@ -148,11 +142,6 @@ export const nrfdevice = (
   client.on('message', (topic: string, payload: any) => {
     console.log(magenta(`< ${topic}`));
     const p = payload ? JSON.parse(payload.toString()) : {};
-
-    // REMOVED?
-    if (topic.match(/shadow\/get\/accepted/)) {
-      delete p.metadata;
-    }
 
     console.log(magenta(`<`));
     console.log(magenta(JSON.stringify(p, null, 2)));
@@ -233,22 +222,6 @@ export const nrfdevice = (
 
   const unregisterListener = (topic: string) => {
     delete listeners[topic];
-  };
-
-  const getShadow = async () => {
-    const shadowGetAcceptedTopic = topics(deviceId).shadow.get.accepted;
-    await subscribe(shadowGetAcceptedTopic);
-    registerListener(shadowGetAcceptedTopic, ({ payload: { state } }) => {
-      const mqttTopicPrefix = state['desired']['nrfcloud_mqtt_topic_prefix'];
-      if (mqttTopicPrefix) {
-        mqttMessagesPrefix = `${mqttTopicPrefix}m`;
-        console.log(
-          green(`MQTT Messages Prefix set to ${cyan(mqttMessagesPrefix)}`),
-        );
-      }
-      unregisterListener(shadowGetAcceptedTopic);
-    });
-    await publish(topics(deviceId).shadow.get._, {});
   };
 
   const waitForJobs = async () => {
@@ -438,7 +411,6 @@ export const nrfdevice = (
     registerListener,
     unregisterListener,
     run: async (args: { appFwVersion: string }) => {
-      await getShadow().catch(e => console.error(e));
       await updateFwVersion(args.appFwVersion);
       await waitForJobs().catch(e => console.error(e));
     },
