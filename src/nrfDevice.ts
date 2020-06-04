@@ -3,6 +3,7 @@ import { mqttClient } from './mqttClient';
 import { ISensor } from './sensors/Sensor';
 import { createService } from './app/services/createService';
 import { AppMessage } from './app/appMessage';
+import { device } from 'aws-iot-device-sdk';
 
 export type SendMessage = (timestamp: number, message: AppMessage) => void;
 
@@ -65,6 +66,7 @@ let mqttMessagesPrefix = '';
 export const nrfdevice = (
   config: DeviceConfig,
   sensors: Map<string, ISensor>,
+  onConnect?: (deviceId: string, client: device) => void,
 ) => {
   const {
     deviceId,
@@ -73,16 +75,22 @@ export const nrfdevice = (
     privateKey,
     endpoint,
     appFwVersion,
+    mqttMessagesPrefix: passedMqttMessagesPrefix,
   } = config;
+
+  mqttMessagesPrefix = passedMqttMessagesPrefix;
+
   const topics = (deviceId: string) => ({
     jobs: {
       notifyNext: `$aws/things/${deviceId}/jobs/notify-next`,
+
       update: (jobId: string) => ({
         _: `$aws/things/${deviceId}/jobs/${jobId}/update`,
         accepted: `$aws/things/${deviceId}/jobs/${jobId}/update/accepted`,
       }),
     },
     shadow: {
+      // REMOVED?
       get: {
         _: `$aws/things/${deviceId}/shadow/get`,
         accepted: `$aws/things/${deviceId}/shadow/get/accepted`,
@@ -93,12 +101,25 @@ export const nrfdevice = (
     },
   });
 
+  let connectedOrReconnected: boolean = false;
+
+  const notifyOfConnection = (eventName: string) => {
+    if (!onConnect || connectedOrReconnected) {
+      return;
+    }
+
+    console.log(yellow(`TRIGGERING ONCONNECT CALLBACK ON "${eventName}"`));
+    connectedOrReconnected = true;
+    onConnect(deviceId, client);
+  };
+
   console.log({
     deviceId,
     endpoint,
     region: endpoint.split('.')[2],
     topics: topics(deviceId),
     appFwVersion: parseInt(appFwVersion, 10),
+    mqttMessagesPrefix,
   });
 
   console.log(cyan(`connecting to ${yellow(endpoint)}...`));
@@ -117,16 +138,22 @@ export const nrfdevice = (
 
   client.on('connect', async () => {
     console.log(green('connected'));
+    notifyOfConnection('connect');
+    await initShadow(appFwVersion);
     await getShadow();
-    await waitForJobs(appFwVersion);
+    await updateFwVersion(appFwVersion);
+    await waitForJobs();
   });
 
   client.on('message', (topic: string, payload: any) => {
     console.log(magenta(`< ${topic}`));
     const p = payload ? JSON.parse(payload.toString()) : {};
+
+    // REMOVED?
     if (topic.match(/shadow\/get\/accepted/)) {
       delete p.metadata;
     }
+
     console.log(magenta(`<`));
     console.log(magenta(JSON.stringify(p, null, 2)));
     if (listeners[topic]) {
@@ -145,6 +172,7 @@ export const nrfdevice = (
 
   client.on('reconnect', () => {
     console.log(magenta('reconnect'));
+    notifyOfConnection('reconnect');
   });
 
   const publish = (topic: string, payload: object): Promise<void> =>
@@ -223,23 +251,75 @@ export const nrfdevice = (
     await publish(topics(deviceId).shadow.get._, {});
   };
 
-  const waitForJobs = async (appFwVersion: string) => {
-    await reportAppFirmwareVersion(appFwVersion);
-    console.log(green(`reported firmware version ${yellow(appFwVersion)}`));
+  const waitForJobs = async () => {
     const job = await waitForNextUpdateJob();
     console.log(job);
     await acceptJob(job);
   };
 
-  const reportAppFirmwareVersion = async (fwVersion: string) => {
+  const updateFwVersion = async (appVersion: string): Promise<void> => {
+    await publish(topics(deviceId).shadow.update._, {
+      state: {
+        reported: {
+          device: {
+            deviceInfo: {
+              appVersion,
+            },
+          },
+        },
+      },
+    });
+    console.log(green(`Updated FW version to ${appVersion}`));
+  };
+
+  const initShadow = async (appVersion: string = ''): Promise<void> => {
     // Publish firmware version
     await publish(topics(deviceId).shadow.update._, {
       state: {
         reported: {
-          nrfcloud__dfu_v1__app_v: fwVersion,
+          device: {
+            serviceInfo: {
+              fota_v1: ['APP', 'MODEM'],
+              ui: [
+                'GPS',
+                'FLIP',
+                'TEMP',
+                'HUMID',
+                'AIR_PRESS',
+                'BUTTON',
+                'LIGHT',
+              ],
+            },
+            networkInfo: {
+              currentBand: 12,
+              supportedBands: '',
+              areaCode: 36874,
+              mccmnc: '310410',
+              ipAddress: '10.160.33.51',
+              ueMode: 2,
+              cellID: 84485647,
+              networkMode: 'LTE-M GPS',
+            },
+            simInfo: {
+              uiccMode: 1,
+              iccid: '',
+              imsi: '204080813516718',
+            },
+            deviceInfo: {
+              modemFirmware: 'mfw_nrf9160_1.1.0',
+              batteryVoltage: 3824,
+              imei: '352656100441776',
+              board: 'nrf9160_pca20035',
+              appVersion,
+              appName: 'asset_tracker',
+            },
+          },
         },
       },
     });
+    console.log(
+      green(`initialized device shadow. FW VERSION: ${yellow(appFwVersion)}`),
+    );
   };
 
   const waitForNextUpdateJob = (): Promise<JobExecution> =>
@@ -336,7 +416,8 @@ export const nrfdevice = (
           JobExecutionStatus.SUCCEEDED,
         );
         // handle next job
-        await waitForJobs(job.jobDocument.fwversion);
+        await updateFwVersion(job.jobDocument.fwversion);
+        await waitForJobs();
     }
   };
 
@@ -358,7 +439,8 @@ export const nrfdevice = (
     unregisterListener,
     run: async (args: { appFwVersion: string }) => {
       getShadow().catch(e => console.error(e));
-      waitForJobs(args.appFwVersion).catch(e => console.error(e));
+      await updateFwVersion(args.appFwVersion);
+      await waitForJobs().catch(e => console.error(e));
     },
   };
 };
