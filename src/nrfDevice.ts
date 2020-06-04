@@ -135,7 +135,6 @@ export const nrfdevice = (
     console.log(green('connected'));
     notifyOfConnection('connect');
     await initShadow(appFwVersion);
-    await updateFwVersion(appFwVersion);
     await waitForJobs();
   });
 
@@ -290,9 +289,6 @@ export const nrfdevice = (
         },
       },
     });
-    console.log(
-      green(`initialized device shadow. FW VERSION: ${yellow(appFwVersion)}`),
-    );
   };
 
   const waitForNextUpdateJob = (): Promise<JobExecution> =>

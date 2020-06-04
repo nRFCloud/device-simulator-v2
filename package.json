@@ -1,6 +1,6 @@
 {
   "name": "@nrfcloud/device-simulator-v2",
-  "version": "0.0.0-beta.0",
+  "version": "0.0.0-development",
   "description": "AWS IoT Thing simulator for nRF91",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,7 +29,6 @@
     "@commitlint/config-angular": "^8.0.0",
     "@nrfcloud/tslint-config": "^3.10.0",
     "@types/aws-iot-device-sdk": "^2.1.1",
-    "@types/dotenv": "^6.1.1",
     "@types/jest": "^24.0.11",
     "@types/node": "^12.0.7",
     "@types/uuid": "^3.4.4",
