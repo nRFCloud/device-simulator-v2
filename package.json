@@ -7,12 +7,13 @@
   "bin": "./dist/cli.js",
   "scripts": {
     "build": "npx tsc && cp -r ./data dist/",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rm -rf .ez-cache",
     "lint": "npm run tslint && npm run prettier:lint",
-    "tslint": "tslint --project ./tsconfig.json",
     "prettier": "prettier --write \"./src/*.ts\"",
     "prettier:lint": "prettier --list-different \"./src/*.ts\"",
-    "schemas2ts": "json2ts schemas/message.schema.json src/app/appMessage.ts"
+    "schemas2ts": "json2ts schemas/message.schema.json src/app/appMessage.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tslint": "tslint --project ./tsconfig.json"
   },
   "repository": {
     "type": "git",

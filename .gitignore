@@ -3,3 +3,4 @@ node_modules/
 npm-debug.log
 .ez-cache/*.json
 .idea/
+.env

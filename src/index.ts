@@ -125,7 +125,7 @@ export const getDefaults = async ({
         deviceOwnershipCode,
       );
 
-      defaultJsonCert = data;
+      defaultJsonCert = JSON.stringify(data);
     }
 
     defaults.certsResponse = defaultJsonCert;
@@ -171,7 +171,7 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
       verbose,
     });
 
-    config.certsResponse = JSON.stringify(defaults.certsResponse);
+    config.certsResponse = defaults.certsResponse;
     config.mqttMessagesPrefix = defaults.mqttMessagesPrefix;
     config.endpoint = defaults.endpoint;
   }
