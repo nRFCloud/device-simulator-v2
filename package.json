@@ -59,7 +59,7 @@
     "access": "public"
   },
   "release": {
-    "branch": "saga",
+    "branches": ["saga"],
     "remoteTags": true
   },
   "files": [
