@@ -1,11 +1,11 @@
 import { device } from 'aws-iot-device-sdk';
 
 export const mqttClient = ({
+  caCert,
+  clientCert,
+  privateKey,
   id,
   endpoint,
-  caCert,
-  privateKey,
-  clientCert,
 }: {
   caCert: Buffer | string;
   clientCert: Buffer | string;

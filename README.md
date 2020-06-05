@@ -6,20 +6,67 @@
 
 This is an AWS IoT Thing simulator for nRF91. This project combines the [device-simulator](https://github.com/nRFCloud/device-simulator) and [dfu-device-simulator](https://github.com/nRFCloud/dfu-device-simulator) projects. It omits the legacy pairing mechanism and uses the Device API for creating JITP certs and associating a newly provisioned device with your tenant.
 
-### Getting Started
+
+## Usage
+
+### Most basic usage
+The most basic usage is just creating a device. For that you just need an API key. The device ID will be randomly generated and the rest of the necessary information (mqtt endpoint, cert, and mqtt prefix) will be pulled from the device API. 
+
+This will create a new device with AWS IoT, it will not associate it to your account (use the `-a` flag) for that.
+```
+npx @nrfcloud/device-simulator-v2 -k <api key>
+```
+
+### Associate device to your account
+This will create a new device and associate it to the account for the API key.
+```
+npx @nrfcloud/device-simulator-v2 -k <api key> -a
+```
+
+### Run GPS sensor
+```
+npx @nrfcloud/device-simulator-v2 -k <api key> -d <device id (from output of initial command that associated device)> -s gps,acc,device,temp
+```
+
+## Options
+These are the options. Most of them are set with environment variables.
+
+```
+  -k, --api-key <apiKey> (required)                  API key for nRF Cloud (default: "")
+  -h, --api-host <apiHost>                           API host for nRF Cloud (default: "https://api.dev.nrfcloud.com")
+  -d, --device-id <deviceId>                         ID of the device (default: <nrfsim-randomString>)
+  -a, --associate                                    Automatically associate device to your account (default: false)
+  -s, --services <services>                          Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]
+  -f, --app-fw-version <appFwVersion>                Version of the app firmware (default: 1)
+  -c, --certs-response <certsResponse>               JSON returned by call POST /devices/{deviceid}/certificates (default: "")
+  -e, --endpoint <endpoint>                          AWS IoT MQTT endpoint (default: "")
+  -o, --device-ownership-code <deviceOwnershipCode>  PIN/ownership code of the device (default: "123456")
+  -m, --mqtt-messages-prefix <mqttMessagesPrefix>    The prefix for the MQTT for this tenant for sending and receiving device messages (default: "")
+  -v, --verbose                                      Output debug information
+  -h, --help                                         Output usage information
+```
+
+Use `npx @nrfcloud/device-simulator-v2 --help` to see the most recent list of options.
+
+## Contributing
 ```sh
 # install deps
-npm i
-
-# compile to js
-npx tsc
+npm ci
 
 # install jq
 https://stedolan.github.io/jq/download/
+
+# modify your files
+
+# compile
+npm run build
+
+# test
+./dist/cli.js <options>
 ```
 
-### Commands
-See [simulator.ts](src/simulator.ts) for the options. Most of these are set with environment variables.
+## Recipes
+See [cli.ts](src/cli.ts) for the options. Most of these are set with environment variables.
 
 ### Connect a device and subscribe to the job updates MQTT topic
 
@@ -45,7 +92,9 @@ export MQTT_ENDPOINT=$(aws iot describe-endpoint --endpoint-type iot:Data-ATS | 
 
 5. Run the simulator, which will just-in-time provision (JITP) the device on nRFCloud and subscribe it to the job updates topic (*NOTE*: JITP can take 20-30 seconds, so be patient...):
 ```sh
-node dist/simulator.js
+# don't forget to "npm run build" to generate the dist dir
+
+node dist/cli.js
 ```
 You should see some JSON output, with something like this at the end:
 ```sh
