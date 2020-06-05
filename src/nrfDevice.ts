@@ -108,14 +108,20 @@ export const nrfdevice = (
     onConnect(deviceId, client);
   };
 
-  console.log({
-    deviceId,
-    endpoint,
-    region: endpoint.split('.')[2],
-    topics: topics(deviceId),
-    appFwVersion: parseInt(appFwVersion, 10),
-    mqttMessagesPrefix,
-  });
+  console.log(
+    JSON.stringify(
+      {
+        deviceId,
+        endpoint,
+        region: endpoint.split('.')[2],
+        topics: topics(deviceId),
+        appFwVersion: parseInt(appFwVersion, 10),
+        mqttMessagesPrefix,
+      },
+      null,
+      2,
+    ),
+  );
 
   console.log(cyan(`connecting to ${yellow(endpoint)}...`));
 
