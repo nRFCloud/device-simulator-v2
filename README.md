@@ -12,6 +12,8 @@ This is an AWS IoT Thing simulator for nRF91. This project combines the [device-
 ### Most basic usage
 The most basic usage is just creating a device. For that you just need an API key. The device ID will be randomly generated and the rest of the necessary information (mqtt endpoint, cert, and mqtt prefix) will be pulled from the device API. 
 
+The host defaults to the dev stage (ie https://api.dev.nrfcloud.com). If you want to use a different stage, you must specify the `-h` option (ex `npx @nrfcloud/device-simulator-v2 -k <api key> -h https://api.nrfcloud.com`).
+
 This will create a new device with AWS IoT, it will not associate it to your account (use the `-a` flag) for that.
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key>
