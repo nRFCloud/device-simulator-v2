@@ -173,9 +173,13 @@ curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -H "Cont
 export BUNDLE_ID=$(curl $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" | jq -r '.items[0].bundleId')
 ```
 
-5. Enable the "BOOT" type of DFU on the device (if not already enabled). (The other two types are "APP" and "MODEM").
+5. Enable the "BOOT" type of DFU on the device (if not already enabled). (The other two types are "APP" and "MODEM", and you can set one or all of these in the array). First you need to find the latest version of your device:
 ```sh
-curl -X PATCH $API_HOST/v1/devices/$DEVICE_ID/state -d '{ "reported": { "device": { "serviceInfo": { "fota_v1": ["BOOT"] } } } }' -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json"
+export DEVICE_VERSION=$(curl $API_HOST/v1/devices/$DEVICE_ID -H "Authorization: Bearer $API_KEY" | jq -r '.["$meta"].version')
+```
+You can now use this to set an If-Match header, which is required to prevent "lost updates":
+```sh
+curl -X PATCH $API_HOST/v1/devices/$DEVICE_ID/state -d '{ "reported": { "device": { "serviceInfo": { "fota_v1": ["BOOT"] } } } }' -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" -H "If-Match: $DEVICE_VERSION"
 ```
 
 6. Create the DFU job
