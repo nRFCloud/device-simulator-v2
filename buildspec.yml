@@ -11,14 +11,14 @@ phases:
       - export GK_LOCK_DEFAULT_BRANCH=saga
       - npm i -g greenkeeper-lockfile@2
       - npx greenkeeper-lockfile-update
-      - npm ci --no-audit
+      - yarn
       - node -e 'const {version} = require("./package.json"); if(version !== "0.0.0-development") { console.error("\033[0;31mversion in package.json must be 0.0.0-development, but is " + version + "!\033[0m"); process.exit(1); }'
   pre_build:
     commands:
-    - npm run lint
+    - yarn lint
   build:
     commands:
-      - npm run build
+      - yarn build
       - npx greenkeeper-lockfile-upload
-      - npm i semantic-release
+      - yarn add semantic-release
       - npx semantic-release || true
