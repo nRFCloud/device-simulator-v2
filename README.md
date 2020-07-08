@@ -89,7 +89,7 @@ export DEVICE_OWNERSHIP_CODE=123456
 export CERTS_RESPONSE=$(curl -X POST $API_HOST/v1/devices/$DEVICE_ID/certificates -d "$DEVICE_OWNERSHIP_CODE" -H "Authorization: Bearer $API_KEY" -H "Content-Type: text/plain")
 
 # set the MQTT_ENDPOINT
-export MQTT_ENDPOINT=$(aws iot describe-endpoint --endpoint-type iot:Data-ATS | jq -r .endpointAddress);
+export MQTT_ENDPOINT=$(curl $API_HOST/v1/account -H "Authorization: Bearer $API_KEY" | jq -r .mqttEndpoint)
 ```
 
 5. Run the simulator, which will just-in-time provision (JITP) the device on nRFCloud and subscribe it to the job updates topic (*NOTE*: JITP can take 20-30 seconds, so be patient...):
