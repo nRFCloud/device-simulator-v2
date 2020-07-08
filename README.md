@@ -53,7 +53,7 @@ Use `npx @nrfcloud/device-simulator-v2 --help` to see the most recent list of op
 ## Contributing
 ```sh
 # install deps
-npm ci
+yarn
 
 # install jq
 https://stedolan.github.io/jq/download/
@@ -61,7 +61,7 @@ https://stedolan.github.io/jq/download/
 # modify your files
 
 # compile
-npm run build
+yarn build
 
 # test
 ./dist/cli.js <options>
@@ -94,7 +94,7 @@ export MQTT_ENDPOINT=$(aws iot describe-endpoint --endpoint-type iot:Data-ATS | 
 
 5. Run the simulator, which will just-in-time provision (JITP) the device on nRFCloud and subscribe it to the job updates topic (*NOTE*: JITP can take 20-30 seconds, so be patient...):
 ```sh
-# don't forget to "npm run build" to generate the dist dir
+# don't forget to "yarn build" to generate the dist dir
 
 node dist/cli.js
 ```

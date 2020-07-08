@@ -171,7 +171,7 @@ export const nrfdevice = (
 
   const publish = (topic: string, payload: object): Promise<void> =>
     new Promise((resolve, reject) => {
-      client.publish(topic, JSON.stringify(payload), undefined, error => {
+      client.publish(topic, JSON.stringify(payload), undefined, (error) => {
         if (error) {
           return reject(error);
         }
@@ -298,7 +298,7 @@ export const nrfdevice = (
   };
 
   const waitForNextUpdateJob = (): Promise<JobExecution> =>
-    new Promise(resolve => {
+    new Promise((resolve) => {
       const jobsNextTopic = topics(deviceId).jobs.notifyNext;
       registerListener(jobsNextTopic, ({ payload }) => {
         if (!payload.execution) {
@@ -414,7 +414,7 @@ export const nrfdevice = (
     unregisterListener,
     run: async (args: { appFwVersion: string }) => {
       await updateFwVersion(args.appFwVersion);
-      await waitForJobs().catch(e => console.error(e));
+      await waitForJobs().catch((e) => console.error(e));
     },
   };
 };

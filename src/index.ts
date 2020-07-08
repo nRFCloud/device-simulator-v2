@@ -210,7 +210,7 @@ ${divider}
     };
   }
 
-  simulator(config).catch(err => {
+  simulator(config).catch((err) => {
     error(err);
   });
 };

@@ -32,7 +32,7 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
     .option(
       '-f, --app-fw-version <appFwVersion>',
       'Version of the app firmware',
-      1,
+      '1',
     )
     .option('-k, --api-key <apiKey>', 'API key for nRF Cloud', env.API_KEY)
     .option(
@@ -51,4 +51,4 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
 
 (async (): Promise<void> => {
   return run(getConfig(process.env, process.argv));
-})().catch(err => error(err));
+})().catch((err) => error(err));
