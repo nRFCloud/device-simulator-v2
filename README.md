@@ -4,17 +4,16 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
-This is an AWS IoT Thing simulator for nRF91. This project combines the [device-simulator](https://github.com/nRFCloud/device-simulator) and [dfu-device-simulator](https://github.com/nRFCloud/dfu-device-simulator) projects. It omits the legacy pairing mechanism and uses the Device API for creating JITP certs and associating a newly provisioned device with your tenant.
-
+This is an AWS IoT Thing simulator for nRF91. It shows how to use the Device API for creating JITP certs, associating a newly provisioned device with your tenant (account), doing Device Firmware Updates (DFU), and more.
 
 ## Usage
 
 ### Most basic usage
 The most basic usage is just creating a device. For that you just need an API key. The device ID will be randomly generated and the rest of the necessary information (mqtt endpoint, cert, and mqtt prefix) will be pulled from the device API. 
 
-The host defaults to the dev stage (ie https://api.dev.nrfcloud.com). If you want to use a different stage, you must specify the `-h` option (ex `npx @nrfcloud/device-simulator-v2 -k <api key> -h https://api.nrfcloud.com`).
+The host defaults to the production environment (https://api.nrfcloud.com). **Nordic Semiconductor personnel**: if you want to use the simulator on our `dev` or `beta` environments, set a `STAGE` env var to `dev` or `beta` (you will need an account for that environment).
 
-This will create a new device with AWS IoT, it will not associate it to your account (use the `-a` flag) for that.
+This will create a new device with AWS IoT, but it will not associate it to your account (use the `-a` flag) for that.
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key>
 ```
@@ -35,7 +34,7 @@ These are the options. Most of them are set with environment variables.
 
 ```
   -k, --api-key <apiKey> (required)                  API key for nRF Cloud (default: "")
-  -h, --api-host <apiHost>                           API host for nRF Cloud (default: "https://api.dev.nrfcloud.com")
+  -h, --api-host <apiHost>                           API host for nRF Cloud (default: "https://api.nrfcloud.com")
   -d, --device-id <deviceId>                         ID of the device (default: <nrfsim-randomString>)
   -a, --associate                                    Automatically associate device to your account (default: false)
   -s, --services <services>                          Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]
