@@ -1,5 +1,5 @@
 import { green, yellow, magenta, blue, cyan } from 'colors';
-import { mqttClient } from './mqttClient';
+import { mqttClient, KEEP_ALIVE } from './mqttClient';
 import { ISensor } from './sensors/Sensor';
 import { createService } from './app/services/createService';
 import { AppMessage } from './app/appMessage';
@@ -291,6 +291,10 @@ export const nrfdevice = (
               appVersion,
               appName: 'asset_tracker',
             },
+          },
+          connection: {
+            status: 'connected',
+            keepalive: KEEP_ALIVE,
           },
         },
       },
