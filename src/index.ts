@@ -190,7 +190,7 @@ ${divider}
   if (associate) {
     config.onConnect = async () => {
       info(
-        `ATTEMPTING TO ASSOCIATE ${config.deviceId} WITH API KEY ${config.apiKey}`,
+        `ATTEMPTING TO ASSOCIATE ${config.deviceId} WITH API KEY ${config.apiKey} VIA ${config.apiHost}`,
       );
 
       try {

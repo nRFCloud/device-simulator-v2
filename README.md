@@ -4,7 +4,7 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
-This is an AWS IoT Thing simulator for nRF91. It shows how to use the Device API for creating JITP certs, associating a newly provisioned device with your tenant (account), doing Device Firmware Updates (DFU), and more.
+This is an AWS IoT Thing simulator for nRF91. It shows how to use the Device API for creating JITP certs, associating a newly provisioned device with your tenant (account), doing Firmware Over-the-Air Updates (FOTA), and more.
 
 ## Usage
 
@@ -17,6 +17,7 @@ This will create a new device with AWS IoT, but it will not associate it to your
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key>
 ```
+(If you would like to use the local code instead of npx, first run `yarn build` and then replace `npx @nrfcloud/device-simulator-v2` with with `node dist/cli.js`.)
 
 ### Associate device to your account
 This will create a new device and associate it to the account for the API key.
@@ -104,7 +105,7 @@ You should see some JSON output, with something like this at the end:
 {
   "state": {
     "reported": {
-      "nrfcloud__dfu_v1__app_v": 1
+      "nrfcloud__fota_v1__app_v": 1
     }
   }
 }
@@ -121,7 +122,7 @@ reported firmware version 1
     "reported": {
       "connected": true,
       "sessionIdentifier": "2184d5cb-b40b-49a4-812d-4c7fdeb6afe9",
-      "nrfcloud__dfu_v1__app_v": 1
+      "nrfcloud__fota_v1__app_v": 1
     },
     "delta": {
       "pairing": {
@@ -154,17 +155,18 @@ node dist/cli.js
 ```
 You should now see a lot more in the shadow JSON, as well as see something like `MQTT Messages Prefix set to dev/beb3c20a-e6e1-4d77-bfbb-c2e40490216f/m`. Your device is now associated with your account (tenant) and is ready to start sending and receiving device messages!
 
-### Create a new DFU job
+### Create a new Firmware Over-the-Air (FOTA) job
 1. Open a new terminal window/tab.
 2. Set up the environment variables (see above, but use the same `DEVICE_ID` that you had generated).
 3. Upload a dummy firmware file as binary data.
 ```sh
-curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/zip" --data-binary @data/dfu_mcuboot.zip | jq
+curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/zip" --data-binary @data/fota_app_fw.zip | jq
 ```
 Note that you can also upload your firmware as a base64-encoded string:
 ```sh
-export FILE=$(base64 <absolute_path_to_the_data_folder>/dfu_mcuboot.zip)
-curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -H "Content-Type: text/plain" -d $FILE
+export DATA_DIR=<absolute_path_to_the_data_folder>
+export FILE=$(base64 $DATA_DIR/fota_app_fw.zip)
+curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -H "Content-Type: text/plain" -d $FILE | jq
 ```
 
 4. Set the `BUNDLE_ID` variable by calling the `firmwares` endpoint:
@@ -172,23 +174,23 @@ curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -H "Cont
 export BUNDLE_ID=$(curl $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" | jq -r '.items[0].bundleId')
 ```
 
-5. Enable the "BOOT" type of DFU on the device (if not already enabled). (The other two types are "APP" and "MODEM", and you can set one or all of these in the array). First you need to find the latest version of your device:
+5. Enable the "APP" type of FOTA on the device (if not already enabled). (The other two types are "BOOT" and "MODEM", and you can set one or all of these in the array. However, uploading modem firmware is not allowed because this is controlled by Nordic Semiconductor personnel.) First you need to find the latest version of your device:
 ```sh
 export DEVICE_VERSION=$(curl $API_HOST/v1/devices/$DEVICE_ID -H "Authorization: Bearer $API_KEY" | jq -r '.["$meta"].version')
 ```
 You can now use this to set an If-Match header, which is required to prevent "lost updates":
 ```sh
-curl -X PATCH $API_HOST/v1/devices/$DEVICE_ID/state -d '{ "reported": { "device": { "serviceInfo": { "fota_v1": ["BOOT"] } } } }' -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" -H "If-Match: $DEVICE_VERSION"
+curl -X PATCH $API_HOST/v1/devices/$DEVICE_ID/state -d '{ "reported": { "device": { "serviceInfo": { "fota_v1": ["APP"] } } } }' -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" -H "If-Match: $DEVICE_VERSION"
 ```
 
-6. Create the DFU job
+6. Create the FOTA job
 ```sh
-export JOB_ID=$(curl -X POST $API_HOST/v1/dfu-jobs -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" -d '{ "deviceIdentifiers": ["'$DEVICE_ID'"], "bundleId": "'$BUNDLE_ID'" }' | jq -r '.jobId')
+export JOB_ID=$(curl -X POST $API_HOST/v1/fota-jobs -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" -d '{ "deviceIdentifiers": ["'$DEVICE_ID'"], "bundleId": "'$BUNDLE_ID'" }' | jq -r '.jobId')
 ```
 
-7. View your DFU job
+7. View your FOTA job
 ```sh
-curl $API_HOST/v1/dfu-jobs/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
+curl $API_HOST/v1/fota-jobs/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
 ```
 
 8. Verify the job succeeded in the other tab where you ran `node dist/cli.js`. You should see something like:
@@ -199,15 +201,15 @@ curl $API_HOST/v1/dfu-jobs/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
   "timestamp": 1568062501
 }
 ```
-If you do not see this it's possible that a previously created job has not succeeded. This will block any newly created jobs from running. You can check this by using the `GET /dfu-jobs` endpoint (as you did above) and then using `DELETE $API_HOST/v1/dfu-jobs/<your-jobId>` for any previously created jobs that has a status other than `SUCCEEDED`.
+If you do not see this it's possible that a previously created job has not succeeded. This will block any newly created jobs from running. You can check this by using the `GET /fota-jobs` endpoint (as you did above) and then using `DELETE $API_HOST/v1/fota-jobs/<your-jobId>` for any previously created jobs that has a status other than `SUCCEEDED`.
 
 9. You can also verify the job succeeded by using the Device API:
 ```sh
-curl $API_HOST/v1/dfu-job-execution-statuses/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
+curl $API_HOST/v1/fota-job-execution-statuses/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
 ```
 or 
 ```sh
-curl $API_HOST/v1/dfu-job-executions/$DEVICE_ID/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
+curl $API_HOST/v1/fota-job-executions/$DEVICE_ID/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
 ```
 
 ### Enable Sensors and Services
@@ -227,7 +229,7 @@ GPS data is based on NMEA sentences. If you want to make your own GPS data, go t
 ### Clean up (if desired)
 
 ```sh
-curl -X DELETE $API_HOST/v1/dfu-jobs/<your-jobId> -H "Authorization: Bearer $API_KEY"
+curl -X DELETE $API_HOST/v1/fota-jobs/<your-jobId> -H "Authorization: Bearer $API_KEY"
 curl -X DELETE $API_HOST/v1/firmwares/$BUNDLE_ID -H "Authorization: Bearer $API_KEY"
 curl -X DELETE $API_HOST/v1/devices/$DEVICE_ID -d $DEVICE_OWNERSHIP_CODE -H "Authorization: Bearer $API_KEY" -H "Content-Type: text/plain"
 ```
