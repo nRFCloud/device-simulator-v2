@@ -193,6 +193,11 @@ ${divider}
         `ATTEMPTING TO ASSOCIATE ${config.deviceId} WITH API KEY ${config.apiKey} VIA ${config.apiHost}`,
       );
 
+      // Wait to ensure the device is available in AWS IoT so it can be associated
+      const sleep2sec = async () =>
+        new Promise((resolve) => setTimeout(resolve, 2000));
+      await sleep2sec();
+
       try {
         await associateDevice({
           deviceId: config.deviceId,

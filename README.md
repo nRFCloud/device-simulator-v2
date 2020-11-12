@@ -17,7 +17,7 @@ This will create a new device with AWS IoT, but it will not associate it to your
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key>
 ```
-(If you would like to use the local code instead of npx, first run `yarn build` and then replace `npx @nrfcloud/device-simulator-v2` with with `node dist/cli.js`.)
+(If you would like to use the local code instead of npx, first run `yarn build` and then replace `npx @nrfcloud/device-simulator-v2` with `node dist/cli.js`.)
 
 ### Associate device to your account
 This will create a new device and associate it to the account for the API key.
@@ -25,7 +25,7 @@ This will create a new device and associate it to the account for the API key.
 npx @nrfcloud/device-simulator-v2 -k <api key> -a
 ```
 
-### Run GPS sensor
+### Simulate sensor outputs
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key> -d <device id (from output of initial command that associated device)> -s gps,acc,device,temp
 ```
@@ -64,7 +64,7 @@ https://stedolan.github.io/jq/download/
 yarn build
 
 # test
-./dist/cli.js <options>
+node dist/cli.js <options>
 ```
 
 ## Recipes
@@ -75,14 +75,14 @@ See [cli.ts](src/cli.ts) for the options. Most of these are set with environment
 1. Log in to [nrfcloud.com](https://nrfcloud.com) and go to the accounts page and grab your API key.
 1. Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 1. If running this on your own AWS account, ensure that Event-based Messages for jobs are enabled in [AWS IoT Settings](https://us-east-1.console.aws.amazon.com/iot/home?region=us-east-1#/settings).
-1. Setup your environment:
+1. Set up your environment:
 
 ```sh
 export API_KEY=<your_api_key>
 export API_HOST=<your_api_host, e.g., https://api.nrfcloud.com>
 export AWS_REGION=us-east-1 #if your region is different, change it here
 export DEVICE_RAND=$(node -e 'process.stdout.write(Math.floor(1000000000 + Math.random() * 9000000000).toString())')
-export DEVICE_ID=nrf-$DEVICE_RAND
+export DEVICE_ID=nrfsim-$DEVICE_RAND
 export DEVICE_OWNERSHIP_CODE=123456
 
 # create device certificates
