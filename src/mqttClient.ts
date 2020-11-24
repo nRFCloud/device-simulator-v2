@@ -15,7 +15,7 @@ export const mqttClient = ({
   privateKey: Buffer | string;
   id: string;
   endpoint: string;
-}) =>
+}): device =>
   new device({
     privateKey,
     clientCert,

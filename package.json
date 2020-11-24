@@ -8,6 +8,7 @@
   "scripts": {
     "build": "tsc && cp -r ./data dist/",
     "clean": "rm -rf .ez-cache",
+    "fix": "npm run prettier",
     "lint": "yarn run tslint && yarn run prettier:lint",
     "prettier": "prettier --write \"./src/*.ts\"",
     "prettier:lint": "prettier --list-different \"./src/*.ts\"",

@@ -195,7 +195,7 @@ ${divider}
 
       // Wait to ensure the device is available in AWS IoT so it can be associated
       const sleep2sec = async () =>
-        new Promise((resolve) => setTimeout(resolve, 2000));
+        new Promise(resolve => setTimeout(resolve, 2000));
       await sleep2sec();
 
       try {
@@ -215,7 +215,7 @@ ${divider}
     };
   }
 
-  simulator(config).catch((err) => {
+  simulator(config).catch(err => {
     error(err);
   });
 };

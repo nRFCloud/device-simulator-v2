@@ -1,7 +1,8 @@
 import { cyan, yellow } from 'colors';
 import * as path from 'path';
 
-import { nrfdevice, DeviceConfig } from './nrfDevice';
+import { nrfdevice } from './nrfDevice';
+import { DeviceConfig } from './models/Device';
 import { ISensor } from './sensors/Sensor';
 import { FakeGps } from './sensors/FakeGps';
 import { FakeAccelerometer } from './sensors/FakeAccelerometer';

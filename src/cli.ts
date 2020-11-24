@@ -54,4 +54,4 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
 
 (async (): Promise<void> => {
   return run(getConfig(process.env, process.argv));
-})().catch((err) => error(err));
+})().catch(err => error(err));
