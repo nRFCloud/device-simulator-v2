@@ -4,6 +4,11 @@ import { SimulatorConfig, run, error } from './index';
 
 const getConfig = (env: any, args: string[]): SimulatorConfig =>
   program
+    .requiredOption(
+      '-k, --api-key <apiKey>',
+      'API key for nRF Cloud',
+      env.API_KEY,
+    )
     .option(
       '-c, --certs-response <certsResponse>',
       'JSON returned by call to the Device API endpoint: POST /devices/{deviceid}/certificates',
@@ -34,14 +39,12 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       'Version of the app firmware',
       '1',
     )
-    .option('-k, --api-key <apiKey>', 'API key for nRF Cloud', env.API_KEY)
     .option(
       '-h, --api-host <apiHost>',
       'API host for nRF Cloud',
-      env.API_HOST ||
-        (env.STAGE && env.STAGE !== 'prod'
-          ? `https://api.${env.STAGE}.nrfcloud.com`
-          : 'https://api.nrfcloud.com'),
+      env.STAGE !== 'prod'
+        ? `https://api.${env.STAGE || 'dev'}.nrfcloud.com`
+        : 'https://api.nrfcloud.com',
     )
     .option(
       '-a, --associate',
@@ -53,5 +56,8 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
     .opts() as SimulatorConfig;
 
 (async (): Promise<void> => {
-  return run(getConfig(process.env, process.argv));
-})().catch(err => error(err));
+  const config = getConfig(process.env, process.argv);
+  const hostSplit = config.apiHost!.split('.');
+  config.stage = hostSplit.length === 3 ? 'prod' : hostSplit[1];
+  return run(config);
+})().catch((err) => error(err));

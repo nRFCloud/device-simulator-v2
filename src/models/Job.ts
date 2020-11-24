@@ -1,178 +1,117 @@
-import { green, yellow, magenta } from 'colors';
+import { yellow, magenta, red } from 'colors';
 import { NrfDevice } from './Device';
 
-export enum DfuStatus {
-  downloadFirmware = 'download_firmware',
-  applyUpdate = 'apply_update',
-  none = 'none',
+enum FirmwareType {
+  APP = 0,
+  MODEM = 1,
+  BOOT = 2,
 }
 
-export enum JobExecutionStatus {
-  QUEUED = 'QUEUED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  SUCCEEDED = 'SUCCEEDED',
-  FAILED = 'FAILED',
-  TIMED_OUT = 'TIMED_OUT',
-  REJECTED = 'REJECTED',
-  REMOVED = 'REMOVED',
-  CANCELED = 'CANCELED',
+enum JobStatus {
+  IN_PROGRESS = 0,
+  CANCELED = 1,
+  DELETION_IN_PROGRESS = 2,
+  COMPLETED = 3,
 }
 
-export enum JobDocumentOperation {
-  app_fw_update = 'app_fw_update',
+enum JobExecutionStatus {
+  QUEUED = 0,
+  IN_PROGRESS = 1,
+  FAILED = 2,
+  SUCCEEDED = 3,
+  TIMED_OUT = 4,
+  CANCELED = 5,
+  REJECTED = 6,
+  DOWNLOADING = 7,
 }
 
-export type JobDocument = {
-  operation: JobDocumentOperation;
-  fwversion: string;
-  size: number;
-  location: string;
-};
+type JobId = string;
+type FileSize = number;
+type Host = string;
+type Path = string;
 
-export type JobExecutionState = {
-  status: JobExecutionStatus;
-  statusDetails: { nextState: DfuStatus };
-  versionNumber: number;
-};
-
-export type JobExecution = {
-  jobId: string;
-  status: JobExecutionStatus;
-  queuedAt: number;
-  lastUpdatedAt: number;
-  versionNumber: number;
-  executionNumber: number;
-  jobDocument: JobDocument;
-};
-
-const onJobUpdateAcceptedFactory = async (job: JobExecution, mgr: NrfJobsManager) =>
-  async ({
-    payload,
-  }: {
-    payload: {
-      timestamp: number;
-      executionState: JobExecutionState;
-    };
-  }) => {
-    console.log('handleJobUpdateAccepted', {
-      job,
-      payload,
-    });
-
-    if (payload.executionState.status !== JobExecutionStatus.IN_PROGRESS) {
-      return;
-    }
-
-    switch (payload.executionState.statusDetails.nextState) {
-      case DfuStatus.downloadFirmware:
-        console.log(
-          magenta(
-            `Skipping downloading the firmware from ${yellow(
-              job.jobDocument.location,
-            )}...`,
-          ),
-        );
-        await mgr.updateJobProgress(
-          job,
-          payload.executionState.versionNumber,
-          DfuStatus.applyUpdate,
-        );
-        break;
-      case DfuStatus.applyUpdate:
-        console.log(
-          magenta(
-            `Skipping applying the firmware update to ${yellow(
-              job.jobDocument.fwversion,
-            )}...`,
-          ),
-        );
-        await mgr.updateJob(
-          job,
-          payload.executionState.versionNumber,
-          DfuStatus.none,
-          JobExecutionStatus.SUCCEEDED,
-        );
-        // handle next job
-        await mgr.device.updateFwVersion(job.jobDocument.fwversion);
-        await mgr.waitForJobs();
-    }
-  };
+export type Job = [
+  JobId,
+  FirmwareType,
+  FileSize,
+  Host,
+  Path,
+];
 
 export class NrfJobsManager {
   public readonly device: NrfDevice;
+  private readonly cache: {[jobId: string]: JobStatus} = {};
 
   constructor(device: NrfDevice) {
     this.device = device;
   }
 
   async waitForJobs(): Promise<void> {
-    const job = await this.waitForNextUpdateJob();
-    console.log(job);
-    await this.acceptJob(job);
+    await this.requestLatestQueuedJob();
+    console.log('did request latestQueuedJob');
+    await this.setupJobsListener();
   }
 
-  async waitForNextUpdateJob(): Promise<JobExecution> {
-    return new Promise((resolve) => {
-      const jobsNextTopic = this.device.topics.jobs.notifyNext;
-      this.device.registerListener(jobsNextTopic, ({ payload }: any) => {
-        if (!payload.execution) {
-          return;
-        }
+  async requestLatestQueuedJob(): Promise<void> {
+    return this.device.publish(this.device.topics.jobs.request, ['']);
+  }
 
-        this.device.unregisterListener(jobsNextTopic);
-        resolve(payload.execution as JobExecution);
-      });
+  async setupJobsListener(): Promise<void> {
+    this.device.registerListener(this.device.topics.jobs.receive, async ({payload}: {payload: Job}) => {
+      if (!payload) {
+        return;
+      }
 
-      return this.device.subscribe(jobsNextTopic);
+      const [
+        jobId,
+        ,
+        ,
+        host,
+        path,
+      ]: [
+        JobId,
+        FirmwareType,
+        FileSize,
+        Host,
+        Path,
+      ] = payload;
+
+      const currentStatus: JobStatus = this.cache[jobId] || JobStatus.IN_PROGRESS;
+      let newStatus: JobStatus|undefined = undefined;
+
+      switch (currentStatus) {
+        case JobStatus.IN_PROGRESS:
+          console.log(magenta(`Skipping downloading the firmware from ${yellow(`${host}${path}`)}...`));
+          newStatus = JobStatus.COMPLETED;
+          break;
+
+        case JobStatus.CANCELED:
+          console.log(red(`ERROR: Job "${jobId}" was canceled.`));
+          break;
+
+        case JobStatus.DELETION_IN_PROGRESS:
+          console.log(red(`ERROR: Job "${jobId}" is currently being deleted...`));
+          break;
+
+        default:
+          console.log(red(`JobStatus of "${status}" not recognized.`));
+          break;
+      }
+
+      if (newStatus !== undefined) {
+        await this.updateJob(jobId, newStatus);
+        this.cache[jobId] = newStatus;
+      }
     });
+
+    await this.device.subscribe(this.device.topics.jobs.receive);
   }
 
-  async updateJob(
-    job: JobExecution,
-    expectedVersion: number,
-    nextState: DfuStatus,
-    status: JobExecutionStatus,
-  ): Promise<void> {
-    return this.device.publish(this.device.topics.jobs.update(job.jobId)._, {
+  async updateJob(id: JobId, status: JobStatus, message: string = ''): Promise<void> {
+    return this.device.publish(this.device.topics.jobs.update, [
+      id,
       status,
-      statusDetails: {
-        nextState,
-      },
-      expectedVersion,
-      includeJobExecutionState: true,
-    });
-  }
-
-  async updateJobProgress(
-    job: JobExecution,
-    expectedVersion: number,
-    nextState: DfuStatus,
-  ) {
-    await this.updateJob(
-      job,
-      expectedVersion,
-      nextState,
-      JobExecutionStatus.IN_PROGRESS,
-    );
-
-    console.log(
-      green(
-        `updated job ${yellow(
-          job.jobId,
-        )} to in progress. nextState: ${nextState}...`,
-      ),
-    )
-  }
-
-  async acceptJob(job: JobExecution) {
-    const jobUpdateAcceptedTopic = this.device.topics.jobs.update(job.jobId)
-      .accepted;
-
-    await this.device.subscribe(jobUpdateAcceptedTopic);
-    await this.device.registerListener(
-      jobUpdateAcceptedTopic,
-      onJobUpdateAcceptedFactory(job, this),
-    );
-    await this.updateJobProgress(job, job.versionNumber, DfuStatus.downloadFirmware);
+      message,
+    ]);
   }
 }

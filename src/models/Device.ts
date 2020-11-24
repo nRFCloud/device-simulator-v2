@@ -1,5 +1,5 @@
 import { device } from 'aws-iot-device-sdk';
-import { green, yellow, blue, cyan } from 'colors';
+import { green, yellow, blue, cyan, red } from 'colors';
 
 import { KEEP_ALIVE } from '../mqttClient';
 import { ISensor } from '../sensors/Sensor';
@@ -13,11 +13,9 @@ type DeviceListeners = {
 type DeviceTopics = {
   d2c: string,
   jobs: {
-    notifyNext: string,
-    update: (jobId: string) => {
-      _: string,
-      accepted: string,
-    },
+    request: string,
+    receive: string,
+    update: string,
   },
   shadow: {
     update: {
@@ -34,6 +32,8 @@ export type DeviceConfig = {
   endpoint: string;
   appFwVersion: string;
   mqttMessagesPrefix: string;
+  stage: string;
+  tenantId: string;
 };
 
 export class NrfDevice {
@@ -43,24 +43,26 @@ export class NrfDevice {
 
   private readonly client: device;
   private readonly sensors: Service[];
+  private shadowInitted: boolean;
 
   constructor(
     deviceId: string,
     mqttMessagesPrefix: string,
+    stage: string,
+    tenantId: string,
     client: device,
     sensors: Map<string, ISensor>,
   ) {
+    this.shadowInitted = false;
     this.id = deviceId;
     this.listeners = {};
     this.client = client;
     this.topics = {
       d2c: `${mqttMessagesPrefix}d/${deviceId}/d2c`,
       jobs: {
-        notifyNext: `$aws/things/${deviceId}/jobs/notify-next`,
-        update: (jobId: string) => ({
-          _: `$aws/things/${deviceId}/jobs/${jobId}/update`,
-          accepted: `$aws/things/${deviceId}/jobs/${jobId}/update/accepted`,
-        }),
+        request: `${stage}/${tenantId}/${deviceId}/jobs/req`,
+        receive: `${stage}/${tenantId}/${deviceId}/jobs/rcv`,
+        update: `${stage}/${tenantId}/${deviceId}/jobs/update`,
       },
       shadow: {
         update: {
@@ -111,6 +113,7 @@ export class NrfDevice {
     return new Promise((resolve, reject) => {
       this.client.subscribe(topic, undefined, (error: any, granted: any) => {
         if (error) {
+          console.log(red(`ERROR subscribing to "${topic}": ${error}`));
           return reject(error);
         }
         console.log(
@@ -132,8 +135,8 @@ export class NrfDevice {
           return reject(error);
         }
 
-        console.log(cyan(`> ${topic}`));
-        console.log(blue(`>`));
+        console.log(cyan(`PUBLISHED >>> ${topic}`));
+        console.log(blue(`>>>`));
         console.log(blue(JSON.stringify(payload, null, 2)));
         return resolve();
       });
@@ -157,12 +160,16 @@ export class NrfDevice {
   }
 
   async initShadow(appVersion: string = ''): Promise<void> {
+    if (this.shadowInitted) {
+      return;
+    }
+
     await this.publish(this.topics.shadow.update._, {
       state: {
         reported: {
           device: {
             serviceInfo: {
-              fota_v1: ['APP', 'MODEM'],
+              fota_v2: ['APP', 'MODEM'],
               ui: [
                 'GPS',
                 'FLIP',
@@ -204,5 +211,7 @@ export class NrfDevice {
         },
       },
     });
+
+    this.shadowInitted = true;
   }
 }

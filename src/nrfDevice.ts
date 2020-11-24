@@ -22,6 +22,8 @@ export const nrfdevice = (
     endpoint,
     appFwVersion,
     mqttMessagesPrefix,
+    stage,
+    tenantId,
   } = config;
 
   let connectedOrReconnected: boolean = false;
@@ -46,7 +48,14 @@ export const nrfdevice = (
     endpoint,
   });
 
-  const device = new NrfDevice(deviceId, mqttMessagesPrefix, client, sensors);
+  const device = new NrfDevice(
+    deviceId,
+    mqttMessagesPrefix,
+    stage,
+    tenantId,
+    client,
+    sensors,
+  );
 
   const jobsManager = new NrfJobsManager(device);
 
@@ -110,7 +119,7 @@ export const nrfdevice = (
     unregisterListener: device.unregisterListener,
     run: async (args: { appFwVersion: string }) => {
       await device.updateFwVersion(args.appFwVersion);
-      await jobsManager.waitForJobs().catch(e => console.error(e));
+      await jobsManager.waitForJobs().catch((e) => console.error(e));
     },
   };
 };

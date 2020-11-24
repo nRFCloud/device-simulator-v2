@@ -17,6 +17,8 @@ export const simulator = async ({
   mqttMessagesPrefix,
   services = '',
   onConnect,
+  stage,
+  tenantId,
 }: SimulatorConfig): Promise<void> => {
   let certs;
 
@@ -39,6 +41,8 @@ export const simulator = async ({
     endpoint,
     appFwVersion,
     mqttMessagesPrefix,
+    stage,
+    tenantId,
   };
 
   console.log(cyan(`connecting to ${yellow(endpoint)}...`));

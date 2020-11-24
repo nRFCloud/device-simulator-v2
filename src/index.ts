@@ -40,6 +40,7 @@ export type DeviceDefaults = {
   endpoint: string;
   mqttMessagesPrefix: string;
   certsResponse: string;
+  tenantId: string;
 };
 
 export type SimulatorConfig = {
@@ -48,6 +49,8 @@ export type SimulatorConfig = {
   appFwVersion: string;
   deviceId: string;
   mqttMessagesPrefix: string;
+  stage: string;
+  tenantId: string;
   services?: string;
   apiKey?: string;
   apiHost?: string;
@@ -85,6 +88,7 @@ export const getDefaults = async ({
     endpoint: endpoint || '',
     mqttMessagesPrefix: mqttMessagesPrefix || '',
     certsResponse: certsResponse || '',
+    tenantId: '',
   };
 
   const cacheFile = cache.getFilePath(deviceId);
@@ -92,6 +96,8 @@ export const getDefaults = async ({
   const cachedDefaults: DeviceDefaults = cache.exists(cacheFile)
     ? await cache.get(cacheFile)
     : {};
+
+  let tenantId = cachedDefaults.tenantId;
 
   if (!(endpoint && !mqttMessagesPrefix)) {
     debug(`Grabbing mqttEndpoint and messagesPrefix...`, !!verbose);
@@ -129,6 +135,25 @@ export const getDefaults = async ({
     }
 
     defaults.certsResponse = defaultJsonCert;
+  }
+
+  if (!tenantId) {
+    tenantId = defaults.mqttMessagesPrefix.split('/')[1];
+
+    if (!tenantId) {
+      const { data } = await conn.get(`/v1/account`);
+      tenantId = data.mqttTopicPrefix.split('/')[1];
+    }
+
+    if (!tenantId) {
+      throw new Error(
+        `Cannot continue without tenantId! defaults: ${JSON.stringify(
+          defaults,
+        )}`,
+      );
+    }
+
+    defaults.tenantId = tenantId;
   }
 
   await cache.set(cacheFile, defaults);
@@ -174,6 +199,7 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
     config.certsResponse = defaults.certsResponse;
     config.mqttMessagesPrefix = defaults.mqttMessagesPrefix;
     config.endpoint = defaults.endpoint;
+    config.tenantId = defaults.tenantId;
   }
 
   info(`
@@ -182,6 +208,8 @@ DEVICE PIN: ${config.deviceOwnershipCode}
 
 API HOST: ${config.apiHost}
 API KEY: ${config.apiKey}
+TENANT ID: ${config.tenantId}
+STAGE: ${config.stage}
 
 Starting simulator...
 ${divider}
@@ -195,7 +223,7 @@ ${divider}
 
       // Wait to ensure the device is available in AWS IoT so it can be associated
       const sleep2sec = async () =>
-        new Promise(resolve => setTimeout(resolve, 2000));
+        new Promise((resolve) => setTimeout(resolve, 2000));
       await sleep2sec();
 
       try {
@@ -215,7 +243,7 @@ ${divider}
     };
   }
 
-  simulator(config).catch(err => {
+  simulator(config).catch((err) => {
     error(err);
   });
 };

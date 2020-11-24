@@ -46,7 +46,7 @@
     "aws-sdk": "^2.712.0",
     "axios": "^0.19.2",
     "colors": "^1.4.0",
-    "commander": "^5.1.0",
+    "commander": "^6.2.0",
     "event-stream": "^4.0.1",
     "ez-cache": "^1.1.0",
     "tcomb": "^3.2.29",
