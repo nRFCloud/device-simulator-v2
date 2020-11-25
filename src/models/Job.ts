@@ -7,12 +7,12 @@ enum FirmwareType {
   BOOT = 2,
 }
 
-enum JobStatus {
-  IN_PROGRESS = 0,
-  CANCELED = 1,
-  DELETION_IN_PROGRESS = 2,
-  COMPLETED = 3,
-}
+// enum JobStatus {
+//   IN_PROGRESS = 0,
+//   CANCELED = 1,
+//   DELETION_IN_PROGRESS = 2,
+//   COMPLETED = 3,
+// }
 
 enum JobExecutionStatus {
   QUEUED = 0,
@@ -30,17 +30,11 @@ type FileSize = number;
 type Host = string;
 type Path = string;
 
-export type Job = [
-  JobId,
-  FirmwareType,
-  FileSize,
-  Host,
-  Path,
-];
+export type Job = [JobId, FirmwareType, FileSize, Host, Path];
 
 export class NrfJobsManager {
   public readonly device: NrfDevice;
-  private readonly cache: {[jobId: string]: JobStatus} = {};
+  private readonly cache: { [jobId: string]: JobExecutionStatus } = {};
 
   constructor(device: NrfDevice) {
     this.device = device;
@@ -48,7 +42,6 @@ export class NrfJobsManager {
 
   async waitForJobs(): Promise<void> {
     await this.requestLatestQueuedJob();
-    console.log('did request latestQueuedJob');
     await this.setupJobsListener();
   }
 
@@ -57,57 +50,91 @@ export class NrfJobsManager {
   }
 
   async setupJobsListener(): Promise<void> {
-    this.device.registerListener(this.device.topics.jobs.receive, async ({payload}: {payload: Job}) => {
-      if (!payload) {
-        return;
-      }
+    this.device.registerListener(
+      this.device.topics.jobs.receive,
+      async ({ payload }: { payload: Job }) => {
+        if (!payload) {
+          return;
+        }
 
-      const [
-        jobId,
-        ,
-        ,
-        host,
-        path,
-      ]: [
-        JobId,
-        FirmwareType,
-        FileSize,
-        Host,
-        Path,
-      ] = payload;
+        const [jobId, firmwareType, , host, path]: [
+          JobId,
+          FirmwareType,
+          FileSize,
+          Host,
+          Path,
+        ] = payload;
 
-      const currentStatus: JobStatus = this.cache[jobId] || JobStatus.IN_PROGRESS;
-      let newStatus: JobStatus|undefined = undefined;
+        const currentStatus: JobExecutionStatus =
+          this.cache[jobId] || JobExecutionStatus.QUEUED;
+        let newStatus: JobExecutionStatus | undefined = undefined;
 
-      switch (currentStatus) {
-        case JobStatus.IN_PROGRESS:
-          console.log(magenta(`Skipping downloading the firmware from ${yellow(`${host}${path}`)}...`));
-          newStatus = JobStatus.COMPLETED;
-          break;
+        switch (currentStatus) {
+          case JobExecutionStatus.QUEUED:
+            console.log(
+              magenta(
+                `downloading ${yellow(
+                  `"${firmwareType}"`,
+                )} firmware file from ${yellow(`"${host}${path}"`)}`,
+              ),
+            );
+            newStatus = JobExecutionStatus.DOWNLOADING;
+            break;
 
-        case JobStatus.CANCELED:
-          console.log(red(`ERROR: Job "${jobId}" was canceled.`));
-          break;
+          case JobExecutionStatus.DOWNLOADING:
+            console.log(
+              magenta(
+                `installing ${yellow(
+                  `"${firmwareType}"`,
+                )} firmware file from ${yellow(`"${host}${path}"`)}`,
+              ),
+            );
+            newStatus = JobExecutionStatus.IN_PROGRESS;
+            break;
 
-        case JobStatus.DELETION_IN_PROGRESS:
-          console.log(red(`ERROR: Job "${jobId}" is currently being deleted...`));
-          break;
+          case JobExecutionStatus.IN_PROGRESS:
+            console.log(
+              magenta(
+                `installation sucessful for ${yellow(
+                  `"${firmwareType}"`,
+                )} firmware file from ${yellow(`"${host}${path}"`)}`,
+              ),
+            );
+            newStatus = JobExecutionStatus.SUCCEEDED;
+            break;
 
-        default:
-          console.log(red(`JobStatus of "${status}" not recognized.`));
-          break;
-      }
+          case JobExecutionStatus.CANCELED:
+            console.log(red(`ERROR: jobId ${jobId} was cancelled.`));
+            break;
 
-      if (newStatus !== undefined) {
-        await this.updateJob(jobId, newStatus);
-        this.cache[jobId] = newStatus;
-      }
-    });
+          case JobExecutionStatus.CANCELED:
+            console.log(red(`ERROR: jobId ${jobId} was cancelled.`));
+            break;
+
+          case JobExecutionStatus.TIMED_OUT:
+            console.log(red(`ERROR: jobId ${jobId} has timed out.`));
+            break;
+
+          case JobExecutionStatus.REJECTED:
+            console.log(red(`ERROR: jobId ${jobId} was rejected.`));
+            break;
+        }
+
+        if (newStatus !== undefined) {
+          await this.updateJobExecution(jobId, newStatus);
+          this.cache[jobId] = newStatus;
+        }
+      },
+    );
 
     await this.device.subscribe(this.device.topics.jobs.receive);
   }
 
-  async updateJob(id: JobId, status: JobStatus, message: string = ''): Promise<void> {
+  async updateJobExecution(
+    id: JobId,
+    status: JobExecutionStatus,
+    message: string = '',
+  ): Promise<void> {
     return this.device.publish(this.device.topics.jobs.update, [
       id,
       status,
