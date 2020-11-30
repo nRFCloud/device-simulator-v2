@@ -1,4 +1,3 @@
-import { cyan, yellow } from 'colors';
 import * as path from 'path';
 
 import { nrfdevice } from './nrfDevice';
@@ -9,6 +8,7 @@ import { FakeAccelerometer } from './sensors/FakeAccelerometer';
 import { FakeThermometer } from './sensors/FakeThermometer';
 import { FakeDevice } from './sensors/FakeDevice';
 import { SimulatorConfig } from './index';
+import { Log } from './models/Log';
 
 export const simulator = async ({
   certsResponse,
@@ -19,13 +19,21 @@ export const simulator = async ({
   onConnect,
   stage,
   tenantId,
+  verbose,
 }: SimulatorConfig): Promise<void> => {
   let certs;
+  const log = new Log(!!verbose);
 
   try {
     certs = JSON.parse(certsResponse);
   } catch (err) {
-    console.log('certsReponse', certsResponse);
+    log.error(
+      `ERROR: failed to parse certsResponse: ${JSON.stringify(
+        certsResponse,
+        null,
+        2,
+      )}`,
+    );
     throw new Error(`Error parsing certsResponse ${err} ${certsResponse}`);
   }
 
@@ -44,8 +52,6 @@ export const simulator = async ({
     stage,
     tenantId,
   };
-
-  console.log(cyan(`connecting to ${yellow(endpoint)}...`));
 
   const sensors = new Map<string, ISensor>();
 
@@ -91,5 +97,5 @@ export const simulator = async ({
     });
   }
 
-  nrfdevice(config, sensors, onConnect);
+  nrfdevice(config, sensors, onConnect, log);
 };

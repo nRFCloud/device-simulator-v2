@@ -1,11 +1,11 @@
 import { device } from 'aws-iot-device-sdk';
-import { green, yellow, magenta, cyan } from 'colors';
 
 import { mqttClient } from './mqttClient';
 import { ISensor } from './sensors/Sensor';
 import { AppMessage } from './app/appMessage';
 import { DeviceConfig, NrfDevice } from './models/Device';
 import { NrfJobsManager } from './models/Job';
+import { Log, Logger } from './models/Log';
 
 export type SendMessage = (timestamp: number, message: AppMessage) => void;
 
@@ -13,6 +13,7 @@ export const nrfdevice = (
   config: DeviceConfig,
   sensors: Map<string, ISensor>,
   onConnect?: (deviceId: string, client: device) => void,
+  log: Logger = new Log(true),
 ) => {
   const {
     deviceId,
@@ -33,12 +34,12 @@ export const nrfdevice = (
       return;
     }
 
-    console.log(yellow(`TRIGGERING ONCONNECT CALLBACK ON "${eventName}"`));
+    log.debug(`TRIGGERING ONCONNECT CALLBACK ON "${eventName}"`);
     connectedOrReconnected = true;
     onConnect(deviceId, client);
   };
 
-  console.log(cyan(`connecting to ${yellow(endpoint)}...`));
+  log.debug(`connecting to "${endpoint}"...`);
 
   const client = mqttClient({
     id: deviceId,
@@ -55,44 +56,26 @@ export const nrfdevice = (
     tenantId,
     client,
     sensors,
+    log,
   );
 
-  const jobsManager = new NrfJobsManager(device);
-
-  console.log(
-    yellow(
-      JSON.stringify(
-        {
-          deviceId,
-          endpoint,
-          region: endpoint.split('.')[2],
-          topics: device.topics,
-          appFwVersion: parseInt(appFwVersion, 10),
-          mqttMessagesPrefix,
-        },
-        null,
-        2,
-      ),
-    ),
-  );
+  const jobsManager = new NrfJobsManager(device, log);
 
   client.on('error', (error: any) => {
-    console.error(`AWS IoT error ${error.message}`);
+    log.error(`AWS IoT error ${error.message}`);
   });
 
   client.on('connect', async () => {
-    console.log(green('connected'));
+    log.success('connected');
     notifyOfConnection('connect');
     await device.initShadow(appFwVersion);
     await jobsManager.waitForJobs();
   });
 
   client.on('message', (topic: string, payload: any) => {
-    console.log(magenta(`< ${topic}`));
+    log.incoming(topic, payload || {});
     const p = payload ? JSON.parse(payload.toString()) : {};
 
-    console.log(magenta(`<`));
-    console.log(magenta(JSON.stringify(p, null, 2)));
     if (device.listeners[topic]) {
       device.listeners[topic]({
         topic,
@@ -104,11 +87,11 @@ export const nrfdevice = (
   });
 
   client.on('close', () => {
-    console.error('disconnect');
+    log.error('disconnect');
   });
 
   client.on('reconnect', () => {
-    console.log(magenta('reconnect'));
+    log.success('reconnect');
     notifyOfConnection('reconnect');
   });
 
@@ -117,9 +100,8 @@ export const nrfdevice = (
     subscribe: device.subscribe,
     registerListener: device.registerListener,
     unregisterListener: device.unregisterListener,
-    run: async (args: { appFwVersion: string }) => {
-      await device.updateFwVersion(args.appFwVersion);
-      await jobsManager.waitForJobs().catch((e) => console.error(e));
+    run: async () => {
+      await jobsManager.waitForJobs().catch((e) => log.error(e));
     },
   };
 };

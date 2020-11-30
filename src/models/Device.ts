@@ -1,10 +1,10 @@
 import { device } from 'aws-iot-device-sdk';
-import { green, yellow, blue, cyan, red } from 'colors';
 
 import { KEEP_ALIVE } from '../mqttClient';
 import { ISensor } from '../sensors/Sensor';
 import { Service } from '../app/services/Service';
 import { createService } from '../app/services/createService';
+import { Logger } from './Log';
 
 type DeviceListeners = {
   [key: string]: (args: { topic: string; payload: object }) => void;
@@ -44,6 +44,7 @@ export class NrfDevice {
   private readonly client: device;
   private readonly sensors: Service[];
   private shadowInitted: boolean;
+  private readonly log: Logger;
 
   constructor(
     deviceId: string,
@@ -52,7 +53,9 @@ export class NrfDevice {
     tenantId: string,
     client: device,
     sensors: Map<string, ISensor>,
+    log: Logger,
   ) {
+    this.log = log;
     this.shadowInitted = false;
     this.id = deviceId;
     this.listeners = {};
@@ -103,7 +106,7 @@ export class NrfDevice {
     payload: object,
   ): Promise<void> {
     const timeStamp = new Date(timestamp).toISOString();
-    console.debug(
+    this.log.debug(
       `Timestamp ${timeStamp} and messageId not included in message b/c the fw does not support it yet.`,
     );
     await this.publish(this.topics.d2c, payload);
@@ -113,16 +116,10 @@ export class NrfDevice {
     return new Promise((resolve, reject) => {
       this.client.subscribe(topic, undefined, (error: any, granted: any) => {
         if (error) {
-          console.log(red(`ERROR subscribing to "${topic}": ${error}`));
+          this.log.error(`ERROR subscribing to "${topic}": ${error}`);
           return reject(error);
         }
-        console.log(
-          green(
-            `subscribed to ${yellow(
-              granted.map(({ topic }: any) => topic).join(', '),
-            )}`,
-          ),
-        );
+        this.log.success(`subscribed to "${granted.map(({ topic }: any) => topic).join(', ')}"`);
         return resolve();
       });
     });
@@ -135,28 +132,10 @@ export class NrfDevice {
           return reject(error);
         }
 
-        console.log(cyan(`PUBLISHED >>> ${topic}`));
-        console.log(blue(`>>>`));
-        console.log(blue(JSON.stringify(payload, null, 2)));
+        this.log.outgoing(topic, payload);
         return resolve();
       });
     });
-  }
-
-  async updateFwVersion(appVersion: string): Promise<void> {
-    await this.publish(this.topics.shadow.update._, {
-      state: {
-        reported: {
-          device: {
-            deviceInfo: {
-              appVersion,
-            },
-          },
-        },
-      },
-    });
-
-    console.log(green(`Updated FW version to ${appVersion}`));
   }
 
   async initShadow(appVersion: string = ''): Promise<void> {

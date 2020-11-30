@@ -50,6 +50,7 @@
     "event-stream": "^4.0.1",
     "ez-cache": "^1.1.0",
     "tcomb": "^3.2.29",
+    "ts-enum-util": "^4.0.2",
     "uuid": "^8.2.0"
   },
   "engines": {

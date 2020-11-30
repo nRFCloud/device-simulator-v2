@@ -1,5 +1,7 @@
-import { yellow, magenta, red } from 'colors';
+import { $enum } from 'ts-enum-util';
+
 import { NrfDevice } from './Device';
+import { Logger } from './Log';
 
 enum FirmwareType {
   APP = 0,
@@ -33,11 +35,13 @@ type Path = string;
 export type Job = [JobId, FirmwareType, FileSize, Host, Path];
 
 export class NrfJobsManager {
+  private readonly log: Logger;
   public readonly device: NrfDevice;
   private readonly cache: { [jobId: string]: JobExecutionStatus } = {};
 
-  constructor(device: NrfDevice) {
+  constructor(device: NrfDevice, log: Logger) {
     this.device = device;
+    this.log = log;
   }
 
   async waitForJobs(): Promise<void> {
@@ -65,62 +69,65 @@ export class NrfJobsManager {
           Path,
         ] = payload;
 
-        const currentStatus: JobExecutionStatus =
-          this.cache[jobId] || JobExecutionStatus.QUEUED;
+        const prevStatus: JobExecutionStatus = this.cache[jobId] || JobExecutionStatus.QUEUED;
         let newStatus: JobExecutionStatus | undefined = undefined;
+        let message: string | undefined = undefined;
 
-        switch (currentStatus) {
+        const firmwareTypes: {[key: number]: string} = {};
+        $enum(FirmwareType).getEntries().forEach(([key, val]) => firmwareTypes[val] = key);
+
+        const jobExecutionStatuses: {[key: number]: string} = {};
+        $enum(JobExecutionStatus).getEntries().forEach(([key, val]) => jobExecutionStatuses[val] = key);
+
+        switch (prevStatus) {
           case JobExecutionStatus.QUEUED:
-            console.log(
-              magenta(
-                `downloading ${yellow(
-                  `"${firmwareType}"`,
-                )} firmware file from ${yellow(`"${host}${path}"`)}`,
-              ),
-            );
+            message = `downloading "${firmwareTypes[firmwareType]}" firmware file from "${host}${path}"`;
             newStatus = JobExecutionStatus.DOWNLOADING;
             break;
 
           case JobExecutionStatus.DOWNLOADING:
-            console.log(
-              magenta(
-                `installing ${yellow(
-                  `"${firmwareType}"`,
-                )} firmware file from ${yellow(`"${host}${path}"`)}`,
-              ),
-            );
+            message = `installing "${firmwareTypes[firmwareType]}" firmware file from "${host}${path}"`;
             newStatus = JobExecutionStatus.IN_PROGRESS;
             break;
 
           case JobExecutionStatus.IN_PROGRESS:
-            console.log(
-              magenta(
-                `installation sucessful for ${yellow(
-                  `"${firmwareType}"`,
-                )} firmware file from ${yellow(`"${host}${path}"`)}`,
-              ),
-            );
+            message = `installation sucessful for "${firmwareTypes[firmwareType]}" firmware file from "${host}${path}"`;
             newStatus = JobExecutionStatus.SUCCEEDED;
             break;
 
-          case JobExecutionStatus.CANCELED:
-            console.log(red(`ERROR: jobId ${jobId} was cancelled.`));
+          case JobExecutionStatus.SUCCEEDED:
+            this.log.success(`job "${jobId}" succeeded!`);
             break;
 
           case JobExecutionStatus.CANCELED:
-            console.log(red(`ERROR: jobId ${jobId} was cancelled.`));
+            this.log.error(`ERROR: job "${jobId}" was cancelled.`);
             break;
 
           case JobExecutionStatus.TIMED_OUT:
-            console.log(red(`ERROR: jobId ${jobId} has timed out.`));
+            this.log.error(`ERROR: job "${jobId}" was timed out.`);
             break;
 
           case JobExecutionStatus.REJECTED:
-            console.log(red(`ERROR: jobId ${jobId} was rejected.`));
+            this.log.error(`ERROR: job "${jobId}" was rejected.`);
             break;
         }
 
-        if (newStatus !== undefined) {
+        if (message) {
+          this.log.info(`
+================ ${this.device.id} ================
+JOB ID: ${jobId}
+OLD STATUS: ${jobExecutionStatuses[prevStatus]} (${prevStatus})
+NEW STATUS: ${newStatus ? jobExecutionStatuses[newStatus] : ''} (${newStatus})
+MESSAGE: ${message}
+================${'='.repeat(this.device.id.length + 2)}================
+
+`);
+        }
+
+        if (newStatus) {
+          // subscribe to changes
+          await this.device.publish(this.device.topics.jobs.request, [jobId]);
+
           await this.updateJobExecution(jobId, newStatus);
           this.cache[jobId] = newStatus;
         }

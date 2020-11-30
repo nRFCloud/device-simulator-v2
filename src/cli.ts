@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import * as program from 'commander';
-import { SimulatorConfig, run, error } from './index';
+
+import { Log } from './models/Log';
+import { SimulatorConfig, run } from './index';
 
 const getConfig = (env: any, args: string[]): SimulatorConfig =>
   program
@@ -42,7 +44,9 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
     .option(
       '-h, --api-host <apiHost>',
       'API host for nRF Cloud',
-      env.STAGE !== 'prod'
+      env.API_HOST
+        ? env.API_HOST
+        : env.STAGE !== 'prod'
         ? `https://api.${env.STAGE || 'dev'}.nrfcloud.com`
         : 'https://api.nrfcloud.com',
     )
@@ -55,9 +59,12 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
     .parse(args)
     .opts() as SimulatorConfig;
 
+let verbose: boolean;
+
 (async (): Promise<void> => {
   const config = getConfig(process.env, process.argv);
+  verbose = !!config.verbose;
   const hostSplit = config.apiHost!.split('.');
   config.stage = hostSplit.length === 3 ? 'prod' : hostSplit[1];
   return run(config);
-})().catch((err) => error(err));
+})().catch((err) => new Log(verbose).error(err));
