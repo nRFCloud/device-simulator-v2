@@ -87,13 +87,11 @@ export class NrfDevice {
     topic: string,
     callback: any,
   ): void {
-    this.listeners[topic] = callback;
-  }
+    if (this.listeners.topic) {
+      this.log.debug(`Already registered listener for "${topic}"`);
+      return;
+    }
 
-  registerJobListener(
-    topic: string,
-    callback: (args: { topic: string; payload: any }) => Promise<void>,
-  ): void {
     this.listeners[topic] = callback;
   }
 

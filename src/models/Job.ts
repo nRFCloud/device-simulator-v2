@@ -38,6 +38,7 @@ export class NrfJobsManager {
   private readonly log: Logger;
   public readonly device: NrfDevice;
   private readonly cache: { [jobId: string]: JobExecutionStatus } = {};
+  private didSendInitialJobRequest: boolean = false;
 
   constructor(device: NrfDevice, log: Logger) {
     this.device = device;
@@ -50,7 +51,12 @@ export class NrfJobsManager {
   }
 
   async requestLatestQueuedJob(): Promise<void> {
-    return this.device.publish(this.device.topics.jobs.request, ['']);
+    if (this.didSendInitialJobRequest) {
+      return;
+    }
+
+    await this.device.publish(this.device.topics.jobs.request, ['']);
+    this.didSendInitialJobRequest = true;
   }
 
   async setupJobsListener(): Promise<void> {
@@ -113,21 +119,17 @@ export class NrfJobsManager {
         }
 
         if (message) {
-          this.log.info(`
-================ ${this.device.id} ================
-JOB ID: ${jobId}
-OLD STATUS: ${jobExecutionStatuses[prevStatus]} (${prevStatus})
-NEW STATUS: ${newStatus ? jobExecutionStatuses[newStatus] : ''} (${newStatus})
-MESSAGE: ${message}
-================${'='.repeat(this.device.id.length + 2)}================
-
-`);
+          this.log.info(this.log.prettify(this.device.id, [
+            ['JOB ID', jobId],
+            ['OLD STATUS', `${jobExecutionStatuses[prevStatus]} (${prevStatus})`],
+            ['NEW STATUS', `${newStatus ? jobExecutionStatuses[newStatus] : ''} (${newStatus})`],
+            ['MESSAGE', message],
+          ]));
         }
 
         if (newStatus) {
           // subscribe to changes
           await this.device.publish(this.device.topics.jobs.request, [jobId]);
-
           await this.updateJobExecution(jobId, newStatus);
           this.cache[jobId] = newStatus;
         }

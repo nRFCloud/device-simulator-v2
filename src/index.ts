@@ -194,21 +194,20 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
     config.tenantId = defaults.tenantId;
   }
 
-  const divider: string = '********************************************';
+  log.info(log.prettify(
+      'CONFIG', [
+        ['DEVICE ID', config.deviceId],
+        ['DEVICE PIN', config.deviceOwnershipCode!],
+        ['', ''],
+        ['API HOST', config.apiHost!],
+        ['API KEY', config.apiKey!],
+        ['TENANT ID', config.tenantId],
+        ['STAGE', config.stage],
+      ],
+    ),
+  );
 
-  log.info(`
-${divider}
-DEVICE ID: ${config.deviceId}
-DEVICE PIN: ${config.deviceOwnershipCode}
-
-API HOST: ${config.apiHost}
-API KEY: ${config.apiKey}
-TENANT ID: ${config.tenantId}
-STAGE: ${config.stage}
-
-Starting simulator...
-${divider}
-  `);
+  log.success('starting simulator...');
 
   if (associate) {
     config.onConnect = async () => {
