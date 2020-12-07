@@ -194,17 +194,16 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
     config.tenantId = defaults.tenantId;
   }
 
-  log.info(log.prettify(
-      'CONFIG', [
-        ['DEVICE ID', config.deviceId],
-        ['DEVICE PIN', config.deviceOwnershipCode!],
-        ['', ''],
-        ['API HOST', config.apiHost!],
-        ['API KEY', config.apiKey!],
-        ['TENANT ID', config.tenantId],
-        ['STAGE', config.stage],
-      ],
-    ),
+  log.info(
+    log.prettify('CONFIG', [
+      ['DEVICE ID', config.deviceId],
+      ['DEVICE PIN', config.deviceOwnershipCode!],
+      ['', ''],
+      ['API HOST', config.apiHost!],
+      ['API KEY', config.apiKey!],
+      ['TENANT ID', config.tenantId],
+      ['STAGE', config.stage],
+    ]),
   );
 
   log.success('starting simulator...');

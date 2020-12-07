@@ -52,6 +52,7 @@ export class NrfJobsManager {
 
   async requestLatestQueuedJob(): Promise<void> {
     if (this.didSendInitialJobRequest) {
+      this.log.debug('Already sent initial job request. Not sending another...');
       return;
     }
 
@@ -97,7 +98,7 @@ export class NrfJobsManager {
             break;
 
           case JobExecutionStatus.IN_PROGRESS:
-            message = `installation sucessful for "${firmwareTypes[firmwareType]}" firmware file from "${host}${path}"`;
+            message = `installation successful for "${firmwareTypes[firmwareType]}" firmware file from "${host}${path}"`;
             newStatus = JobExecutionStatus.SUCCEEDED;
             break;
 
@@ -118,6 +119,17 @@ export class NrfJobsManager {
             break;
         }
 
+        if (newStatus) {
+          // subscribe to changes
+          this.log.info('Subscribing to jobExecution updates...');
+          await this.device.publish(this.device.topics.jobs.request, [jobId]);
+
+          // update jobExecution status
+          this.log.info(`Updating jobExecution "${jobId}"...`);
+          await this.updateJobExecution(jobId, newStatus);
+          this.cache[jobId] = newStatus;
+        }
+
         if (message) {
           this.log.info(this.log.prettify(this.device.id, [
             ['JOB ID', jobId],
@@ -125,13 +137,6 @@ export class NrfJobsManager {
             ['NEW STATUS', `${newStatus ? jobExecutionStatuses[newStatus] : ''} (${newStatus})`],
             ['MESSAGE', message],
           ]));
-        }
-
-        if (newStatus) {
-          // subscribe to changes
-          await this.device.publish(this.device.topics.jobs.request, [jobId]);
-          await this.updateJobExecution(jobId, newStatus);
-          this.cache[jobId] = newStatus;
         }
       },
     );
