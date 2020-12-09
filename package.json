@@ -1,6 +1,6 @@
 {
   "name": "@nrfcloud/device-simulator-v2",
-  "version": "2.2.0-beta-2",
+  "version": "2.2.0-beta.2",
   "description": "AWS IoT Thing simulator for nRF91",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
