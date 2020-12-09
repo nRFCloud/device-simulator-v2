@@ -1,12 +1,14 @@
+import { device } from 'aws-iot-device-sdk';
 import { AxiosInstance } from 'axios/index';
+import axios from 'axios';
+
 import { simulator } from './simulator';
 import { Log } from './models/Log';
-import axios from 'axios';
 
 const cache = require('ez-cache')();
 let conn: AxiosInstance;
 
-const getConn = (apiHost: string, apiKey: string, verbose: boolean) => {
+export const getConn = (apiHost: string, apiKey: string, verbose: boolean): AxiosInstance => {
   if (!conn) {
     // create a connection to the device API
     conn = axios.create({
@@ -50,7 +52,7 @@ export type SimulatorConfig = {
   deviceOwnershipCode?: string;
   verbose?: boolean;
   associate?: boolean;
-  onConnect?: (deviceId: string, client: any) => void;
+  onConnect?: (deviceId: string, client?: device) => Promise<void>;
 };
 
 export const associateDevice = ({
@@ -75,7 +77,7 @@ export const getDefaults = async ({
   deviceOwnershipCode,
   verbose,
 }: Partial<SimulatorConfig>): Promise<DeviceDefaults> => {
-  const conn = getConn(apiHost as string, apiKey as string, !!verbose);
+  const conn = getConn(apiHost!, apiKey!, !!verbose);
   const log = new Log(!!verbose);
 
   const defaults: DeviceDefaults = {
@@ -90,8 +92,6 @@ export const getDefaults = async ({
   const cachedDefaults: DeviceDefaults = cache.exists(cacheFile)
     ? await cache.get(cacheFile)
     : {};
-
-  let tenantId = cachedDefaults.tenantId;
 
   if (!(endpoint && !mqttMessagesPrefix)) {
     log.debug(`Grabbing mqttEndpoint and messagesPrefix...`);
@@ -131,25 +131,22 @@ export const getDefaults = async ({
     defaults.certsResponse = defaultJsonCert;
   }
 
+  let tenantId =  defaults.mqttMessagesPrefix.split('/')[1];
+
   if (!tenantId) {
-    tenantId = defaults.mqttMessagesPrefix.split('/')[1];
-
-    if (!tenantId) {
-      const { data } = await conn.get(`/v1/account`);
-      tenantId = data.mqttTopicPrefix.split('/')[1];
-    }
-
-    if (!tenantId) {
-      throw new Error(
-        `Cannot continue without tenantId! defaults: ${JSON.stringify(
-          defaults,
-        )}`,
-      );
-    }
-
-    defaults.tenantId = tenantId;
+    const { data } = await conn.get(`/v1/account`);
+    tenantId = data.mqttTopicPrefix.split('/')[1];
   }
 
+  if (!tenantId) {
+    throw new Error(
+      `Cannot continue without tenantId! defaults: ${JSON.stringify(
+        defaults,
+        )}`,
+        );
+      }
+
+  defaults.tenantId = tenantId;
   await cache.set(cacheFile, defaults);
   return defaults;
 };
@@ -171,34 +168,31 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
   config.deviceId = deviceId || generateDeviceId();
 
   // grab the defaults from the API
-  if (!(certsResponse && endpoint && mqttMessagesPrefix)) {
-    if (!(apiKey && apiHost)) {
-      log.error('apiKey is required');
-      return;
-    }
-
-    const defaults: DeviceDefaults = await getDefaults({
-      deviceId: config.deviceId,
-      deviceOwnershipCode,
-      mqttMessagesPrefix,
-      certsResponse,
-      endpoint,
-      apiHost,
-      apiKey,
-      verbose,
-    });
-
-    config.certsResponse = defaults.certsResponse;
-    config.mqttMessagesPrefix = defaults.mqttMessagesPrefix;
-    config.endpoint = defaults.endpoint;
-    config.tenantId = defaults.tenantId;
+  if (!(apiKey && apiHost)) {
+    log.error(`apiKey: (passed val: "${apiKey}") and apiHost (passed val: "${apiHost}") are required`);
+    return;
   }
+
+  const defaults: DeviceDefaults = await getDefaults({
+    deviceId: config.deviceId,
+    deviceOwnershipCode,
+    mqttMessagesPrefix,
+    certsResponse,
+    endpoint,
+    apiHost,
+    apiKey,
+    verbose,
+  });
+
+  config.certsResponse = defaults.certsResponse;
+  config.mqttMessagesPrefix = defaults.mqttMessagesPrefix;
+  config.endpoint = defaults.endpoint;
+  config.tenantId = defaults.tenantId;
 
   log.info(
     log.prettify('CONFIG', [
       ['DEVICE ID', config.deviceId],
       ['DEVICE PIN', config.deviceOwnershipCode!],
-      ['', ''],
       ['API HOST', config.apiHost!],
       ['API KEY', config.apiKey!],
       ['TENANT ID', config.tenantId],
@@ -209,19 +203,18 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
   log.success('starting simulator...');
 
   if (associate) {
-    config.onConnect = async () => {
+    config.onConnect = async (deviceId) => {
       log.info(
         `ATTEMPTING TO ASSOCIATE ${config.deviceId} WITH API KEY ${config.apiKey} VIA ${config.apiHost}`,
       );
 
-      // Wait to ensure the device is available in AWS IoT so it can be associated
+      // wait to ensure the device is available in AWS IoT so it can be associated
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       try {
         await associateDevice({
-          deviceId: config.deviceId,
+          deviceId,
           deviceOwnershipCode,
-
           apiHost,
           apiKey,
           verbose,

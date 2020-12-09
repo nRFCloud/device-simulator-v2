@@ -18,12 +18,12 @@ export interface Logger {
 
 export class Log implements Logger {
   constructor(private readonly verbose: boolean) {}
-  error(message: string) { console.log(red(message)); }
-  info(message: string) { console.log(yellow(message)); }
-  success(message: string) { console.log(green(message)); }
-  debug(message: string) { this.verbose && console.log(dim(message)); }
+  error(message: string) { this.log(red(message)); }
+  info(message: string) { this.log(yellow(message)); }
+  success(message: string) { this.log(green(message)); }
+  debug(message: string) { this.verbose && this.log(dim(message)); }
   outgoing(topic: string, payload: any) {
-    console.log(cyan(this.prettify(
+    this.log(cyan(this.prettify(
         'MESSAGE SENT', [
           ['TOPIC', topic],
           ['MESSAGE', this.prettyPayload(payload)],
@@ -32,7 +32,7 @@ export class Log implements Logger {
     );
   }
   incoming(topic: string, payload: any) {
-    console.log(magenta(this.prettify(
+    this.log(magenta(this.prettify(
         'MESSAGE RECEIVED', [
           ['TOPIC', topic],
           ['MESSAGE', this.prettyPayload(payload)],
@@ -43,10 +43,11 @@ export class Log implements Logger {
   prettify(header: string, body: MessageEntry[]): string {
     return `
 ************** ${header} ***********
-${body.map(([key, val]) => `${key}: ${val}`).join('\n')}
+${body.map(([key, val]) => `${key?.length ? `${key}: ${val}` : ''}`).join('\n')}
 **************${'*'.repeat(header.length + 2)}***********
 `;
   }
+  private log(coloredMessage: string) { console.log(`${coloredMessage}\n`); }
   private prettyPayload(payload: object|string|Buffer): string {
     const isBuffer = (payload as Buffer)?.buffer;
 

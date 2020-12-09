@@ -43,7 +43,6 @@ export class NrfDevice {
 
   private readonly client: device;
   private readonly sensors: Service[];
-  private shadowInitted: boolean;
   private readonly log: Logger;
 
   constructor(
@@ -56,7 +55,6 @@ export class NrfDevice {
     log: Logger,
   ) {
     this.log = log;
-    this.shadowInitted = false;
     this.id = deviceId;
     this.listeners = {};
     this.client = client;
@@ -74,8 +72,12 @@ export class NrfDevice {
       },
     };
 
+    const that = this;
+
     this.sensors = Array.from(sensors.entries()).map(([name, sensor]): Service =>
-      createService(name, sensor, this.sendMessage),
+      createService(name, sensor, (timestamp, message) =>
+        that.sendMessage(timestamp, message),
+      ),
     );
 
     if (this.sensors.length) {
@@ -137,10 +139,6 @@ export class NrfDevice {
   }
 
   async initShadow(appVersion: string = ''): Promise<void> {
-    if (this.shadowInitted) {
-      return;
-    }
-
     await this.publish(this.topics.shadow.update._, {
       state: {
         reported: {
@@ -188,7 +186,5 @@ export class NrfDevice {
         },
       },
     });
-
-    this.shadowInitted = true;
   }
 }

@@ -7,7 +7,7 @@ import { FakeGps } from './sensors/FakeGps';
 import { FakeAccelerometer } from './sensors/FakeAccelerometer';
 import { FakeThermometer } from './sensors/FakeThermometer';
 import { FakeDevice } from './sensors/FakeDevice';
-import { SimulatorConfig } from './index';
+import { SimulatorConfig, getConn } from './index';
 import { Log } from './models/Log';
 
 export const simulator = async ({
@@ -20,6 +20,8 @@ export const simulator = async ({
   stage,
   tenantId,
   verbose,
+  apiHost,
+  apiKey,
 }: SimulatorConfig): Promise<void> => {
   let certs;
   const log = new Log(!!verbose);
@@ -97,5 +99,11 @@ export const simulator = async ({
     });
   }
 
-  nrfdevice(config, sensors, onConnect, log);
+  nrfdevice(
+    config,
+    sensors,
+    getConn(apiHost!, apiKey!, !!verbose),
+    onConnect,
+    log,
+  );
 };
