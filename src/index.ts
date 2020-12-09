@@ -169,7 +169,7 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
 
   // grab the defaults from the API
   if (!(apiKey && apiHost)) {
-    log.error(`apiKey: (passed val: "${apiKey}") and apiHost (passed val: "${apiHost}") are required`);
+    log.error(`ERROR: apiKey: (passed val: "${apiKey}") and apiHost (passed val: "${apiHost}") are required`);
     return;
   }
 

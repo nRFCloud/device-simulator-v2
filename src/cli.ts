@@ -64,7 +64,22 @@ let verbose: boolean;
 (async (): Promise<void> => {
   const config = getConfig(process.env, process.argv);
   verbose = !!config.verbose;
-  const hostSplit = config.apiHost!.split('.');
-  config.stage = hostSplit.length === 3 ? 'prod' : hostSplit[1];
+
+  // env.STAGE overrides all
+  let stage = process.env.STAGE!;
+
+  // otherwise get stage from apiHost, but correct
+  // it if not a known stage (for sub-accounts)
+  if (!stage) {
+    const hostSplit = config.apiHost!.split('.');
+    stage = hostSplit.length === 3 ? 'prod' : hostSplit[1];
+
+    // dev is default stage for sub accounts (ie https://api.coha.nrfcloud.com)
+    if (['dev', 'beta', 'prod'].includes(stage) === false) {
+      stage = 'dev';
+    }
+  }
+
+  config.stage = stage;
   return run(config);
 })().catch((err) => new Log(verbose).error(err));
