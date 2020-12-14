@@ -93,29 +93,40 @@ export const nrfdevice = (
       // listen for jobs, if associated
       log.debug(`checking to see if device ${deviceId} has been associated...`);
 
-      await apiConn.get(`v1/devices/${deviceId}`)
+      await apiConn
+        .get(`v1/devices/${deviceId}`)
         .then(async (res: AxiosResponse) => {
           if (res?.data?.tenantId === tenantId) {
-            log.success(`confirmed that "${deviceId}" has been associated with account "${tenantId}"!`);
+            log.success(
+              `confirmed that "${deviceId}" has been associated with account "${tenantId}"!`,
+            );
             deviceAssociated = true;
 
             log.info('listening for new jobs...');
             await jobsManager.waitForJobs();
           }
         })
-        .catch(err => {
+        .catch((err) => {
           const code = err?.response?.data?.code;
           if (code !== 40410) {
-            log.error(`Error getting data for device "${deviceId}". Cannot initialize jobs listener. Error: "${err?.response?.data ? JSON.stringify(err.response.data, null, 2) : err}"`);
+            log.error(
+              `Error getting data for device "${deviceId}". Cannot initialize jobs listener. Error: "${
+                err?.response?.data
+                  ? JSON.stringify(err.response.data, null, 2)
+                  : err
+              }"`,
+            );
             didHaveError = true;
           }
         })
         .finally(() => {
           if (!deviceAssociated && !didHaveError) {
-            log.info(`Cannot initialize jobs listener until the device "${deviceId}" is associated to your account. You can associate the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d ${deviceId} -a".`);
+            log.info(
+              `Cannot initialize jobs listener until the device "${deviceId}" is associated to your account. You can associate the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d ${deviceId} -a".`,
+            );
           }
         });
-      }
+    }
   };
 
   client.on('error', (error: any) => {

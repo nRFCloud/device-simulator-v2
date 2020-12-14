@@ -8,7 +8,11 @@ import { Log } from './models/Log';
 const cache = require('ez-cache')();
 let conn: AxiosInstance;
 
-export const getConn = (apiHost: string, apiKey: string, verbose: boolean): AxiosInstance => {
+export const getConn = (
+  apiHost: string,
+  apiKey: string,
+  verbose: boolean,
+): AxiosInstance => {
   if (!conn) {
     // create a connection to the device API
     conn = axios.create({
@@ -131,7 +135,7 @@ export const getDefaults = async ({
     defaults.certsResponse = defaultJsonCert;
   }
 
-  let tenantId =  defaults.mqttMessagesPrefix.split('/')[1];
+  let tenantId = defaults.mqttMessagesPrefix.split('/')[1];
 
   if (!tenantId) {
     const { data } = await conn.get(`/v1/account`);
@@ -140,11 +144,9 @@ export const getDefaults = async ({
 
   if (!tenantId) {
     throw new Error(
-      `Cannot continue without tenantId! defaults: ${JSON.stringify(
-        defaults,
-        )}`,
-        );
-      }
+      `Cannot continue without tenantId! defaults: ${JSON.stringify(defaults)}`,
+    );
+  }
 
   defaults.tenantId = tenantId;
   await cache.set(cacheFile, defaults);
@@ -169,7 +171,9 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
 
   // grab the defaults from the API
   if (!(apiKey && apiHost)) {
-    log.error(`ERROR: apiKey: (passed val: "${apiKey}") and apiHost (passed val: "${apiHost}") are required`);
+    log.error(
+      `ERROR: apiKey: (passed val: "${apiKey}") and apiHost (passed val: "${apiHost}") are required`,
+    );
     return;
   }
 

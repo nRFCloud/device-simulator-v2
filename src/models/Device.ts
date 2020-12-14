@@ -11,17 +11,17 @@ type DeviceListeners = {
 };
 
 type DeviceTopics = {
-  d2c: string,
+  d2c: string;
   jobs: {
-    request: string,
-    receive: string,
-    update: string,
-  },
+    request: string;
+    receive: string;
+    update: string;
+  };
   shadow: {
     update: {
-      _: string,
-    },
-  },
+      _: string;
+    };
+  };
 };
 
 export type DeviceConfig = {
@@ -74,21 +74,19 @@ export class NrfDevice {
 
     const that = this;
 
-    this.sensors = Array.from(sensors.entries()).map(([name, sensor]): Service =>
-      createService(name, sensor, (timestamp, message) =>
-        that.sendMessage(timestamp, message),
-      ),
+    this.sensors = Array.from(sensors.entries()).map(
+      ([name, sensor]): Service =>
+        createService(name, sensor, (timestamp, message) =>
+          that.sendMessage(timestamp, message),
+        ),
     );
 
     if (this.sensors.length) {
-      this.sensors.forEach(service => service.start());
+      this.sensors.forEach((service) => service.start());
     }
   }
 
-  registerListener(
-    topic: string,
-    callback: any,
-  ): void {
+  registerListener(topic: string, callback: any): void {
     if (this.listeners.topic) {
       this.log.debug(`Already registered listener for "${topic}"`);
       return;
@@ -101,10 +99,7 @@ export class NrfDevice {
     delete this.listeners[topic];
   }
 
-  async sendMessage(
-    timestamp: number,
-    payload: object,
-  ): Promise<void> {
+  async sendMessage(timestamp: number, payload: object): Promise<void> {
     const timeStamp = new Date(timestamp).toISOString();
     this.log.debug(
       `Timestamp ${timeStamp} and messageId not included in message b/c the fw does not support it yet.`,
@@ -119,7 +114,11 @@ export class NrfDevice {
           this.log.error(`ERROR subscribing to "${topic}": ${error}`);
           return reject(error);
         }
-        this.log.success(`subscribed to "${granted.map(({ topic }: any) => topic).join(', ')}"`);
+        this.log.success(
+          `subscribed to "${granted
+            .map(({ topic }: any) => topic)
+            .join(', ')}"`,
+        );
         return resolve();
       });
     });
@@ -127,14 +126,19 @@ export class NrfDevice {
 
   async publish(topic: string, payload: object): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.client.publish(topic, JSON.stringify(payload), undefined, (error: any) => {
-        if (error) {
-          return reject(error);
-        }
+      this.client.publish(
+        topic,
+        JSON.stringify(payload),
+        undefined,
+        (error: any) => {
+          if (error) {
+            return reject(error);
+          }
 
-        this.log.outgoing(topic, payload);
-        return resolve();
-      });
+          this.log.outgoing(topic, payload);
+          return resolve();
+        },
+      );
     });
   }
 
@@ -171,7 +175,7 @@ export class NrfDevice {
               imsi: '204080813516718',
             },
             deviceInfo: {
-              modemFirmware: 'mfw_nrf9160_1.1.0',
+              modemFirmware: 'mfw_nrf9160_1.2.2',
               batteryVoltage: 3824,
               imei: '352656100441776',
               board: 'nrf9160_pca20035',
