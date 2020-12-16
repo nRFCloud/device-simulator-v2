@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 import * as program from 'commander';
-import { SimulatorConfig, run, error } from './index';
+
+import { Log } from './models/Log';
+import { SimulatorConfig, run } from './index';
 
 const getConfig = (env: any, args: string[]): SimulatorConfig =>
   program
+    .requiredOption(
+      '-k, --api-key <apiKey>',
+      'API key for nRF Cloud',
+      env.API_KEY,
+    )
     .option(
       '-c, --certs-response <certsResponse>',
       'JSON returned by call to the Device API endpoint: POST /devices/{deviceid}/certificates',
@@ -34,14 +41,14 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       'Version of the app firmware',
       '1',
     )
-    .option('-k, --api-key <apiKey>', 'API key for nRF Cloud', env.API_KEY)
     .option(
       '-h, --api-host <apiHost>',
       'API host for nRF Cloud',
-      env.API_HOST ||
-        (env.STAGE && env.STAGE !== 'prod'
-          ? `https://api.${env.STAGE}.nrfcloud.com`
-          : 'https://api.nrfcloud.com'),
+      env.API_HOST
+        ? env.API_HOST
+        : env.STAGE !== 'prod'
+        ? `https://api.${env.STAGE || 'dev'}.nrfcloud.com`
+        : 'https://api.nrfcloud.com',
     )
     .option(
       '-a, --associate',
@@ -52,6 +59,27 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
     .parse(args)
     .opts() as SimulatorConfig;
 
+let verbose: boolean;
+
 (async (): Promise<void> => {
-  return run(getConfig(process.env, process.argv));
-})().catch((err) => error(err));
+  const config = getConfig(process.env, process.argv);
+  verbose = !!config.verbose;
+
+  // env.STAGE overrides all
+  let stage = process.env.STAGE!;
+
+  // otherwise get stage from apiHost, but correct
+  // it if not a known stage (for sub-accounts)
+  if (!stage) {
+    const hostSplit = config.apiHost!.split('.');
+    stage = hostSplit.length === 3 ? 'prod' : hostSplit[1];
+
+    // dev is default stage for sub accounts (ie https://api.coha.nrfcloud.com)
+    if (['dev', 'beta', 'prod'].includes(stage) === false) {
+      stage = 'dev';
+    }
+  }
+
+  config.stage = stage;
+  return run(config);
+})().catch((err) => new Log(verbose).error(err));

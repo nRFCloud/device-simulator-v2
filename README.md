@@ -50,6 +50,19 @@ These are the options. Most of them are set with environment variables.
 
 Use `npx @nrfcloud/device-simulator-v2 --help` to see the most recent list of options.
 
+## Caching
+The device simulator makes use of a local cache for things like device certs. This is an effort to minimize the requests made to the API. Clearing the cache is easy. 
+
+From the directory in which you ran the simulator:
+```sh
+rm -rf .ez-cache
+```
+
+Or, if actively working on the repo: 
+```js
+yarn clean
+```
+Note this is geared towards a *nix environment. Adjust commands accordingly for Windows.
 ## Contributing
 ```sh
 # install deps
@@ -70,7 +83,7 @@ node dist/cli.js <options>
 ## Recipes
 See [cli.ts](src/cli.ts) for the options. Most of these are set with environment variables.
 
-### Connect a device and subscribe to the job updates MQTT topic
+### Set up your environment and provision a device
 
 1. Log in to [nrfcloud.com](https://nrfcloud.com) and go to the accounts page and grab your API key.
 1. Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
@@ -92,50 +105,88 @@ export CERTS_RESPONSE=$(curl -X POST $API_HOST/v1/devices/$DEVICE_ID/certificate
 export MQTT_ENDPOINT=$(curl $API_HOST/v1/account -H "Authorization: Bearer $API_KEY" | jq -r .mqttEndpoint)
 ```
 
-5. Run the simulator, which will just-in-time provision (JITP) the device on nRFCloud and subscribe it to the job updates topic (*NOTE*: JITP can take 20-30 seconds, so be patient...):
+5. Run the simulator, which will just-in-time provision (JITP) the device on nRFCloud (*NOTE*: JITP can take 20-30 seconds, so be patient...):
 ```sh
 # don't forget to "yarn build" to generate the dist dir
-
 node dist/cli.js
 ```
 You should see some JSON output, with something like this at the end:
 ```sh
-> $aws/things/nrf-6383894676/shadow/update
->
-{
+************** CONFIG ***********
+DEVICE ID: <your_device_id>
+DEVICE PIN: 123456
+API HOST: https://api.<stage.>nrfcloud.com
+API KEY: <your_api_key>
+TENANT ID: <your_tenant_id>
+STAGE: <stage>
+*********************************
+
+starting simulator...
+
+connecting to "a2wg6q8yw7gv5r-ats.iot.us-east-1.amazonaws.com"...
+
+connected
+
+Initializing nrfsim-201004647211712200000 shadow...
+
+************** MESSAGE SENT ***********
+TOPIC: $aws/things/nrfsim-1065144894/shadow/update
+MESSAGE: {
   "state": {
     "reported": {
-      "nrfcloud__fota_v1__app_v": 1
+      "device": {
+        "serviceInfo": {
+          "fota_v2": [
+            "APP",
+            "MODEM"
+          ],
+          "ui": [
+            "GPS",
+            "FLIP",
+            "TEMP",
+            "HUMID",
+            "AIR_PRESS",
+            "BUTTON",
+            "LIGHT"
+          ]
+        },
+        "networkInfo": {
+          "currentBand": 12,
+          "supportedBands": "",
+          "areaCode": 36874,
+          "mccmnc": "310410",
+          "ipAddress": "10.160.33.51",
+          "ueMode": 2,
+          "cellID": 84485647,
+          "networkMode": "LTE-M GPS"
+        },
+        "simInfo": {
+          "uiccMode": 1,
+          "iccid": "",
+          "imsi": "204080813516718"
+        },
+        "deviceInfo": {
+          "modemFirmware": "mfw_nrf9160_1.1.0",
+          "batteryVoltage": 3824,
+          "imei": "352656100441776",
+          "board": "nrf9160_pca20035",
+          "appVersion": "1",
+          "appName": "asset_tracker"
+        }
+      },
+      "connection": {
+        "status": "connected",
+        "keepalive": 30
+      }
     }
   }
 }
-reported firmware version 1
-< $aws/things/nrf-6383894676/shadow/get/accepted
-<
-{
-  "state": {
-    "desired": {
-      "pairing": {
-        "state": "not_associated"
-      }
-    },
-    "reported": {
-      "connected": true,
-      "sessionIdentifier": "2184d5cb-b40b-49a4-812d-4c7fdeb6afe9",
-      "nrfcloud__fota_v1__app_v": 1
-    },
-    "delta": {
-      "pairing": {
-        "state": "not_associated"
-      }
-    }
-  },
-  "version": 57,
-  "timestamp": 1582239029
-}
-subscribed to $aws/things/<deviceId>/jobs/notify-next
+***************************************
+
+Cannot initialize jobs listener until the device "<your_device_id>" is associated to your account. You can associate the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d <your_device_id> -a".
 ```
-This indicates that the device connected to AWS, was provisioned, and updated its shadow. It also has permission to subscribe to the topic for receiving IoT jobs.
+
+This indicates that the device provisioned with AWS and updated its shadow.
 
 ### Associate the device with your account (tenant)
 1. Shut down the script (CMD or CTRL + C).
@@ -153,7 +204,23 @@ If you get a `404` error, try again. It can take a few seconds for the database 
 ```sh
 node dist/cli.js
 ```
-You should now see a lot more in the shadow JSON, as well as see something like `MQTT Messages Prefix set to dev/beb3c20a-e6e1-4d77-bfbb-c2e40490216f/m`. Your device is now associated with your account (tenant) and is ready to start sending and receiving device messages!
+You should see this JSON output: 
+```sh
+confirmed that "<your_device_id>" has been associated with account "<your_tenant_id>"!
+
+listening for new jobs...
+
+************** MESSAGE SENT ***********
+TOPIC: dev/<your_tenant_id>/<your_device_id>/jobs/req
+MESSAGE: [
+  ""
+]
+***************************************
+
+subscribed to "dev/<your_tenant_id>/<your_device_id>/jobs/rcv"
+```
+
+Your device is now associated with your account (tenant) and is ready to start sending and receiving device messages! It is also listening for new FOTA jobs. 
 
 ### Create a new Firmware Over-the-Air (FOTA) job
 1. Open a new terminal window/tab.
@@ -180,7 +247,7 @@ export DEVICE_VERSION=$(curl $API_HOST/v1/devices/$DEVICE_ID -H "Authorization: 
 ```
 You can now use this to set an If-Match header, which is required to prevent "lost updates":
 ```sh
-curl -X PATCH $API_HOST/v1/devices/$DEVICE_ID/state -d '{ "reported": { "device": { "serviceInfo": { "fota_v1": ["APP"] } } } }' -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" -H "If-Match: $DEVICE_VERSION"
+curl -X PATCH $API_HOST/v1/devices/$DEVICE_ID/state -d '{ "reported": { "device": { "serviceInfo": { "fota_v2": ["APP"] } } } }' -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" -H "If-Match: $DEVICE_VERSION"
 ```
 
 6. Create the FOTA job
@@ -193,14 +260,21 @@ export JOB_ID=$(curl -X POST $API_HOST/v1/fota-jobs -H "Authorization: Bearer $A
 curl $API_HOST/v1/fota-jobs/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
 ```
 
-8. Verify the job succeeded in the other tab where you ran `node dist/cli.js`. You should see something like:
+8. Verify the job succeeded in the other tab where you ran `node dist/cli.js`. You should see a series of messages that walk through the firmware installation lifecycle:
 ```sh
-< $aws/things/nrf-9354733136/jobs/notify-next
-<
-{
-  "timestamp": 1568062501
-}
+************** <your_device_id> ***********
+JOB ID: <your_job_id>
+OLD STATUS: IN_PROGRESS (1)
+NEW STATUS: SUCCEEDED (3)
+MESSAGE: installation successful for "APP" firmware file from "<your_bundle_id_url>"
+********************************************
 ```
+
+If successful, you should see a message like this: 
+```sh
+job "<your_job_id>" succeeded!
+```
+
 If you do not see this it's possible that a previously created job has not succeeded. This will block any newly created jobs from running. You can check this by using the `GET /fota-jobs` endpoint (as you did above) and then using `DELETE $API_HOST/v1/fota-jobs/<your-jobId>` for any previously created jobs that has a status other than `SUCCEEDED`.
 
 9. You can also verify the job succeeded by using the Device API:
