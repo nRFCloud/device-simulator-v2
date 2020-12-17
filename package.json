@@ -12,6 +12,8 @@
     "lint": "yarn run tslint && yarn run prettier:lint",
     "prettier": "prettier --write \"./src/*.ts\"",
     "prettier:lint": "prettier --list-different \"./src/*.ts\"",
+    "publish": "npm run build && npm publish",
+    "publish:beta": "npm run build && npm publish --tag beta",
     "schemas2ts": "json2ts schemas/message.schema.json src/app/appMessage.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "tslint": "tslint --project ./tsconfig.json"
@@ -75,8 +77,7 @@
   ],
   "husky": {
     "hooks": {
-      "commit-msg": "commitlint -e",
-      "pre-commit": "lint-staged && npx tsc"
+      "pre-commit": "npx tsc"
     }
   },
   "lint-staged": {
