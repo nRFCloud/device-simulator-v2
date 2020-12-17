@@ -1,6 +1,6 @@
 {
   "name": "@nrfcloud/device-simulator-v2",
-  "version": "2.2.2-beta.0",
+  "version": "2.2.2-beta.1",
   "description": "AWS IoT Thing simulator for nRF91",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,9 +8,9 @@
   "scripts": {
     "build": "tsc && cp -r ./data dist/",
     "clean": "rm -rf .ez-cache",
-    "deploy": "npm run build && npm publish",
-    "deploy:beta": "npm run build && npm publish --tag beta",
-    "fix": "npm run prettier",
+    "deploy": "yarn build && yarn publish",
+    "deploy:beta": "yarn build && yarn publish --tag beta",
+    "fix": "yarn prettier",
     "lint": "yarn run tslint && yarn run prettier:lint",
     "prettier": "prettier --write \"./src/*.ts\"",
     "prettier:lint": "prettier --list-different \"./src/*.ts\"",
