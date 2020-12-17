@@ -80,6 +80,20 @@ yarn build
 node dist/cli.js <options>
 ```
 
+### Publishing
+To publish a new version to npm, follow this recipe:
+```bash
+# commit all files
+git commit -am "<feat|bug|chore|refactor>: <commit message>"
+
+# publish to npm. this will build, ask for a new version, and publish 
+# to the npm repo if you run `yarn deploy:beta, it will deploy to the beta tag
+yarn deploy[:beta]
+
+# push changes and new tags to github
+git push origin HEAD
+```
+
 ## Recipes
 See [cli.ts](src/cli.ts) for the options. Most of these are set with environment variables.
 
