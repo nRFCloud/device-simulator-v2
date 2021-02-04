@@ -12,7 +12,7 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       env.API_KEY,
     )
     .option(
-      '-c, --certs-response <certsResponse>',
+      '-c, --certs-response <certsAsJson>',
       'JSON returned by call to the Device API endpoint: POST /devices/{deviceid}/certificates',
       env.CERTS_RESPONSE,
     )

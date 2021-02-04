@@ -25,6 +25,9 @@ export const mqttClient = ({
     region: endpoint.split('.')[2],
     debug: false,
     keepalive: KEEP_ALIVE,
+    // Set SNI, do not override existing definitions if available
+    //@ts-ignore
+    servername: endpoint.split(':')[0], // Stripping out port if it exists along with host name
     // Uncomment if you want to support Last Will and Testament messages. However, you
     // will need to add a publish permission to your IoT device policy for the topic.
     // will: {

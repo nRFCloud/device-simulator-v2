@@ -35,15 +35,23 @@ export const getConn = (
 export const generateDeviceId = () =>
   `nrfsim-${Math.floor(Math.random() * 1000000000000000000000)}`;
 
+export type CertificatePems = {
+  rootCA: string;
+  cert: string;
+  key: string;
+}
+
+export type Certificates = string | CertificatePems;
+
 export type DeviceDefaults = {
   endpoint: string;
   mqttMessagesPrefix: string;
-  certsResponse: string;
+  certs: Certificates;
   tenantId: string;
 };
 
 export type SimulatorConfig = {
-  certsResponse: string;
+  certs: Certificates;
   endpoint: string;
   appFwVersion: string;
   deviceId: string;
@@ -75,7 +83,7 @@ export const getDefaults = async ({
   deviceId,
   endpoint,
   mqttMessagesPrefix,
-  certsResponse,
+  certs,
   apiHost,
   apiKey,
   deviceOwnershipCode,
@@ -83,19 +91,34 @@ export const getDefaults = async ({
 }: Partial<SimulatorConfig>): Promise<DeviceDefaults> => {
   const conn = getConn(apiHost!, apiKey!, !!verbose);
   const log = new Log(!!verbose);
-
-  const defaults: DeviceDefaults = {
-    endpoint: endpoint || '',
-    mqttMessagesPrefix: mqttMessagesPrefix || '',
-    certsResponse: certsResponse || '',
-    tenantId: '',
-  };
-
   const cacheFile = cache.getFilePath(deviceId);
-
   const cachedDefaults: DeviceDefaults = cache.exists(cacheFile)
     ? await cache.get(cacheFile)
     : {};
+
+  if (!certs) {
+    log.debug('Grabbing cert...');
+    let defaultJsonCert = cachedDefaults.certs || '';
+
+    if (!defaultJsonCert) {
+      log.debug('Fetching cert from device API.\n');
+      const { data } = await conn.post(
+        `/v1/devices/${deviceId}/certificates`,
+        deviceOwnershipCode,
+      );
+
+      defaultJsonCert = JSON.stringify(data);
+    }
+
+    //defaults.certs = defaultJsonCert;
+  }
+  
+  const defaults: DeviceDefaults = {
+    endpoint: endpoint || '',
+    mqttMessagesPrefix: mqttMessagesPrefix || '',
+    certs: certs || '',
+    tenantId: '',
+  };
 
   if (!(endpoint && !mqttMessagesPrefix)) {
     log.debug(`Grabbing mqttEndpoint and messagesPrefix...`);
@@ -116,23 +139,6 @@ export const getDefaults = async ({
     if (!mqttMessagesPrefix) {
       defaults.mqttMessagesPrefix = defaultMqttMessagesPrefix;
     }
-  }
-
-  if (!certsResponse) {
-    log.debug('Grabbing cert...');
-    let defaultJsonCert = cachedDefaults.certsResponse || '';
-
-    if (!defaultJsonCert) {
-      log.debug('Fetching cert from device API.\n');
-      const { data } = await conn.post(
-        `/v1/devices/${deviceId}/certificates`,
-        deviceOwnershipCode,
-      );
-
-      defaultJsonCert = JSON.stringify(data);
-    }
-
-    defaults.certsResponse = defaultJsonCert;
   }
 
   let tenantId = defaults.mqttMessagesPrefix.split('/')[1];
@@ -158,7 +164,7 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
     deviceId,
     apiKey,
     apiHost,
-    certsResponse,
+    certs,
     endpoint,
     mqttMessagesPrefix,
     deviceOwnershipCode,
@@ -181,14 +187,14 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
     deviceId: config.deviceId,
     deviceOwnershipCode,
     mqttMessagesPrefix,
-    certsResponse,
+    certs,
     endpoint,
     apiHost,
     apiKey,
     verbose,
   });
 
-  config.certsResponse = defaults.certsResponse;
+  config.certs = defaults.certs;
   config.mqttMessagesPrefix = defaults.mqttMessagesPrefix;
   config.endpoint = defaults.endpoint;
   config.tenantId = defaults.tenantId;
