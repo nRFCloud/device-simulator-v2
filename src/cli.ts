@@ -46,8 +46,6 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       'API host for nRF Cloud',
       env.API_HOST
         ? env.API_HOST
-        : env.STAGE !== 'prod'
-        ? `https://api.${env.STAGE || 'dev'}.nrfcloud.com`
         : 'https://api.nrfcloud.com',
     )
     .option(
@@ -64,20 +62,12 @@ let verbose: boolean;
 (async (): Promise<void> => {
   const config = getConfig(process.env, process.argv);
   verbose = !!config.verbose;
+  const hostSplit = config.apiHost!.split('.');
+  let stage = hostSplit.length === 3 ? 'prod' : hostSplit[1];
 
-  // env.STAGE overrides all
-  let stage = process.env.STAGE!;
-
-  // otherwise get stage from apiHost, but correct
-  // it if not a known stage (for sub-accounts)
-  if (!stage) {
-    const hostSplit = config.apiHost!.split('.');
-    stage = hostSplit.length === 3 ? 'prod' : hostSplit[1];
-
-    // dev is default stage for sub accounts (ie https://api.coha.nrfcloud.com)
-    if (['dev', 'beta', 'prod'].includes(stage) === false) {
-      stage = 'dev';
-    }
+  // dev is default stage for sub accounts (ie https://api.coha.nrfcloud.com)
+  if (['dev', 'beta', 'prod'].includes(stage) === false) {
+    stage = 'dev';
   }
 
   config.stage = stage;

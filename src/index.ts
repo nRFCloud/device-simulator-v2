@@ -177,6 +177,17 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
     return;
   }
 
+  log.debug(
+    log.prettify('INITIAL CONFIG', [
+      ['DEVICE ID', config.deviceId],
+      ['DEVICE PIN', config.deviceOwnershipCode!],
+      ['API HOST', config.apiHost!],
+      ['API KEY', config.apiKey!],
+      ['TENANT ID', config.tenantId],
+      ['STAGE', config.stage],
+    ]),
+  );
+
   const defaults: DeviceDefaults = await getDefaults({
     deviceId: config.deviceId,
     deviceOwnershipCode,

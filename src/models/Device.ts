@@ -100,10 +100,7 @@ export class NrfDevice {
   }
 
   async sendMessage(timestamp: number, payload: object): Promise<void> {
-    const timeStamp = new Date(timestamp).toISOString();
-    this.log.debug(
-      `Timestamp ${timeStamp} and messageId not included in message b/c the fw does not support it yet.`,
-    );
+    this.log.debug(`${new Date(timestamp).toISOString()} >>> attempting to publish payload ${JSON.stringify(payload, null, 2)}`);
     await this.publish(this.topics.d2c, payload);
   }
 
