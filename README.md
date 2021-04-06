@@ -11,7 +11,7 @@ This is an AWS IoT Thing simulator for nRF91. It shows how to use the Device API
 ### Most basic usage
 The most basic usage is just creating a device. For that you just need an API key. The device ID will be randomly generated and the rest of the necessary information (mqtt endpoint, cert, and mqtt prefix) will be pulled from the device API. 
 
-The host defaults to the production environment (https://api.nrfcloud.com). **Nordic Semiconductor personnel**: if you want to use the simulator on our `dev` or `beta` environments, set a `STAGE` env var to `dev` or `beta` (you will need an account for that environment).
+The host defaults to the production environment (https://api.nrfcloud.com). **Nordic Semiconductor personnel**: if you want to use the simulator on our `dev`, `feature`, or `beta` environments, set a `API_HOST` env var to `https://api.[dev|feature|beta].nrfcloud.com` (you will need an AWS account for that environment). You can also set the `API_HOST` env var to the url of your sub account (ie `https://api.<user_id>.nrfcloud.com`) and the `stage` will be automatically set to `dev` (the stage is used for the job subscription topics for FOTA). You no longer need to set a `STAGE` variable, and it will be ignored.
 
 This will create a new device with AWS IoT, but it will not associate it to your account (use the `-a` flag) for that.
 ```
@@ -321,4 +321,3 @@ curl -X DELETE $API_HOST/v1/fota-jobs/<your-jobId> -H "Authorization: Bearer $AP
 curl -X DELETE $API_HOST/v1/firmwares/$BUNDLE_ID -H "Authorization: Bearer $API_KEY"
 curl -X DELETE $API_HOST/v1/devices/$DEVICE_ID -d $DEVICE_OWNERSHIP_CODE -H "Authorization: Bearer $API_KEY" -H "Content-Type: text/plain"
 ```
-
