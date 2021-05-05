@@ -44,9 +44,7 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
     .option(
       '-h, --api-host <apiHost>',
       'API host for nRF Cloud',
-      env.API_HOST
-        ? env.API_HOST
-        : 'https://api.nrfcloud.com',
+      env.API_HOST ? env.API_HOST : 'https://api.nrfcloud.com',
     )
     .option(
       '-a, --associate',
