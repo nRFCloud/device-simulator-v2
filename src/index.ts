@@ -97,7 +97,7 @@ export const getDefaults = async ({
     ? await cache.get(cacheFile)
     : {};
 
-  if (!(endpoint && !mqttMessagesPrefix)) {
+  if (!(endpoint && mqttMessagesPrefix)) {
     log.debug(`Grabbing mqttEndpoint and messagesPrefix...`);
     let defaultEndpoint = cachedDefaults.endpoint || '',
       defaultMqttMessagesPrefix = cachedDefaults.mqttMessagesPrefix || '';
