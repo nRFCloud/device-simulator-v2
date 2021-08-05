@@ -105,7 +105,7 @@ export const getDefaults = async ({
     if (!(defaultEndpoint && defaultMqttMessagesPrefix)) {
       log.debug('Fetching endpoints from device API.\n');
       const { data } = await conn.get(`/v1/account`);
-      defaultMqttMessagesPrefix = data.topics.messagesPrefix;
+      defaultMqttMessagesPrefix = data.mqttTopicPrefix + '/m';
       defaultEndpoint = data.mqttEndpoint;
     }
 
@@ -139,7 +139,7 @@ export const getDefaults = async ({
 
   if (!tenantId) {
     const { data } = await conn.get(`/v1/account`);
-    tenantId = data.mqttTopicPrefix.split('/')[1];
+    tenantId = data.team.tenantId;
   }
 
   if (!tenantId) {
