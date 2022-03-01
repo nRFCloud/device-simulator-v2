@@ -27,7 +27,16 @@ npx @nrfcloud/device-simulator-v2 -k <api key> -a
 
 ### Simulate sensor outputs
 ```
-npx @nrfcloud/device-simulator-v2 -k <api key> -d <device id (from output of initial command that associated device)> -s gps,acc,device,temp
+npx @nrfcloud/device-simulator-v2 -k <api key> -a -d <device id (from output of initial command that associated device)> -s gps,acc,device,temp
+```
+*Note! Usually the `-a` is not necessary, since the device is already associated to your account. However, due to bug IRIS-3450, this does not always work. Adding the `-a` is harmless and is a workaround for now.*
+
+*Note! Including `device` in the list will generate a LOT of messages which may overrun your Web browser. Best not to run it more than a few seconds with it, or you can leave out `device` and run it long-term. See IRIS-2501.*
+
+### Do it all at once
+You can create a new simulated device, associate it, and start sending sensor data all in one command, which is a typical way to use the simulator:
+```
+npx @nrfcloud/device-simulator-v2 -k <api key> -a -s gps,acc,device,temp
 ```
 
 ## Options
@@ -62,7 +71,8 @@ Or, if actively working on the repo:
 ```js
 yarn clean
 ```
-Note this is geared towards a *nix environment. Adjust commands accordingly for Windows.
+Note this is geared towards a Unix/Linux environment. Adjust commands accordingly for Windows.
+
 ## Contributing
 ```sh
 # install deps
