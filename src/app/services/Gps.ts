@@ -3,7 +3,7 @@ import { AppMessage } from '../appMessage';
 import { SendMessage } from '../../nrfDevice';
 import { Service } from './Service';
 
-const APPID = 'GPS';
+const APPID = 'GNSS';
 const GPS_SEND_INTERVAL = 10000;
 
 export class Gps implements Service {
@@ -12,7 +12,7 @@ export class Gps implements Service {
   constructor(
     private readonly sensor: ISensor,
     private readonly sendMessage: SendMessage,
-  ) {}
+  ) { }
 
   async start() {
     await this.sendHello();

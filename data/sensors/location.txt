@@ -1,0 +1,2 @@
+{"deviceId":"nrf-352656100382368","type":"coarse","serviceType":"SCELL","insertedAt":"2022-06-10T22:28:07.672Z","uncertainty":"853","lat":"45.52561641","lon":"-122.68597841","meta":{}}
+{"deviceId":"nrf-352656100382368","type":"coarse","serviceType":"SCELL","insertedAt":"2022-06-18T00:35:25.207Z","uncertainty":"3123","lat":"45.521222","lon":"-122.683077","meta":{}}

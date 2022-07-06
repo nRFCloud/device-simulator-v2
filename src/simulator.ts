@@ -9,6 +9,8 @@ import { FakeThermometer } from './sensors/FakeThermometer';
 import { FakeDevice } from './sensors/FakeDevice';
 import { SimulatorConfig, getConn } from './index';
 import { Log } from './models/Log';
+import { FakeLocation } from './sensors/FakeLocation';
+import { FakeRsrp } from './sensors/FakeRsrp';
 
 export const simulator = async ({
   certsResponse,
@@ -69,6 +71,11 @@ export const simulator = async ({
             new FakeGps(sensorDataFilePath('gps-default.txt'), ['GPGGA'], true),
           );
           break;
+        case 'location':
+          sensors.set(
+            service,
+            new FakeLocation(sensorDataFilePath('location-default.txt'), true),
+          );
         case 'acc':
           sensors.set(
             service,
@@ -93,6 +100,12 @@ export const simulator = async ({
           sensors.set(
             service,
             new FakeDevice(sensorDataFilePath('device.txt'), true, 1000),
+          );
+          break;
+        case 'rsrp':
+          sensors.set(
+            service,
+            new FakeRsrp(sensorDataFilePath('rsrp.txt'), true, 20000),
           );
           break;
       }
