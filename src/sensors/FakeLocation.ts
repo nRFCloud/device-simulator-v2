@@ -5,7 +5,7 @@ import * as readline from 'readline';
 
 export class FakeLocation extends EventEmitter implements ISensor {
 
-	private readonly LocationSentences: string[] = [];
+	private readonly LocationSentences: Object[] = [];
 	private sentenceIndex: number = 0;
 	private reader?: readline.ReadLine;
 	private readStream?: fs.ReadStream;
@@ -21,12 +21,13 @@ export class FakeLocation extends EventEmitter implements ISensor {
 
 	private readGPSData() {
 		this.readStream = fs.createReadStream(this.locationReading);
+		console.debug(this.readStream);
 		this.reader = readline.createInterface({
 			input: this.readStream,
 		});
 
 		this.reader.on('line', line => {
-			this.LocationSentences.push(line);
+			this.LocationSentences.push(JSON.parse(line));
 		});
 
 		this.reader.on('close', () => {
@@ -35,11 +36,11 @@ export class FakeLocation extends EventEmitter implements ISensor {
 	}
 
 	private emitGPSData() {
-		console.log(Buffer.from(this.LocationSentences[this.sentenceIndex]));
 		this.emit(
 			'data',
 			Date.now(),
-			Buffer.from(this.LocationSentences[this.sentenceIndex]),
+			// new Uint8Array(Buffer.from(this.LocationSentences[this.sentenceIndex])),
+			this.LocationSentences[this.sentenceIndex],
 		);
 
 		if (this.sentenceIndex === this.LocationSentences.length - 1) {

@@ -16,11 +16,11 @@ export class Location implements Service {
         await this.sendHello();
 
         this.sensor.on('data', (timestamp: number, data: any) => {
-            console.debug(data, ...data, APPID[Math.floor(Math.random()) * 100 % 5]);
+            console.debug(data);
             const message = <AppMessage>{
-                appId: APPID[Math.floor(Math.random()) * 100 % 5], //Picks a random location service type to send
+                appId: APPID[Math.floor(Math.random() * 100) % 5], //Picks a random location service type to send
                 messageType: 'DATA',
-                data: { ...data },
+                data: data,
             };
             this.sendMessage(timestamp, message);
         });
