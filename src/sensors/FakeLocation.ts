@@ -1,16 +1,17 @@
 import { EventEmitter } from 'events';
 import { ISensor } from './Sensor';
 import * as fs from 'fs';
-import * as readline from 'readline';
+
+/*
+Maybe I'll have to do the same thing as GPS and give it an appid because each one is different and 
+*/
 
 export class FakeLocation extends EventEmitter implements ISensor {
 
 	private readonly LocationSentences: Object[] = [];
 	private sentenceIndex: number = 0;
-	private reader?: readline.ReadLine;
-	private readStream?: fs.ReadStream;
 	private started = false;
-	private gpsEmitterIntervalId: any = null;
+	private locationEmitterIntervalId: any = null;
 
 	constructor(
 		private readonly locationReading: string,
@@ -19,28 +20,19 @@ export class FakeLocation extends EventEmitter implements ISensor {
 		super();
 	}
 
-	private readGPSData() {
-		this.readStream = fs.createReadStream(this.locationReading);
-		console.debug(this.readStream);
-		this.reader = readline.createInterface({
-			input: this.readStream,
-		});
-
-		this.reader.on('line', line => {
-			this.LocationSentences.push(JSON.parse(line));
-		});
-
-		this.reader.on('close', () => {
-			this.cleanUpAndStartEmitting();
-		});
+	private readLocationData() {
+		const data = JSON.parse(fs.readFileSync(this.locationReading, 'utf8'));
+		this.LocationSentences.push(...data.locations);
+		this.cleanUpAndStartEmitting();
 	}
 
+
 	private emitGPSData() {
+
 		this.emit(
 			'data',
 			Date.now(),
-			// new Uint8Array(Buffer.from(this.LocationSentences[this.sentenceIndex])),
-			this.LocationSentences[this.sentenceIndex],
+			this.LocationSentences[this.sentenceIndex]
 		);
 
 		if (this.sentenceIndex === this.LocationSentences.length - 1) {
@@ -67,27 +59,19 @@ export class FakeLocation extends EventEmitter implements ISensor {
 
 		this.started = true;
 
-		this.readGPSData();
+		this.readLocationData();
 	}
 
 	private cleanUpAndStartEmitting() {
-		if (this.reader) {
-			this.reader.close();
-		}
-
-		if (this.readStream) {
-			this.readStream.close();
-		}
-
 		if (this.LocationSentences) {
-			this.gpsEmitterIntervalId = setInterval(() => {
+			this.locationEmitterIntervalId = setInterval(() => {
 				this.emitGPSData();
-			}, 1000);
+			}, 1500);
 		}
 	}
 
 	stop() {
-		clearInterval(this.gpsEmitterIntervalId);
+		clearInterval(this.locationEmitterIntervalId);
 		this.started = false;
 		this.emit('stopped');
 	}

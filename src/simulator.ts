@@ -76,6 +76,7 @@ export const simulator = async ({
             service,
             new FakeLocation(sensorDataFilePath('location.txt'), true),
           );
+          break;
         case 'acc':
           sensors.set(
             service,

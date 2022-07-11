@@ -18,6 +18,7 @@ export class Gps implements Service {
     await this.sendHello();
 
     this.sensor.on('data', (timestamp: number, data: any) => {
+      console.debug(data);
       if (Date.now() >= this.lastGpsSend + GPS_SEND_INTERVAL) {
         const message = <AppMessage>{
           appId: APPID,
