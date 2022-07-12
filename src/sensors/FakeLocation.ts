@@ -66,7 +66,7 @@ export class FakeLocation extends EventEmitter implements ISensor {
 		if (this.LocationSentences) {
 			this.locationEmitterIntervalId = setInterval(() => {
 				this.emitGPSData();
-			}, 1500);
+			}, 3000);
 		}
 	}
 

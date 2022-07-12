@@ -3,7 +3,7 @@ import { AppMessage } from '../appMessage';
 import { SendMessage } from '../../nrfDevice';
 import { Service } from './Service';
 
-const APPID = ['MCELL', 'SCELL', 'CELL_POS', 'WIFI', 'GNSS'];
+const APPID = ['MCELL', 'SCELL', 'WIFI'];
 
 
 export class Location implements Service {
@@ -16,9 +16,8 @@ export class Location implements Service {
         await this.sendHello();
 
         this.sensor.on('data', (timestamp: number, data: any) => {
-            console.debug(data);
             const message = <AppMessage>{
-                appId: APPID[Math.floor(Math.random() * 100) % 5], //Picks a random location service type to send
+                appId: APPID[Math.floor(Math.random() * 100) % 3],
                 messageType: 'DATA',
                 data: data,
             };
