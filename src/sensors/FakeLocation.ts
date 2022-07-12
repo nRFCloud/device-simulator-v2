@@ -2,10 +2,6 @@ import { EventEmitter } from 'events';
 import { ISensor } from './Sensor';
 import * as fs from 'fs';
 
-/*
-Maybe I'll have to do the same thing as GPS and give it an appid because each one is different and 
-*/
-
 export class FakeLocation extends EventEmitter implements ISensor {
 
 	private readonly LocationSentences: Object[] = [];
