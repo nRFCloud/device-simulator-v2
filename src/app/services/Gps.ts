@@ -3,7 +3,7 @@ import { AppMessage } from '../appMessage';
 import { SendMessage } from '../../nrfDevice';
 import { Service } from './Service';
 
-const APPID = 'GNSS';
+const APPID = 'GPS';
 const GPS_SEND_INTERVAL = 10000;
 
 export class Gps implements Service {
