@@ -37,7 +37,7 @@
             "minimum": 0,
             "maximum": 128
         },
-        "timeStamp": {
+        "ts": {
             "type": "string",
             "format": "date-time"
         },

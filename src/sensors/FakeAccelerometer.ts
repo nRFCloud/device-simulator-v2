@@ -48,25 +48,18 @@ export class Sample {
 }
 
 export class FakeAccelerometer extends EventEmitter implements ISensor {
-  private readonly movementSensorRecording: string;
-  private readonly defaultSampleRate: number;
-
   private reader?: readline.ReadLine;
   private readStream?: fs.ReadStream;
   private samples: Set<Sample | WaitDuration>;
-  private readonly doLoop: boolean;
   private doRun: boolean;
 
   constructor(
-    flipRecording: string,
-    doLoop: boolean = true,
-    defaultSampleRate: number = 1000,
+    private readonly movementSensorRecording: string,
+    private readonly loop: boolean = true,
+    private readonly defaultSampleRate: number = 1000,
   ) {
     super();
-    this.defaultSampleRate = defaultSampleRate;
-    this.movementSensorRecording = flipRecording;
     this.samples = new Set<Sample | WaitDuration>();
-    this.doLoop = doLoop;
     this.doRun = false;
   }
 
@@ -139,7 +132,7 @@ export class FakeAccelerometer extends EventEmitter implements ISensor {
           done = true;
         }
       }
-    } while (this.doRun && this.doLoop);
+    } while (this.doRun && this.loop);
 
     this.emit('stopped');
   }

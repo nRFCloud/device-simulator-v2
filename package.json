@@ -51,6 +51,7 @@
     "commander": "^6.2.0",
     "event-stream": "^4.0.1",
     "ez-cache": "^1.1.0",
+    "gps": "^0.6.1",
     "tcomb": "^3.2.29",
     "ts-enum-util": "^4.0.2",
     "uuid": "^8.2.0"

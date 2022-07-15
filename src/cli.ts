@@ -37,6 +37,11 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]',
     )
     .option(
+      '-t, --timestream-optimized',
+      'Use a data message format optimized for Timestream ingestion and queries',
+      false,
+    )
+    .option(
       '-f, --app-fw-version <appFwVersion>',
       'Version of the app firmware',
       '1',

@@ -52,6 +52,7 @@ export class NrfDevice {
     tenantId: string,
     client: device,
     sensors: Map<string, ISensor>,
+    timestreamOptimized: boolean,
     log: Logger,
   ) {
     this.log = log;
@@ -78,6 +79,7 @@ export class NrfDevice {
       ([name, sensor]): Service =>
         createService(name, sensor, (timestamp, message) =>
           that.sendMessage(timestamp, message),
+          timestreamOptimized
         ),
     );
 

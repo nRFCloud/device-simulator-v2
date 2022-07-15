@@ -51,6 +51,7 @@ export type SimulatorConfig = {
   stage: string;
   tenantId: string;
   services?: string;
+  timestreamOptimized: boolean;
   apiKey?: string;
   apiHost?: string;
   deviceOwnershipCode?: string;

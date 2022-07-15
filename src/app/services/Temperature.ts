@@ -1,5 +1,5 @@
 import { ISensor } from '../../sensors/Sensor';
-import { AppMessage } from '../appMessage';
+import { AppMessage, AppTimestreamMessage } from '../appMessage';
 import { SendMessage } from '../../nrfDevice';
 import { Service } from './Service';
 
@@ -9,17 +9,29 @@ export class Temp implements Service {
   constructor(
     private readonly sensor: ISensor,
     private readonly sendMessage: SendMessage,
+    private readonly timestreamOptimized: boolean,
   ) {}
 
   async start() {
     await this.sendHello();
+    this.sensor.on('data', (timestamp: number, rawData: any) => {
+      const ts = Date.now();
+      const data = String.fromCharCode.apply(null, rawData);
+      let message: AppMessage | AppTimestreamMessage;
+      if (this.timestreamOptimized) {
+        message = <AppTimestreamMessage>{
+          temp: { v: +data, ts },
+        };
+      }
+      else {
+        message = {
+          appId: APPID,
+          messageType: 'DATA',
+          data,
+          ts,
+        };
+      }
 
-    this.sensor.on('data', (timestamp: number, data: any) => {
-      const message = <AppMessage>{
-        appId: APPID,
-        messageType: 'DATA',
-        data: String.fromCharCode.apply(null, data),
-      };
       this.sendMessage(timestamp, message);
     });
 

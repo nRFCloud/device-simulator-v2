@@ -7,7 +7,7 @@ import { Flip } from './Flip';
 import { Device } from './Device';
 
 interface ServiceConstructors {
-  [index: string]: new (sensor: ISensor, sendMessage: SendMessage) => Service;
+  [index: string]: new (sensor: ISensor, sendMessage: SendMessage, timestreamOptimized: boolean) => Service;
 }
 
 const services: ServiceConstructors = {
@@ -21,11 +21,12 @@ export const createService = (
   name: string,
   sensor: ISensor,
   sendMessage: SendMessage,
+  timestreamOptimized: boolean,
 ): Service => {
   const Service = services[name];
   if (Service == null) {
     throw new Error(`No service for a sensor named '${name}' is known.`);
   }
 
-  return new Service(sensor, sendMessage);
+  return new Service(sensor, sendMessage, timestreamOptimized);
 };

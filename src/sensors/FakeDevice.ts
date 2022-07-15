@@ -9,7 +9,7 @@ export class FakeDevice extends EventEmitter implements ISensor {
 
   constructor(
     private readonly sensorRecording: string,
-    private readonly doLoop: boolean,
+    private readonly loop: boolean,
     private readonly sampleRate: number,
   ) {
     super();
@@ -50,8 +50,8 @@ export class FakeDevice extends EventEmitter implements ISensor {
           setTimeout(() => resolve(), this.sampleRate);
         });
       }
-    } while (this.doRun && this.doLoop);
 
+    } while (this.doRun && this.loop);
     this.emit('stopped');
   }
 

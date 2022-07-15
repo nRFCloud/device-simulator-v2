@@ -1,10 +1,16 @@
 import { ISensor } from '../../sensors/Sensor';
-import { AppMessage } from '../appMessage';
+import { AppMessage, AppTimestreamMessage } from '../appMessage';
 import { SendMessage } from '../../nrfDevice';
 import { Service } from './Service';
+const GPS = require('gps');
 
 const APPID = 'GPS';
 const GPS_SEND_INTERVAL = 10000;
+
+interface ParsedGPS {
+  lat: number;
+  lon: number;
+}
 
 export class Gps implements Service {
   lastGpsSend = 0;
@@ -12,19 +18,34 @@ export class Gps implements Service {
   constructor(
     private readonly sensor: ISensor,
     private readonly sendMessage: SendMessage,
+    private readonly timestreamOptimized: boolean,
   ) {}
 
   async start() {
     await this.sendHello();
 
-    this.sensor.on('data', (timestamp: number, data: any) => {
-      if (Date.now() >= this.lastGpsSend + GPS_SEND_INTERVAL) {
-        const message = <AppMessage>{
-          appId: APPID,
-          messageType: 'DATA',
-          data: String.fromCharCode.apply(null, data),
-        };
-        this.sendMessage(timestamp, message);
+    this.sensor.on('data', (timestamp: number, rawData: any) => {
+      const ts = Date.now();
+      const data = String.fromCharCode.apply(null, rawData);
+
+      if (ts >= this.lastGpsSend + GPS_SEND_INTERVAL) {
+        if (this.timestreamOptimized) {
+          const gps = new GPS;
+          gps.on('data', (({ lat, lon }: ParsedGPS) => {
+            this.sendMessage(timestamp, <AppTimestreamMessage>{
+              lat_lon: { v: [lat, lon], ts },
+            });
+          }));
+          gps.update(data);
+        }
+        else {
+          this.sendMessage(timestamp, <AppMessage>{
+            appId: APPID,
+            messageType: 'DATA',
+            data,
+            ts,
+          });
+        }
         this.lastGpsSend = Date.now();
       }
     });

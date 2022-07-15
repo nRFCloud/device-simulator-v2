@@ -1,6 +1,6 @@
 import { ISensor } from '../../sensors/Sensor';
 import { Sample } from '../../sensors/FakeAccelerometer';
-import { AppMessage } from '../appMessage';
+import { AppMessage, AppTimestreamMessage } from '../appMessage';
 import { SendMessage } from '../../nrfDevice';
 import { Service } from './Service';
 
@@ -28,21 +28,34 @@ export class Flip implements Service {
   constructor(
     private readonly sensor: ISensor,
     private readonly sendMessage: SendMessage,
+    private readonly timestreamOptimized: boolean,
   ) {}
 
   async start() {
     await this.sendHello();
 
-    this.sensor.on('data', (timestamp: number, data) => {
-      const sample = Sample.fromArray(convertToInt8(data));
+    this.sensor.on('data', (timestamp: number, rawData) => {
+      const sample = Sample.fromArray(convertToInt8(rawData));
       this.updateOrientation(sample);
       if (this.orientationChange) {
         this.orientationChange = false;
-        const message = <AppMessage>{
-          appId: APPID,
-          messageType: 'DATA',
-          data: this.orientation,
-        };
+        const ts = Date.now();
+
+        let message: AppMessage | AppTimestreamMessage;
+        if (this.timestreamOptimized) {
+          message = <AppTimestreamMessage>{
+            flip: { v: this.orientation, ts },
+          };
+        }
+        else {
+          message = <AppMessage>{
+            appId: APPID,
+            messageType: 'DATA',
+            data: this.orientation,
+            ts,
+          };
+        }
+
         this.sendMessage(timestamp, message);
       }
     });

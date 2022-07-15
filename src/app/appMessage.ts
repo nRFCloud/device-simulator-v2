@@ -6,7 +6,7 @@
  */
 
 /**
- * Message format for simulator app
+ * Current message format for simulator app when storing messages in DynamoDB.
  */
 export interface AppMessage {
   appId: "GPS" | "FLIP" | "TEMP" | "DEVICE";
@@ -15,7 +15,11 @@ export interface AppMessage {
    * This number is incremented by one for each message transmitted
    */
   messageId?: number;
-  timeStamp?: string;
+  ts?: number;
   data?: string;
   [k: string]: any;
+}
+
+export interface AppTimestreamMessage {
+  [k: string]: { v: string | number | boolean | string[] | number[], ts: number };
 }

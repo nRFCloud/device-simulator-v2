@@ -2,19 +2,20 @@ import { device } from 'aws-iot-device-sdk';
 
 import { mqttClient } from './mqttClient';
 import { ISensor } from './sensors/Sensor';
-import { AppMessage } from './app/appMessage';
+import { AppMessage, AppTimestreamMessage } from './app/appMessage';
 import { DeviceConfig, NrfDevice } from './models/Device';
 import { NrfJobsManager } from './models/Job';
 import { Log, Logger } from './models/Log';
 import { AxiosInstance, AxiosResponse } from 'axios';
 
-export type SendMessage = (timestamp: number, message: AppMessage) => void;
+export type SendMessage = (timestamp: number, message: AppMessage | AppTimestreamMessage) => void;
 
 export const nrfdevice = (
   config: DeviceConfig,
   sensors: Map<string, ISensor>,
   apiConn: AxiosInstance,
   onConnect?: (deviceId: string, client?: device) => Promise<void>,
+  timestreamOptimized: boolean = false,
   log: Logger = new Log(true),
 ): any => {
   const {
@@ -49,6 +50,7 @@ export const nrfdevice = (
     tenantId,
     client,
     sensors,
+    timestreamOptimized,
     log,
   );
 

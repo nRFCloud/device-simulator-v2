@@ -16,6 +16,7 @@ export const simulator = async ({
   appFwVersion,
   mqttMessagesPrefix,
   services = '',
+  timestreamOptimized,
   onConnect,
   stage,
   tenantId,
@@ -60,7 +61,7 @@ export const simulator = async ({
   if (services) {
     services.split(',').map((service: string) => {
       const sensorDataFilePath = (filename: string) =>
-        path.resolve(__dirname, 'data', 'sensors', filename);
+        path.resolve(__dirname, 'data', 'sensors', `${timestreamOptimized ? 'timestream-optimized' : ''}`, filename);
 
       switch (service) {
         case 'gps':
@@ -104,6 +105,7 @@ export const simulator = async ({
     sensors,
     getConn(apiHost!, apiKey!, !!verbose),
     onConnect,
+    timestreamOptimized,
     log,
   );
 };
