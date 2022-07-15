@@ -21,5 +21,6 @@ export interface AppMessage {
 }
 
 export interface AppTimestreamMessage {
-  [k: string]: { v: string | number | boolean | string[] | number[], ts: number };
+  [k: string]: string | number | boolean | string[] | number[];
+  ts: number;
 }

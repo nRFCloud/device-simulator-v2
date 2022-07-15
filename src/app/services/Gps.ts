@@ -33,7 +33,8 @@ export class Gps implements Service {
           const gps = new GPS;
           gps.on('data', (({ lat, lon }: ParsedGPS) => {
             this.sendMessage(timestamp, <AppTimestreamMessage>{
-              lat_lon: { v: [lat, lon], ts },
+              lat_lon: [lat, lon],
+              ts,
             });
           }));
           gps.update(data);

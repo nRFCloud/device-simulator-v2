@@ -20,7 +20,8 @@ export class Temp implements Service {
       let message: AppMessage | AppTimestreamMessage;
       if (this.timestreamOptimized) {
         message = <AppTimestreamMessage>{
-          temp: { v: +data, ts },
+          temp: +data,
+          ts,
         };
       }
       else {

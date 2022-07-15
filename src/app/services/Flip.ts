@@ -44,7 +44,8 @@ export class Flip implements Service {
         let message: AppMessage | AppTimestreamMessage;
         if (this.timestreamOptimized) {
           message = <AppTimestreamMessage>{
-            flip: { v: this.orientation, ts },
+            flip: this.orientation,
+            ts,
           };
         }
         else {

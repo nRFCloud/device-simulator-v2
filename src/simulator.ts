@@ -61,7 +61,7 @@ export const simulator = async ({
   if (services) {
     services.split(',').map((service: string) => {
       const sensorDataFilePath = (filename: string) =>
-        path.resolve(__dirname, 'data', 'sensors', `${timestreamOptimized ? 'timestream-optimized' : ''}`, filename);
+        path.resolve(__dirname, 'data', 'sensors', filename);
 
       switch (service) {
         case 'gps':
