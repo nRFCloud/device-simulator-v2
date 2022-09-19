@@ -22,7 +22,6 @@ export const mqttClient = ({
     caCert,
     clientId: id,
     host: endpoint,
-    region: endpoint.split('.')[2],
     debug: false,
     keepalive: KEEP_ALIVE,
     // Uncomment if you want to support Last Will and Testament messages. However, you
