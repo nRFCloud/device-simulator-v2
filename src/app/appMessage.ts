@@ -11,7 +11,7 @@
 
 
 export interface AppMessage {
-  appId: "GPS" | "FLIP" | "TEMP" | "DEVICE" | "GNSS" | "RSRP" | "MCELL" | "SCELL" | "WIFI" | "CELL_POS";
+  appId: "GPS" | "FLIP" | "TEMP" | "DEVICE" | "GNSS" | "RSRP" | "MCELL" | "SCELL" | "WIFI";
   messageType: "HELLO" | "START" | "STOP" | "INT" | "GET" | "STATUS" | "DATA" | "OK" | "EVENT";
   /**
    * This number is incremented by one for each message transmitted

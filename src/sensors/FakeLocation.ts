@@ -12,6 +12,7 @@ export class FakeLocation extends EventEmitter implements ISensor {
 	constructor(
 		private readonly locationReading: string,
 		private readonly loop: boolean = false,
+		private readonly defaultSampleRate: number,
 	) {
 		super();
 	}
@@ -62,7 +63,7 @@ export class FakeLocation extends EventEmitter implements ISensor {
 		if (this.LocationSentences) {
 			this.locationEmitterIntervalId = setInterval(() => {
 				this.emitGPSData();
-			}, 3000);
+			}, this.defaultSampleRate);
 		}
 	}
 

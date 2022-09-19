@@ -14,7 +14,12 @@
                 "GPS",
                 "FLIP",
                 "TEMP",
-                "DEVICE"
+                "DEVICE",
+                "RSRP",
+                "MCELL",
+                "SCELL",
+                "WIFI",
+                "GNSS"
             ]
         },
         "messageType": {

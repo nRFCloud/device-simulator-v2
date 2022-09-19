@@ -74,7 +74,7 @@ export const simulator = async ({
         case 'location':
           sensors.set(
             service,
-            new FakeLocation(sensorDataFilePath('location.txt'), true),
+            new FakeLocation(sensorDataFilePath('location.txt'), true, 10000),
           );
           break;
         case 'acc':
@@ -100,7 +100,7 @@ export const simulator = async ({
         case 'device':
           sensors.set(
             service,
-            new FakeDevice(sensorDataFilePath('device.txt'), true, 1000),
+            new FakeDevice(sensorDataFilePath('device.txt'), true, 5000),
           );
           break;
         case 'rsrp':
