@@ -32,7 +32,7 @@
     "@commitlint/cli": "^9.0.1",
     "@commitlint/config-angular": "^9.0.1",
     "@nrfcloud/tslint-config": "^3.11.1",
-    "@types/aws-iot-device-sdk": "^2.2.2",
+    "@types/aws-iot-device-sdk": "^2.2.4",
     "@types/jest": "^26.0.4",
     "@types/node": "^14.0.20",
     "@types/uuid": "^8.0.0",
@@ -44,7 +44,7 @@
     "typescript": "^3.9.6"
   },
   "dependencies": {
-    "aws-iot-device-sdk": "^2.2.6",
+    "aws-iot-device-sdk": "^2.2.12",
     "aws-sdk": "^2.712.0",
     "axios": "^0.19.2",
     "colors": "^1.4.0",
