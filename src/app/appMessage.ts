@@ -8,14 +8,16 @@
 /**
  * Message format for simulator app
  */
+
+
 export interface AppMessage {
-  appId: "GPS" | "FLIP" | "TEMP" | "DEVICE";
+  appId: "GPS" | "FLIP" | "TEMP" | "DEVICE" | "GNSS" | "RSRP" | "MCELL" | "SCELL" | "WIFI";
   messageType: "HELLO" | "START" | "STOP" | "INT" | "GET" | "STATUS" | "DATA" | "OK" | "EVENT";
   /**
    * This number is incremented by one for each message transmitted
    */
   messageId?: number;
   timeStamp?: string;
-  data?: string;
+  data?: string | Object;
   [k: string]: any;
 }

@@ -12,7 +12,7 @@ export class Gps implements Service {
   constructor(
     private readonly sensor: ISensor,
     private readonly sendMessage: SendMessage,
-  ) {}
+  ) { }
 
   async start() {
     await this.sendHello();
