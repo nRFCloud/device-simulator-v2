@@ -47,7 +47,7 @@ These are the options. Most of them are set with environment variables.
   -h, --api-host <apiHost>                           API host for nRF Cloud (default: "https://api.nrfcloud.com")
   -d, --device-id <deviceId>                         ID of the device (default: <nrfsim-randomString>)
   -a, --associate                                    Automatically associate device to your account (default: false)
-  -s, --services <services>                          Comma-delimited list of services to enable. Any of: [gps,acc,temp,device,rsrp,location]
+  -s, --services <services>                          Comma-delimited list of services to enable. Any of: [gps,acc,temp,device,rsrp,location,log,alert]
   -f, --app-fw-version <appFwVersion>                Version of the app firmware (default: 1)
   -c, --certs-response <certsResponse>               JSON returned by call POST /devices/{deviceid}/certificates (default: "")
   -e, --endpoint <endpoint>                          AWS IoT MQTT endpoint (default: "")

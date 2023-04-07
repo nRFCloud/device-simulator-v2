@@ -19,8 +19,8 @@ export class FakeLog extends EventEmitter implements ISensor {
 	}
 
 	private readLogData() {
-		const data = JSON.parse(fs.readFileSync(this.logReading, 'utf8'));
-		this.logSentences.push(...data.logs);
+		const data = require(this.logReading);
+		this.logSentences.push(...data);
 		this.cleanUpAndStartEmitting();
 	}
 

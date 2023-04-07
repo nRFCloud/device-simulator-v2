@@ -106,13 +106,13 @@ export const simulator = async ({
 				case 'log':
 					sensors.set(
 						service,
-						new FakeLog(sensorDataFilePath('log.txt'), true, 5000),
+						new FakeLog(sensorDataFilePath('log.json'), true, 5000),
 					);
 					break;
 				case 'alert':
 					sensors.set(
 						service,
-						new FakeAlert(sensorDataFilePath('alert.txt'), true, 10000),
+						new FakeAlert(sensorDataFilePath('alert.json'), true, 10000),
 					);
 					break;
 			}

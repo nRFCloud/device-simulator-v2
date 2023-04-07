@@ -1,177 +1,192 @@
-{
-	"items": [
-		{
-			"type": 1,
-			"value": 10,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.7372514160774093,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.06517704191250662,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.5485540754872651,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.6139941645732256,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.6899005468881125,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.418681056940587,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.2732784032352742,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.8264847180630248,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.44882052905681546,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.3945672338915265,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.6859160079003241,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.879391724280991,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.257315900704546,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.06762607890415362,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.06613140282595231,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.02448938448031779,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.5776351184493533,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.3013297424906045,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.08632228872554193,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.038118263379660844,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.4666158437280137,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.17493841861313508,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.6611416276367867,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.16825841706093225,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.3951946810942104,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.6190139938553645,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.18687819814618023,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.543699160487805,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.39870244314339187,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.6673933571923125,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.07860143488001925,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.136301616022398,
-			"desc": ""
-		},
-		{
-			"type": 1,
-			"value": 0.9355348635148661,
-			"desc": ""
-		},
-		{
-			"type": 3
-		}
-	]
-}
+[
+	{
+		"type": 1,
+		"desc": "Device is now online"
+	},
+	{
+		"type": 0,
+		"desc": "Placeholder"
+	},
+	{
+		"type": 2,
+		"desc": "Booted with version 2"
+	},
+	{
+		"type": 3,
+		"desc": "Going offline"
+	},
+	{
+		"type": 4,
+		"desc": "This is a message alert. Likely the only alert to use the 'desc' field, but others can use it too."
+	},
+	{
+		"type": 5,
+		"value": 78,
+		"desc": "It's really hot"
+	},
+	{
+		"type": 6,
+		"value": 98,
+		"desc": "I wouldn't want to be this device"
+	},
+	{
+		"type": 7,
+		"value": 15,
+		"desc": "Battery has fallen to 15 percent"
+	},
+	{
+		"type": 8
+	},
+	{
+		"type": 1,
+		"desc": "Device is now online"
+	},
+	{
+		"type": 0,
+		"desc": "Placeholder"
+	},
+	{
+		"type": 2,
+		"desc": "Booted with version 2"
+	},
+	{
+		"type": 3,
+		"desc": "Going offline"
+	},
+	{
+		"type": 4,
+		"desc": "Warning: You have exceeded your daily quota of bad decisions. Please proceed with caution"
+	},
+	{
+		"type": 5,
+		"value": 78,
+		"desc": "It's really hot"
+	},
+	{
+		"type": 6,
+		"value": 98,
+		"desc": "I wouldn't want to be this device"
+	},
+	{
+		"type": 7,
+		"value": 15,
+		"desc": "Battery has fallen to 15 percent"
+	},
+	{
+		"type": 8
+	},
+	{
+		"type": 1,
+		"desc": "Device is now online"
+	},
+	{
+		"type": 0,
+		"desc": "Placeholder"
+	},
+	{
+		"type": 2,
+		"desc": "Booted with version 2"
+	},
+	{
+		"type": 3,
+		"desc": "Going offline"
+	},
+	{
+		"type": 4,
+		"desc": "Alert: Your coffee intake has reached maximum capacity. Please consider switching to decaf"
+	},
+	{
+		"type": 5,
+		"value": 78,
+		"desc": "It's really hot"
+	},
+	{
+		"type": 6,
+		"value": 98,
+		"desc": "I wouldn't want to be this device"
+	},
+	{
+		"type": 7,
+		"value": 15,
+		"desc": "Battery has fallen to 15 percent"
+	},
+	{
+		"type": 8
+	},
+	{
+		"type": 1,
+		"desc": "Device is now online"
+	},
+	{
+		"type": 0,
+		"desc": "Placeholder"
+	},
+	{
+		"type": 2,
+		"desc": "Booted with version 2"
+	},
+	{
+		"type": 3,
+		"desc": "Going offline"
+	},
+	{
+		"type": 4,
+		"desc": "Warning: Your procrastination levels are approaching critical. Please complete a task before continuing"
+	},
+	{
+		"type": 5,
+		"value": 78,
+		"desc": "It's really hot"
+	},
+	{
+		"type": 6,
+		"value": 98,
+		"desc": "I wouldn't want to be this device"
+	},
+	{
+		"type": 7,
+		"value": 15,
+		"desc": "Battery has fallen to 15 percent"
+	},
+	{
+		"type": 8
+	},
+	{
+		"type": 1,
+		"desc": "Device is now online"
+	},
+	{
+		"type": 0
+	},
+	{
+		"type": 2,
+		"desc": "Booted with version 1.283.9"
+	},
+	{
+		"type": 3,
+		"desc": "Going offline"
+	},
+	{
+		"type": 4,
+		"desc": "Warning: Your patience levels are running low. Take a deep breath and count to 10 before responding to that email"
+	},
+	{
+		"type": 5,
+		"value": 0,
+		"desc": "I'm freezing, come save me."
+	},
+	{
+		"type": 6,
+		"value": 0,
+		"desc": "We are now in the desert"
+	},
+	{
+		"type": 7,
+		"value": 80,
+		"desc": "Battery level now at 80%, stopping charging."
+	},
+	{
+		"type": 8,
+		"desc": "Shocking"
+	}
+]

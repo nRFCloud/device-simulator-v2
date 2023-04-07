@@ -1,0 +1,687 @@
+[
+	{
+		"msg": "cloud_event_handler: NRF_CLOUD_EVT_RX_DATA_SHADOW",
+		"dom": 0,
+		"lvl": 4,
+		"src": "connection",
+		"seq": 0
+	},
+	{
+		"msg": "cloud_event_handler: NRF_CLOUD_EVT_RX_DATA_SHADOW",
+		"dom": 0,
+		"lvl": 4,
+		"src": "connection",
+		"seq": 2
+	},
+	{
+		"msg": "Connected to nRF Cloud",
+		"dom": 0,
+		"lvl": 3,
+		"src": "connection",
+		"seq": 4
+	},
+	{
+		"msg": "cloud_event_handler: NRF_CLOUD_EVT_READY",
+		"dom": 0,
+		"lvl": 4,
+		"src": "connection",
+		"seq": 3
+	},
+	{
+		"msg": "Current date and time determined",
+		"dom": 0,
+		"lvl": 3,
+		"src": "application",
+		"seq": 6
+	},
+	{
+		"msg": "start_location_tracking: Selected the GNSS location tracking method.",
+		"dom": 0,
+		"lvl": 4,
+		"src": "location_tracking",
+		"seq": 9
+	},
+	{
+		"msg": "start_location_tracking: Selected the Cellular location tracking method.",
+		"dom": 0,
+		"lvl": 4,
+		"src": "location_tracking",
+		"seq": 10
+	},
+	{
+		"msg": "Enabled cloud log",
+		"dom": 0,
+		"lvl": 3,
+		"src": "application",
+		"seq": 7
+	},
+	{
+		"msg": "Hello world.",
+		"dom": 0,
+		"lvl": 3,
+		"seq": 8
+	},
+	{
+		"msg": "Waiting for modem to determine current date and time",
+		"dom": 0,
+		"lvl": 3,
+		"src": "application",
+		"seq": 5
+	},
+	{
+		"msg": "Temperature is 22 degrees C",
+		"dom": 0,
+		"lvl": 3,
+		"src": "application",
+		"seq": 11
+	},
+	{
+		"msg": "await_cloud_ready: Awaiting Cloud Ready",
+		"dom": 0,
+		"lvl": 4,
+		"src": "connection",
+		"seq": 15
+	},
+	{
+		"msg": "consume_device_message: Attempting to transmit enqueued device message",
+		"dom": 0,
+		"lvl": 4,
+		"src": "connection",
+		"seq": 16
+	},
+	{
+		"msg": "await_lte_connection: Awaiting LTE Connection",
+		"dom": 0,
+		"lvl": 4,
+		"src": "connection",
+		"seq": 14
+	},
+	{
+		"msg": "consume_device_message: Waiting for valid connection before transmitting device message",
+		"dom": 0,
+		"lvl": 4,
+		"src": "connection",
+		"seq": 13
+	},
+	{
+		"msg": "consume_device_message: Enqueued device message consumed successfully",
+		"dom": 0,
+		"lvl": 4,
+		"src": "connection",
+		"seq": 17
+	},
+	{
+		"msg": "start_led_pattern: LED Pattern Requested",
+		"dom": 0,
+		"lvl": 4,
+		"src": "led_control",
+		"seq": 18
+	},
+	{
+		"msg": "consume_device_message: Consuming an enqueued device message",
+		"dom": 0,
+		"lvl": 4,
+		"src": "connection",
+		"seq": 19
+	},
+	{
+		"msg": "led_animation_thread_fn: LED Pattern Started",
+		"dom": 0,
+		"lvl": 4,
+		"src": "led_control",
+		"seq": 22
+	},
+	{
+		"msg": "led_animation_thread_fn: LED Pattern Ended",
+		"dom": 0,
+		"lvl": 4,
+		"src": "led_control",
+		"seq": 21
+	},
+	{
+		"msg": "start_led_pattern: LED Pattern Requested",
+		"dom": 0,
+		"lvl": 4,
+		"src": "led_control",
+		"seq": 20
+	},
+	{
+		"msg": "lte_event_handler: LTE_EVENT: RRC mode: Idle",
+		"dom": 0,
+		"lvl": 4,
+		"src": "connection",
+		"seq": 23
+	},
+	{
+		"msg": "lte_event_handler: LTE_EVENT: RRC mode: Connected",
+		"dom": 0,
+		"lvl": 4,
+		"src": "connection",
+		"seq": 24
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Received AGPS data. Schema version: 1, length: 1945",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 25
+	},
+	{
+		"msg": "nrf_cloud_agps_process: A-GPS_injection_active LOCKED",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 26
+	},
+	{
+		"msg": "nrf_cloud_agps_process: TOWs copied, bitmask: 0x00000000",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 28
+	},
+	{
+		"msg": "copy_time_and_tow: SW TOW mask is zero, not copying TOW array",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 29
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 20",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 27
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_GPS_SYSTEM_CLOCK",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 30
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 1",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 32
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 85",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 31
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 2",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 34
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 147",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 33
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 209",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 35
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 3",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 36
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 271",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 37
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 4",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 38
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 333",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 39
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 5",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 40
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 395",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 41
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 6",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 42
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 7",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 44
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 457",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 43
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 519",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 45
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 8",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 46
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 581",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 47
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 9",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 48
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 10",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 50
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 643",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 49
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 705",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 51
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 11",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 52
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 12",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 54
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 767",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 53
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 829",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 55
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 13",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 56
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 14",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 58
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 891",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 57
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 953",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 59
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 15",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 60
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1015",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 61
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 16",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 62
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 17",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 64
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1077",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 63
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 18",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 66
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1139",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 65
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 19",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 68
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1201",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 67
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 20",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 70
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1263",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 69
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1325",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 71
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 21",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 72
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1387",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 73
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 23",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 74
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 24",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 76
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1449",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 75
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 25",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 78
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1511",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 77
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 26",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 80
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1573",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 79
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 27",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 82
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1635",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 81
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1697",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 83
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 28",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 84
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 29",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 86
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1759",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 85
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 30",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 88
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1821",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 87
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1883",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 89
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 31",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 90
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_EPHEMERIDES 32",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 92
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 1945",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 91
+	},
+	{
+		"msg": "nrf_cloud_agps_process: A-GPS_inject_active UNLOCKED",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 93
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Received AGPS data. Schema version: 1, length: 1194",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 94
+	},
+	{
+		"msg": "nrf_cloud_agps_process: A-GPS_injection_active LOCKED",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 95
+	},
+	{
+		"msg": "agps_send_to_modem: A-GPS type: NRF_CLOUD_AGPS_GPS_SYSTEM_CLOCK",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 99
+	},
+	{
+		"msg": "copy_time_and_tow: SW TOW mask is zero, not copying TOW array",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 98
+	},
+	{
+		"msg": "nrf_cloud_agps_process: Parsed_len: 20",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 96
+	},
+	{
+		"msg": "nrf_cloud_agps_process: TOWs copied, bitmask: 0x00000000",
+		"dom": 0,
+		"lvl": 4,
+		"src": "nrf_cloud_agps",
+		"seq": 97
+	}
+]

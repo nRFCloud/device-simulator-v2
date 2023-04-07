@@ -19,14 +19,13 @@ export class FakeAlert extends EventEmitter implements ISensor {
 	}
 
 	private readAlertData() {
-		const data = JSON.parse(fs.readFileSync(this.alertReading, 'utf8'));
-		this.alertSentences.push(...data.Alerts);
+		const data = require(this.alertReading);
+		this.alertSentences.push(...data);
 		this.cleanUpAndStartEmitting();
 	}
 
 
 	private emitAlertData() {
-
 		this.emit(
 			'data',
 			Date.now(),

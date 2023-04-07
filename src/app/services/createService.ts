@@ -7,6 +7,8 @@ import { Flip } from './Flip';
 import { Device } from './Device';
 import { Rsrp } from './Rsrp';
 import { Location } from './Location';
+import { Alert } from './Alert';
+import { Log } from './Log';
 
 interface ServiceConstructors {
   [index: string]: new (sensor: ISensor, sendMessage: SendMessage) => Service;
@@ -19,6 +21,8 @@ const services: ServiceConstructors = {
   device: Device,
   rsrp: Rsrp,
   location: Location,
+  alert: Alert,
+  log: Log,
 };
 
 export const createService = (

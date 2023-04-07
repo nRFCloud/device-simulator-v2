@@ -12,13 +12,12 @@ export class Log implements Service {
 	) { }
 
 	async start() {
-		await this.sendHello();
-
 		this.sensor.on('data', (timestamp: number, data: any) => {
 			const message = <AppMessage>{
 				appId: APPID,
 				messageType: 'DATA',
-				data: String.fromCharCode.apply(null, data),
+				ts: new Date().getTime(),
+				...data,
 			};
 			this.sendMessage(timestamp, message);
 		});
@@ -26,13 +25,6 @@ export class Log implements Service {
 		if (!this.sensor.isStarted()) {
 			await this.sensor.start();
 		}
-	}
-
-	private async sendHello() {
-		await this.sendMessage(Date.now(), {
-			appId: APPID,
-			messageType: 'HELLO',
-		});
 	}
 
 	async stop() {

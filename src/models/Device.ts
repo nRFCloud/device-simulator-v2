@@ -180,6 +180,11 @@ export class NrfDevice {
 							appVersion,
 							appName: 'asset_tracker',
 						},
+
+					},
+					control: {
+						alertsEn: true,
+						logLvl: 4,
 					},
 					connection: {
 						status: 'connected',

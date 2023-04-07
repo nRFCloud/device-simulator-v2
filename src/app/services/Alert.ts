@@ -3,9 +3,9 @@ import { AppMessage } from '../appMessage';
 import { SendMessage } from '../../nrfDevice';
 import { Service } from './Service';
 
-const APPID = 'TEMP';
+const APPID = 'ALERT';
 
-export class Temp implements Service {
+export class Alert implements Service {
 	constructor(
 		private readonly sensor: ISensor,
 		private readonly sendMessage: SendMessage,
@@ -18,7 +18,8 @@ export class Temp implements Service {
 			const message = <AppMessage>{
 				appId: APPID,
 				messageType: 'DATA',
-				data: String.fromCharCode.apply(null, data),
+				ts: new Date().getTime(),
+				...data,
 			};
 			this.sendMessage(timestamp, message);
 		});
@@ -27,14 +28,12 @@ export class Temp implements Service {
 			await this.sensor.start();
 		}
 	}
-
 	private async sendHello() {
 		await this.sendMessage(Date.now(), {
 			appId: APPID,
 			messageType: 'HELLO',
 		});
 	}
-
 	async stop() {
 		await this.sensor.stop();
 	}
