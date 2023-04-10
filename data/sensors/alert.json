@@ -1,0 +1,192 @@
+[
+	{
+		"type": 1,
+		"desc": "Device is now online"
+	},
+	{
+		"type": 0,
+		"desc": "Placeholder"
+	},
+	{
+		"type": 2,
+		"desc": "Booted with version 2"
+	},
+	{
+		"type": 3,
+		"desc": "Going offline"
+	},
+	{
+		"type": 4,
+		"desc": "This is a message alert. Likely the only alert to use the 'desc' field, but others can use it too."
+	},
+	{
+		"type": 5,
+		"value": 78,
+		"desc": "It's really hot"
+	},
+	{
+		"type": 6,
+		"value": 98,
+		"desc": "I wouldn't want to be this device"
+	},
+	{
+		"type": 7,
+		"value": 15,
+		"desc": "Battery has fallen to 15 percent"
+	},
+	{
+		"type": 8
+	},
+	{
+		"type": 1,
+		"desc": "Device is now online"
+	},
+	{
+		"type": 0,
+		"desc": "Placeholder"
+	},
+	{
+		"type": 2,
+		"desc": "Booted with version 2"
+	},
+	{
+		"type": 3,
+		"desc": "Going offline"
+	},
+	{
+		"type": 4,
+		"desc": "Warning: You have exceeded your daily quota of bad decisions. Please proceed with caution"
+	},
+	{
+		"type": 5,
+		"value": 78,
+		"desc": "It's really hot"
+	},
+	{
+		"type": 6,
+		"value": 98,
+		"desc": "I wouldn't want to be this device"
+	},
+	{
+		"type": 7,
+		"value": 15,
+		"desc": "Battery has fallen to 15 percent"
+	},
+	{
+		"type": 8
+	},
+	{
+		"type": 1,
+		"desc": "Device is now online"
+	},
+	{
+		"type": 0,
+		"desc": "Placeholder"
+	},
+	{
+		"type": 2,
+		"desc": "Booted with version 2"
+	},
+	{
+		"type": 3,
+		"desc": "Going offline"
+	},
+	{
+		"type": 4,
+		"desc": "Alert: Your coffee intake has reached maximum capacity. Please consider switching to decaf"
+	},
+	{
+		"type": 5,
+		"value": 78,
+		"desc": "It's really hot"
+	},
+	{
+		"type": 6,
+		"value": 98,
+		"desc": "I wouldn't want to be this device"
+	},
+	{
+		"type": 7,
+		"value": 15,
+		"desc": "Battery has fallen to 15 percent"
+	},
+	{
+		"type": 8
+	},
+	{
+		"type": 1,
+		"desc": "Device is now online"
+	},
+	{
+		"type": 0,
+		"desc": "Placeholder"
+	},
+	{
+		"type": 2,
+		"desc": "Booted with version 2"
+	},
+	{
+		"type": 3,
+		"desc": "Going offline"
+	},
+	{
+		"type": 4,
+		"desc": "Warning: Your procrastination levels are approaching critical. Please complete a task before continuing"
+	},
+	{
+		"type": 5,
+		"value": 78,
+		"desc": "It's really hot"
+	},
+	{
+		"type": 6,
+		"value": 98,
+		"desc": "I wouldn't want to be this device"
+	},
+	{
+		"type": 7,
+		"value": 15,
+		"desc": "Battery has fallen to 15 percent"
+	},
+	{
+		"type": 8
+	},
+	{
+		"type": 1,
+		"desc": "Device is now online"
+	},
+	{
+		"type": 0
+	},
+	{
+		"type": 2,
+		"desc": "Booted with version 1.283.9"
+	},
+	{
+		"type": 3,
+		"desc": "Going offline"
+	},
+	{
+		"type": 4,
+		"desc": "Warning: Your patience levels are running low. Take a deep breath and count to 10 before responding to that email"
+	},
+	{
+		"type": 5,
+		"value": 0,
+		"desc": "I'm freezing, come save me."
+	},
+	{
+		"type": 6,
+		"value": 0,
+		"desc": "We are now in the desert"
+	},
+	{
+		"type": 7,
+		"value": 80,
+		"desc": "Battery level now at 80%, stopping charging."
+	},
+	{
+		"type": 8,
+		"desc": "Shocking"
+	}
+]

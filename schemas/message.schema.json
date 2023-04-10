@@ -1,53 +1,55 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "appMessage",
-    "description": "Message format for simulator app",
-    "type": "object",
-    "required": [
-        "appId",
-        "messageType"
-    ],
-    "properties": {
-        "appId": {
-            "type": "string",
-            "enum": [
-                "GPS",
-                "FLIP",
-                "TEMP",
-                "DEVICE",
-                "RSRP",
-                "MCELL",
-                "SCELL",
-                "WIFI",
-                "GNSS"
-            ]
-        },
-        "messageType": {
-            "type": "string",
-            "enum": [
-                "HELLO",
-                "START",
-                "STOP",
-                "INT",
-                "GET",
-                "STATUS",
-                "DATA",
-                "OK",
-                "EVENT"
-            ]
-        },
-        "messageId": {
-            "description": "This number is incremented by one for each message transmitted",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 128
-        },
-        "timeStamp": {
-            "type": "string",
-            "format": "date-time"
-        },
-        "data": {
-            "type": "string"
-        }
-    }
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "appMessage",
+	"description": "Message format for simulator app",
+	"type": "object",
+	"required": [
+		"appId",
+		"messageType"
+	],
+	"properties": {
+		"appId": {
+			"type": "string",
+			"enum": [
+				"GPS",
+				"FLIP",
+				"TEMP",
+				"DEVICE",
+				"RSRP",
+				"MCELL",
+				"SCELL",
+				"WIFI",
+				"GNSS",
+				"LOG",
+				"ALERT"
+			]
+		},
+		"messageType": {
+			"type": "string",
+			"enum": [
+				"HELLO",
+				"START",
+				"STOP",
+				"INT",
+				"GET",
+				"STATUS",
+				"DATA",
+				"OK",
+				"EVENT"
+			]
+		},
+		"messageId": {
+			"description": "This number is incremented by one for each message transmitted",
+			"type": "integer",
+			"minimum": 0,
+			"maximum": 128
+		},
+		"timeStamp": {
+			"type": "string",
+			"format": "date-time"
+		},
+		"data": {
+			"type": "string"
+		}
+	}
 }
