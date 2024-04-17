@@ -26,12 +26,19 @@ npx @nrfcloud/device-simulator-v2 -k <api key> -a
 ```
 
 ### Simulate sensor outputs
+Include any combination of the options listed after `-s` below:
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key> -a -d <device id (from output of initial command that associated device)> -s gps,acc,device,temp
 ```
 *Note! Usually the `-a` is not necessary, since the device is already associated to your account. However, due to bug IRIS-3450, this does not always work. Adding the `-a` is harmless and is a workaround for now.*
 
-*Note! Including `device` in the list will generate a LOT of messages which may overrun your Web browser. Best not to run it more than a few seconds with it, or you can leave out `device` and run it long-term. See IRIS-2501.*
+*Note! Including `device` in the list will generate a LOT of device info messages which may overrun your Web browser. Best not to run it more than a few seconds with it, or you can leave out `device` and run it long-term.*
+
+*Note! The `acc` option sends FLIP accelerometer messages, simulating the device being flipped right-side-up or upside-down. This was a feature of the Asset Tracker v1 firmware example that has been removed for the currently supported Asset Tracker v2.*
+
+If you want to use different GPS data, replace the appropriate file in [./data/sensors](https://github.com/nRFCloud/device-simulator-v2/tree/saga/data/sensors) or change tne appropriate file path(s) in [cli.ts](src/cli.ts). (There is some additional GPS data in this repo for routes around Portland, Oregon, USA.)
+
+GPS data is based on NMEA sentences. If you want to make your own GPS data, go to https://nmeagen.org. The "Multi-point line" seems to work best. Lay some points and then click the "Generate NMEA file" button.
 
 ### Do it all at once
 You can create a new simulated device, associate it, and start sending sensor data all in one command, which is a typical way to use the simulator:
@@ -310,19 +317,6 @@ or
 curl $API_HOST/v1/fota-job-executions/$DEVICE_ID/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
 ```
 
-### Enable Sensors and Services
-1. Shut down the script (CMD or CTRL + C).
-2. Restart the simulator with the GPS service enabled:
-```sh
-node dist/cli.js -s gps
-```
-Or restart the simulator with all the services enabled:
-```sh
-node dist/cli.js -s gps,acc,device,temp
-```
-If you want to use different data simply replace the appropriate file in [./data/sensors](https://github.com/nRFCloud/device-simulator-v2/tree/saga/data/sensors) or change tne appropriate file path(s) in [cli.ts](src/cli.ts). (There is some additional GPS data in this repo for routes around Portland, Oregon.)
-
-GPS data is based on NMEA sentences. If you want to make your own GPS data, go to https://nmeagen.org. The "Multi-point line" seems to work best. Lay some points and then click the "Generate NMEA file" button.
 
 ### Clean up (if desired)
 
