@@ -17,7 +17,8 @@ This will create a new device with AWS IoT, but it will not associate it to your
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key> [-d <desired device ID>]
 ```
-(If you would like to use the local code instead of npx, first run `yarn && yarn build` and then replace `npx @nrfcloud/device-simulator-v2` with `node dist/cli.js`.)
+If you would like to use the local code instead of npx, first run `yarn && yarn build` and then replace `npx @nrfcloud/device-simulator-v2` with `node dist/cli.js`.
+
 You can name the device whatever you want with the `-d` option. If not present, it will be named `nrfsim-<random 21 digits>`.
 
 ### Associate device to your account
