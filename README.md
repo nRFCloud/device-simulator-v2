@@ -15,9 +15,10 @@ The host defaults to the production environment (https://api.nrfcloud.com). **No
 
 This will create a new device with AWS IoT, but it will not associate it to your account (use the `-a` flag) for that.
 ```
-npx @nrfcloud/device-simulator-v2 -k <api key>
+npx @nrfcloud/device-simulator-v2 -k <api key> [-d <desired device ID>]
 ```
 (If you would like to use the local code instead of npx, first run `yarn && yarn build` and then replace `npx @nrfcloud/device-simulator-v2` with `node dist/cli.js`.)
+You can name the device whatever you want with the `-d` option. If not present, it will be named `nrfsim-<random 21 digits>`.
 
 ### Associate device to your account
 This will create a new device and associate it to the account for the API key.
@@ -28,7 +29,7 @@ npx @nrfcloud/device-simulator-v2 -k <api key> -a
 ### Simulate sensor outputs
 Include any combination of the options listed after `-s` below:
 ```
-npx @nrfcloud/device-simulator-v2 -k <api key> -a -d <device id (from output of initial command that associated device)> -s gps,acc,device,temp
+npx @nrfcloud/device-simulator-v2 -k <api key> -a -d <device ID you already associated> -s gps,acc,device,temp
 ```
 *Note! Usually the `-a` is not necessary, since the device is already associated to your account. However, due to bug IRIS-3450, this does not always work. Adding the `-a` is harmless and is a workaround for now.*
 
@@ -43,7 +44,7 @@ GPS data is based on NMEA sentences. If you want to make your own GPS data, go t
 ### Do it all at once
 You can create a new simulated device, associate it, and start sending sensor data all in one command, which is a typical way to use the simulator:
 ```
-npx @nrfcloud/device-simulator-v2 -k <api key> -a -s gps,acc,device,temp
+npx @nrfcloud/device-simulator-v2 -k <api key> [-d <desired device ID>] -a -s gps,acc,device,temp
 ```
 
 ## Options
