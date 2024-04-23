@@ -69,7 +69,7 @@ export const nrfdevice = (
       await onConnect(deviceId);
 
       // wait for a couple seconds
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         let halfSecondsElapsed = 1;
         const totalDelay = 10; // 10 half seconds
         log.info('waiting for aws IoT to associate device...');

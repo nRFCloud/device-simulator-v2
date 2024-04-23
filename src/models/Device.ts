@@ -139,59 +139,66 @@ export class NrfDevice {
 		});
 	}
 
-	async initShadow(appVersion: string = ''): Promise<void> {
-		await this.publish(this.topics.shadow.update._, {
-			state: {
-				reported: {
-					device: {
-						serviceInfo: {
-							fota_v2: ['APP', 'MODEM'],
-							ui: [
-								'GPS',
-								'FLIP',
-								'TEMP',
-								'HUMID',
-								'AIR_PRESS',
-								'BUTTON',
-								'LIGHT',
-								'LOG',
-							],
+	//Change this to handle atv2 and mss.
+	async initShadow(appVersion: string = '', assetTrackerType: 'mss' | 'atv2' = 'atv2'): Promise<void> {
+		await this.publish(this.topics.shadow.update._,
+			{
+				state: {
+					reported: {
+						connection: {
+							status: 'connected',
+							keepalive: KEEP_ALIVE
 						},
-						networkInfo: {
-							currentBand: 12,
-							supportedBands: '',
-							areaCode: 36874,
-							mccmnc: '310410',
-							ipAddress: '10.160.33.51',
-							ueMode: 2,
-							cellID: 84485647,
-							networkMode: 'LTE-M GPS',
+						control: {
+							alertsEn: true,
+							logLvl: 3
 						},
-						simInfo: {
-							uiccMode: 1,
-							iccid: '',
-							imsi: '204080813516718',
-						},
-						deviceInfo: {
-							modemFirmware: 'mfw_nrf9160_1.2.2',
-							batteryVoltage: 3824,
-							imei: '352656100441776',
-							board: 'nrf9160_pca20035',
-							appVersion,
-							appName: 'asset_tracker',
-						},
-
-					},
-					control: {
-						alertsEn: true,
-						logLvl: 4,
-					},
-					connection: {
-						status: 'connected',
-						keepalive: KEEP_ALIVE,
-					},
-				},
-			},
-		});
+						...(assetTrackerType === 'atv2' && {
+							config: {
+								activeMode: true,
+								locationTimeout: 300,
+								activeWaitTime: 300,
+								movementResolution: 120,
+								movementTimeout: 3600,
+								accThreshAct: 4,
+								accThreshInact: 4,
+								accTimeoutInact: 60,
+								nod: []
+							}
+						}),
+						device: {
+							deviceInfo: {
+								appVersion: appVersion ?? "1.0.0",
+								batteryVoltage: 5191,
+								appName: assetTrackerType === 'mss' ? "nrf_cloud_multi_service" : "asset_tracker_v2",
+								imei: "358299840010349",
+								board: "nrf9161dk_nrf9161",
+								sdkVer: "v2.6.0-571-gf927cd6b1473",
+								zephyrVer: "v3.5.99-ncs1-4957-g54b4e400ed8f",
+								hwVer: "nRF9161 LACA ADA"
+							},
+							networkInfo: {
+								supportedBands: assetTrackerType === 'mss' ? '(1,2,3,4,5,8,12,13,18,19,20,25,26,28,66,85)' : '',
+								networkMode: assetTrackerType === 'mss' ? 'LTE-M GPS' : 'LTE-M',
+								ipAddress: '10.160.33.51',
+								ueMode: 2,
+								rsrp: -58,
+							},
+							simInfo: {
+								uiccMode: 1,
+								iccid: '',
+								imsi: '204080813516718',
+							},
+							serviceInfo: {
+								fota_v2: assetTrackerType === 'mss' ? ['MODEM', 'APP'] : ['BOOT', 'MODEM', 'APP']
+							},
+							connectionInfo: {
+								protocol: 'MQTT',
+								method: 'LTE'
+							},
+						}
+					}
+				}
+			});
 	}
 }
