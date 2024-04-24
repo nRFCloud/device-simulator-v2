@@ -51,7 +51,7 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       'automatically associate device to account',
       false,
     )
-		.option('-t, --asset-tracker <assetTracker>', 'Type of assest tracker. "mss" or "atv2"', 'atv2')
+		.option('-t, --asset-tracker <assetTracker>', 'Type of asset tracker. "mss" or "atv2"', 'atv2')
     .option('-v, --verbose', 'output debug info', false)
     .parse(args)
     .opts() as SimulatorConfig;

@@ -63,6 +63,7 @@ These are the options. Most of them are set with environment variables.
   -o, --device-ownership-code <deviceOwnershipCode>  PIN/ownership code of the device (default: "123456")
   -m, --mqtt-messages-prefix <mqttMessagesPrefix>    The prefix for the MQTT for this tenant for sending and receiving device messages (default: "")
   -v, --verbose                                      Output debug information
+  -t, --asset-tracker <assetTracker>                 Type of asset tracker. "mss" or "atv2" (default: "atv2")                             
   -h, --help                                         Output usage information
 ```
 
