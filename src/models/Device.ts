@@ -171,12 +171,12 @@ export class NrfDevice {
 							deviceInfo: {
 								appVersion: appVersion ?? "1.0.0",
 								batteryVoltage: 5191,
-								appName: assetTracker === 'mss' ? "nrf_cloud_multi_service" : "asset_tracker_v2",
-								imei: "358299840010349",
-								board: "nrf9161dk_nrf9161",
-								sdkVer: "v2.6.0-571-gf927cd6b1473",
-								zephyrVer: "v3.5.99-ncs1-4957-g54b4e400ed8f",
-								hwVer: "nRF9161 LACA ADA"
+								appName: assetTracker === 'mss' ? 'nrf_cloud_multi_service' : 'asset_tracker_v2',
+								imei: '358299840010349',
+								board: 'nrf9161dk_nrf9161',
+								sdkVer: 'v2.6.0-571-gf927cd6b1473',
+								zephyrVer: 'v3.5.99-ncs1-4957-g54b4e400ed8f',
+								hwVer: 'nRF9161 LACA ADA'
 							},
 							networkInfo: {
 								supportedBands: assetTracker === 'mss' ? '(1,2,3,4,5,8,12,13,18,19,20,25,26,28,66,85)' : '',
