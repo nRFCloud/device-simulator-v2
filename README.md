@@ -168,49 +168,59 @@ TOPIC: $aws/things/nrfsim-1065144894/shadow/update
 MESSAGE: {
   "state": {
     "reported": {
+      "connection": {
+        "status": "connected",
+        "keepalive": 30
+      },
+      "control": {
+        "alertsEn": true,
+        "logLvl": 3
+      },
+      "config": {
+        "activeMode": true,
+        "locationTimeout": 300,
+        "activeWaitTime": 300,
+        "movementResolution": 120,
+        "movementTimeout": 3600,
+        "accThreshAct": 4,
+        "accThreshInact": 4,
+        "accTimeoutInact": 60,
+        "nod": []
+      },
       "device": {
-        "serviceInfo": {
-          "fota_v2": [
-            "APP",
-            "MODEM"
-          ],
-          "ui": [
-            "GPS",
-            "FLIP",
-            "TEMP",
-            "HUMID",
-            "AIR_PRESS",
-            "BUTTON",
-            "LIGHT"
-          ]
+        "deviceInfo": {
+          "appVersion": "1",
+          "batteryVoltage": 5191,
+          "appName": "asset_tracker_v2",
+          "imei": "358299840010349",
+          "board": "nrf9161dk_nrf9161",
+          "sdkVer": "v2.6.0-571-gf927cd6b1473",
+          "zephyrVer": "v3.5.99-ncs1-4957-g54b4e400ed8f",
+          "hwVer": "nRF9161 LACA ADA"
         },
         "networkInfo": {
-          "currentBand": 12,
           "supportedBands": "",
-          "areaCode": 36874,
-          "mccmnc": "310410",
+          "networkMode": "LTE-M",
           "ipAddress": "10.160.33.51",
           "ueMode": 2,
-          "cellID": 84485647,
-          "networkMode": "LTE-M GPS"
+          "rsrp": -58
         },
         "simInfo": {
           "uiccMode": 1,
           "iccid": "",
           "imsi": "204080813516718"
         },
-        "deviceInfo": {
-          "modemFirmware": "mfw_nrf9160_1.1.0",
-          "batteryVoltage": 3824,
-          "imei": "352656100441776",
-          "board": "nrf9160_pca20035",
-          "appVersion": "1",
-          "appName": "asset_tracker"
+        "serviceInfo": {
+          "fota_v2": [
+            "BOOT",
+            "MODEM",
+            "APP"
+          ]
+        },
+        "connectionInfo": {
+          "protocol": "MQTT",
+          "method": "LTE"
         }
-      },
-      "connection": {
-        "status": "connected",
-        "keepalive": 30
       }
     }
   }
