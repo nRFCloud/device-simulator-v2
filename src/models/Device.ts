@@ -31,6 +31,7 @@ export type DeviceConfig = {
 	privateKey: Buffer | string;
 	endpoint: string;
 	appFwVersion: string;
+	assetTracker: string;
 	mqttMessagesPrefix: string;
 	stage: string;
 	tenantId: string;
@@ -140,7 +141,7 @@ export class NrfDevice {
 	}
 
 	//Change this to handle atv2 and mss.
-	async initShadow(appVersion: string = '', assetTrackerType: 'mss' | 'atv2' = 'atv2'): Promise<void> {
+	async initShadow(appVersion: string = '', assetTracker: string): Promise<void> {
 		await this.publish(this.topics.shadow.update._,
 			{
 				state: {
@@ -153,7 +154,7 @@ export class NrfDevice {
 							alertsEn: true,
 							logLvl: 3
 						},
-						...(assetTrackerType === 'atv2' && {
+						...(assetTracker === 'atv2' && {
 							config: {
 								activeMode: true,
 								locationTimeout: 300,
@@ -170,7 +171,7 @@ export class NrfDevice {
 							deviceInfo: {
 								appVersion: appVersion ?? "1.0.0",
 								batteryVoltage: 5191,
-								appName: assetTrackerType === 'mss' ? "nrf_cloud_multi_service" : "asset_tracker_v2",
+								appName: assetTracker === 'mss' ? "nrf_cloud_multi_service" : "asset_tracker_v2",
 								imei: "358299840010349",
 								board: "nrf9161dk_nrf9161",
 								sdkVer: "v2.6.0-571-gf927cd6b1473",
@@ -178,8 +179,8 @@ export class NrfDevice {
 								hwVer: "nRF9161 LACA ADA"
 							},
 							networkInfo: {
-								supportedBands: assetTrackerType === 'mss' ? '(1,2,3,4,5,8,12,13,18,19,20,25,26,28,66,85)' : '',
-								networkMode: assetTrackerType === 'mss' ? 'LTE-M GPS' : 'LTE-M',
+								supportedBands: assetTracker === 'mss' ? '(1,2,3,4,5,8,12,13,18,19,20,25,26,28,66,85)' : '',
+								networkMode: assetTracker === 'mss' ? 'LTE-M GPS' : 'LTE-M',
 								ipAddress: '10.160.33.51',
 								ueMode: 2,
 								rsrp: -58,
@@ -190,7 +191,7 @@ export class NrfDevice {
 								imsi: '204080813516718',
 							},
 							serviceInfo: {
-								fota_v2: assetTrackerType === 'mss' ? ['MODEM', 'APP'] : ['BOOT', 'MODEM', 'APP']
+								fota_v2: assetTracker === 'mss' ? ['MODEM', 'APP'] : ['BOOT', 'MODEM', 'APP']
 							},
 							connectionInfo: {
 								protocol: 'MQTT',
