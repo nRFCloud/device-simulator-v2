@@ -53,7 +53,7 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
     )
     .option(
       '-t, --app-type <appType>',
-      'Type of app type. "mss" or "atv2"',
+      'Type of device application. "mss" or "atv2"',
       'atv2',
     )
     .option('-v, --verbose', 'output debug info', false)
