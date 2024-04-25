@@ -179,8 +179,8 @@ export class NrfDevice {
 								hwVer: 'nRF9161 LACA ADA'
 							},
 							networkInfo: {
-								supportedBands: assetTracker === 'mss' ? '(1,2,3,4,5,8,12,13,18,19,20,25,26,28,66,85)' : '',
-								networkMode: assetTracker === 'mss' ? 'LTE-M GPS' : 'LTE-M',
+								supportedBands: '(1,2,3,4,5,8,12,13,18,19,20,25,26,28,66,85)',
+								networkMode: 'LTE-M GPS',
 								ipAddress: '10.160.33.51',
 								ueMode: 2,
 								rsrp: -58,

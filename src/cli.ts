@@ -52,8 +52,8 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       false,
     )
     .option(
-      '-t, --asset-tracker <assetTracker>',
-      'Type of asset tracker. "mss" or "atv2"',
+      '-t, --app-type <appType>',
+      'Type of app type. "mss" or "atv2"',
       'atv2',
     )
     .option('-v, --verbose', 'output debug info', false)
