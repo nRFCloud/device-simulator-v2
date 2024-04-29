@@ -26,7 +26,7 @@ export const simulator = async ({
   verbose,
   apiHost,
   apiKey,
-  assetTracker,
+  appType,
 }: SimulatorConfig): Promise<void> => {
   let certs;
   const log = new Log(!!verbose);
@@ -55,7 +55,7 @@ export const simulator = async ({
     clientCert,
     endpoint,
     appFwVersion,
-    assetTracker,
+    appType,
     mqttMessagesPrefix,
     stage,
     tenantId,

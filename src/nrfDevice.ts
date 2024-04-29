@@ -25,7 +25,7 @@ export const nrfdevice = (
     endpoint,
     appFwVersion,
     mqttMessagesPrefix,
-    assetTracker,
+    appType,
     stage,
     tenantId,
   } = config;
@@ -60,7 +60,7 @@ export const nrfdevice = (
     if (!shadowInitted) {
       shadowInitted = true;
       log.info(`Initializing ${deviceId} shadow...`);
-      await device.initShadow(appFwVersion, assetTracker);
+      await device.initShadow(appFwVersion, appType);
     }
 
     // run callback

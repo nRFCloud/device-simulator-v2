@@ -31,7 +31,7 @@ export type DeviceConfig = {
 	privateKey: Buffer | string;
 	endpoint: string;
 	appFwVersion: string;
-	assetTracker: string;
+	appType: string;
 	mqttMessagesPrefix: string;
 	stage: string;
 	tenantId: string;
@@ -141,7 +141,7 @@ export class NrfDevice {
 	}
 
 	// Create a shadow for either Asset Tracker v2 (atv2) or Multi-Service Sample (mss), default (atv2)
-	async initShadow(appVersion: string = '', assetTracker: string = 'atv2'): Promise<void> {
+	async initShadow(appVersion: string = '', appType: string = 'atv2'): Promise<void> {
 		await this.publish(this.topics.shadow.update._,
 			{
 				state: {
@@ -154,7 +154,7 @@ export class NrfDevice {
 							alertsEn: true,
 							logLvl: 3
 						},
-						...(assetTracker === 'atv2' && {
+						...(appType === 'atv2' && {
 							config: {
 								activeMode: true,
 								locationTimeout: 300,
@@ -171,7 +171,7 @@ export class NrfDevice {
 							deviceInfo: {
 								appVersion: appVersion ?? "1.0.0",
 								batteryVoltage: 5191,
-								appName: assetTracker === 'mss' ? 'nrf_cloud_multi_service' : 'asset_tracker_v2',
+								appName: appType === 'mss' ? 'nrf_cloud_multi_service' : 'asset_tracker_v2',
 								imei: '358299840010349',
 								board: 'nrf9161dk_nrf9161',
 								sdkVer: 'v2.6.0-571-gf927cd6b1473',
@@ -191,7 +191,7 @@ export class NrfDevice {
 								imsi: '204080813516718',
 							},
 							serviceInfo: {
-								fota_v2: assetTracker === 'mss' ? ['MODEM', 'APP'] : ['BOOT', 'MODEM', 'APP']
+								fota_v2: appType === 'mss' ? ['MODEM', 'APP'] : ['BOOT', 'MODEM', 'APP']
 							},
 							connectionInfo: {
 								protocol: 'MQTT',
