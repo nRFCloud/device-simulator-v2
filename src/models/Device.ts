@@ -140,8 +140,9 @@ export class NrfDevice {
 		});
 	}
 
-	//Change this to handle atv2 and mss.
-	async initShadow(appVersion: string = '', assetTracker: string): Promise<void> {
+	// Create a shadow for either Asset Tracker v2 (atv2) or Multi-Service Sample (mss), default (atv2)
+	async initShadow(appVersion: string = '', assetTracker: string = 'atv2'): Promise<void> {
+		console.log(assetTracker);
 		await this.publish(this.topics.shadow.update._,
 			{
 				state: {
