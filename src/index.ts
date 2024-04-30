@@ -167,8 +167,6 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
     verbose,
   } = config;
 
-  console.log('Config at run', config);
-
   const log = new Log(!!verbose);
   config.deviceId = deviceId || generateDeviceId();
 

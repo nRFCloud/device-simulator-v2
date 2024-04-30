@@ -4,6 +4,51 @@ import * as program from 'commander';
 import { Log } from './models/Log';
 import { SimulatorConfig, run } from './index';
 
+function validateAppTypeJSONInput(input: any) {
+  if (typeof input.state !== 'object') {
+    new Log(false).error(
+      'appType custom shadow is missing object value for "state" key',
+    );
+    return false;
+  }
+
+  if (typeof input.state.reported !== 'object') {
+    new Log(false).error(
+      'appType custom shadow "state" object is missing object value for "reported" key',
+    );
+    return false;
+  }
+
+  return true;
+}
+
+const handleAppType = (input: any, _: unknown) => {
+  if (input === 'mss' || input === 'atv2') {
+    return input;
+  }
+
+  if (input[0] !== '[' && input[0] !== '{') {
+    new Log(false).error(
+      'Input for appType may only be "mss", "atv2", or a JSON-encoded object',
+    );
+    process.exit();
+  }
+
+  try {
+    input = JSON.parse(input);
+    if (!validateAppTypeJSONInput(input)) {
+      new Log(false).info(
+        `Expected input: '{"state":{"reported":{<DEVICE_DATA>}}}'`,
+      );
+      process.exit();
+    }
+  } catch (err) {
+    new Log(false).error('Error parsing JSON:' + (err as any).message);
+    process.exit();
+  }
+  return input;
+};
+
 const getConfig = (env: any, args: string[]): SimulatorConfig =>
   program
     .requiredOption(
@@ -51,12 +96,12 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       'automatically associate device to account',
       false,
     )
+    .option('-v, --verbose', 'output debug info', false)
     .option(
       '-t, --app-type <appType>',
-      'Type of device application. "mss" or "atv2"',
-      'atv2',
+      'Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object. Otherwise, pass "mss" or "atv2" to automatically generate a conformal shadow',
+      handleAppType,
     )
-    .option('-v, --verbose', 'output debug info', false)
     .parse(args)
     .opts() as SimulatorConfig;
 

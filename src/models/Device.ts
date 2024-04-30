@@ -141,75 +141,68 @@ export class NrfDevice {
 	}
 
 	// Create a shadow for either Asset Tracker v2 (atv2) or Multi-Service Sample (mss), default (atv2)
-	async initShadow(appVersion: string = '', appType: string = 'atv2'): Promise<void> {
-		let shadow;
-		if (appType !== 'atv2' && appType !== 'mss') {
-			try {
-				shadow = JSON.parse(appType);
-			} catch (error) {
-				this.log.error('Error parsing appType JSON: ' + (error as any).message);
-				process.exit();
-			}
-		}
-		console.log(shadow, appType);
-		await this.publish(this.topics.shadow.update._, shadow ??
-		{
-			state: {
-				reported: {
-					connection: {
-						status: 'connected',
-						keepalive: KEEP_ALIVE
-					},
-					control: {
-						alertsEn: true,
-						logLvl: 3
-					},
-					...(appType === 'atv2' && {
-						config: {
-							activeMode: true,
-							locationTimeout: 300,
-							activeWaitTime: 300,
-							movementResolution: 120,
-							movementTimeout: 3600,
-							accThreshAct: 4,
-							accThreshInact: 4,
-							accTimeoutInact: 60,
-							nod: []
+	async initShadow(appVersion: string = '', appType: string | object = 'atv2'): Promise<void> {
+		let shadow = appType;
+		if (appType === 'atv2' || appType === 'mss') {
+			shadow = {
+				state: {
+					reported: {
+						connection: {
+							status: 'connected',
+							keepalive: KEEP_ALIVE
+						},
+						control: {
+							alertsEn: true,
+							logLvl: 3
+						},
+						...(appType === 'atv2' && {
+							config: {
+								activeMode: true,
+								locationTimeout: 300,
+								activeWaitTime: 300,
+								movementResolution: 120,
+								movementTimeout: 3600,
+								accThreshAct: 4,
+								accThreshInact: 4,
+								accTimeoutInact: 60,
+								nod: []
+							}
+						}),
+						device: {
+							deviceInfo: {
+								appVersion: appVersion ?? "1.0.0",
+								batteryVoltage: 5191,
+								appName: appType === 'mss' ? 'nrf_cloud_multi_service' : 'asset_tracker_v2',
+								imei: '358299840010349',
+								board: 'nrf9161dk_nrf9161',
+								sdkVer: 'v2.6.0-571-gf927cd6b1473',
+								zephyrVer: 'v3.5.99-ncs1-4957-g54b4e400ed8f',
+								hwVer: 'nRF9161 LACA ADA'
+							},
+							networkInfo: {
+								supportedBands: '(1,2,3,4,5,8,12,13,18,19,20,25,26,28,66,85)',
+								networkMode: 'LTE-M GPS',
+								ipAddress: '10.160.33.51',
+								ueMode: 2,
+								rsrp: -58,
+							},
+							simInfo: {
+								uiccMode: 1,
+								iccid: '',
+								imsi: '204080813516718',
+							},
+							serviceInfo: {
+								fota_v2: appType === 'mss' ? ['MODEM', 'APP'] : ['BOOT', 'MODEM', 'APP']
+							},
+							connectionInfo: {
+								protocol: 'MQTT',
+								method: 'LTE'
+							},
 						}
-					}),
-					device: {
-						deviceInfo: {
-							appVersion: appVersion ?? "1.0.0",
-							batteryVoltage: 5191,
-							appName: appType === 'mss' ? 'nrf_cloud_multi_service' : 'asset_tracker_v2',
-							imei: '358299840010349',
-							board: 'nrf9161dk_nrf9161',
-							sdkVer: 'v2.6.0-571-gf927cd6b1473',
-							zephyrVer: 'v3.5.99-ncs1-4957-g54b4e400ed8f',
-							hwVer: 'nRF9161 LACA ADA'
-						},
-						networkInfo: {
-							supportedBands: '(1,2,3,4,5,8,12,13,18,19,20,25,26,28,66,85)',
-							networkMode: 'LTE-M GPS',
-							ipAddress: '10.160.33.51',
-							ueMode: 2,
-							rsrp: -58,
-						},
-						simInfo: {
-							uiccMode: 1,
-							iccid: '',
-							imsi: '204080813516718',
-						},
-						serviceInfo: {
-							fota_v2: appType === 'mss' ? ['MODEM', 'APP'] : ['BOOT', 'MODEM', 'APP']
-						},
-						connectionInfo: {
-							protocol: 'MQTT',
-							method: 'LTE'
-						},
 					}
 				}
 			}
-		});
+		}
+		await this.publish(this.topics.shadow.update._, shadow as object);
 	}
 }
