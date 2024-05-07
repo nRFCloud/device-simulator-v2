@@ -50,6 +50,7 @@ export type SimulatorConfig = {
   mqttMessagesPrefix: string;
   stage: string;
   tenantId: string;
+  appType: string;
   services?: string;
   apiKey?: string;
   apiHost?: string;
@@ -165,6 +166,8 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
     associate,
     verbose,
   } = config;
+
+  console.log('Config at run', config);
 
   const log = new Log(!!verbose);
   config.deviceId = deviceId || generateDeviceId();

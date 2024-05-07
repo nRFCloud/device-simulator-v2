@@ -34,7 +34,7 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
     )
     .option(
       '-s, --services <services>',
-      'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device]',
+      'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device,rsrp,location,log,alert]',
     )
     .option(
       '-f, --app-fw-version <appFwVersion>',
@@ -50,6 +50,11 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       '-a, --associate',
       'automatically associate device to account',
       false,
+    )
+    .option(
+      '-t, --app-type <appType>',
+      'Type of device application. "mss" or "atv2"',
+      'atv2',
     )
     .option('-v, --verbose', 'output debug info', false)
     .parse(args)
