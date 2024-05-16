@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import * as program from 'commander';
+import { readFile } from 'fs/promises';
+import * as path from 'path';
 
 import { Log } from './models/Log';
 import { SimulatorConfig, run } from './index';
@@ -22,23 +24,33 @@ function validateAppTypeJSONInput(input: any) {
   return true;
 }
 
-const handleAppType = (input: any, _: unknown) => {
+const handleAppType = async (input: any, _: unknown) => {
   if (input === 'mss' || input === 'atv2') {
     return input;
   }
 
-  if (input[0] !== '[' && input[0] !== '{') {
+  if (input[0] !== '[' && input[0] !== '{' && !input.includes('.json')) {
     new Log(false).error(
-      'Input for appType may only be "mss", "atv2", or a JSON-encoded object',
+      'Input for appType may only be "mss", "atv2", JSON-encoded object, or path to a json file.',
     );
     process.exit();
+  }
+
+  if (input.includes('.json')) {
+    const file = path.join(__dirname, input);
+    try {
+      input = await readFile(file, 'utf8');
+    } catch (err) {
+      new Log(false).error(`Error opening file: ${err}`);
+      process.exit();
+    }
   }
 
   try {
     input = JSON.parse(input);
     if (!validateAppTypeJSONInput(input)) {
       new Log(false).info(
-        `Expected input: '{"state":{"reported":{<DEVICE_DATA>}}}'`,
+        `Expected input: '{"state":{"reported":{...}, "desired":{...}}}', "desired" is optional.`,
       );
       process.exit();
     }
@@ -119,5 +131,6 @@ let verbose: boolean;
   }
 
   config.stage = stage;
+  config.appType = await config.appType;
   return run(config);
 })().catch((err) => new Log(verbose).error(err));
