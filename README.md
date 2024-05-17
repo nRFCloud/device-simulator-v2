@@ -105,15 +105,23 @@ node dist/cli.js <options>
 ### Publishing
 To publish a new version to npm, follow this recipe:
 ```bash
+
 # commit all files
+git add .
 git commit -am "<feat|bug|chore|refactor>: <commit message>"
 
 # publish to npm. this will build, ask for a new version, and publish 
 # to the npm repo if you run `yarn deploy:beta, it will deploy to the beta tag
 yarn deploy[:beta]
+# updates the version in the package.json, this line:
+#  "version": "2.2.7",
 
-# push changes and new tags to github
+# tag the new version
+git tag v2.2.7
+
+# push changes and new tag to github
 git push origin HEAD
+git push origin v2.2.7
 ```
 
 ## Recipes
