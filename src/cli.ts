@@ -37,7 +37,8 @@ const handleAppType = async (input: any, _: unknown) => {
   }
 
   if (input.includes('.json')) {
-    const file = path.join(__dirname, input);
+    //Adding an additional '../' to the input since it's being called from dist and not src
+    const file = path.join(__dirname, '../' + input);
     try {
       input = await readFile(file, 'utf8');
     } catch (err) {
@@ -111,7 +112,7 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
     .option('-v, --verbose', 'output debug info', false)
     .option(
       '-t, --app-type <appType>',
-      'Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object. Otherwise, pass "mss" or "atv2" to automatically generate a conformal shadow',
+      'Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object or relative path to json file. Otherwise, pass "mss" or "atv2" to automatically generate a conformal shadow',
       handleAppType,
     )
     .parse(args)

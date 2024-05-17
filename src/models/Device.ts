@@ -141,7 +141,7 @@ export class NrfDevice {
 	}
 
 	// Create a shadow for either Asset Tracker v2 (atv2) or Multi-Service Sample (mss), default (atv2)
-	async initShadow(appVersion: string = '', appType?: string | object): Promise<void> {
+	async initShadow(appVersion: string = '', appType: string | object = 'atv2'): Promise<void> {
 		let shadow = appType;
 		if (shadow === 'atv2' || shadow === 'mss') {
 			shadow = {
@@ -203,6 +203,8 @@ export class NrfDevice {
 				}
 			}
 		}
+		// @ts-ignore, Adding in a flag that we check for when we fetch the device in nrfDevice.ts to populate shadow.
+		shadow.state.reported.simulator = true;
 		await this.publish(this.topics.shadow.update._, shadow as object);
 	}
 }

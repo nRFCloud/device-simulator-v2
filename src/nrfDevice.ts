@@ -23,17 +23,16 @@ export const nrfdevice = (
     clientCert,
     privateKey,
     endpoint,
-    // appFwVersion,
+    appFwVersion,
     mqttMessagesPrefix,
-    // appType,
+    appType,
     stage,
     tenantId,
   } = config;
 
-  let shadowInitted = false;
   let onConnectExecuted = false;
   let onConnectExecuting = false;
-  let deviceHasShadow = false;
+  let shadowInitialized = false;
   log.success(`connecting to "${endpoint}"...`);
 
   const client = mqttClient({
@@ -57,13 +56,6 @@ export const nrfdevice = (
   const jobsManager = new NrfJobsManager(device, log);
 
   const notifyOfConnection = async (eventName: string) => {
-    // init shadow
-    if (!shadowInitted && !deviceAssociated) {
-      shadowInitted = true;
-      log.info(`Initializing ${deviceId} shadow...`);
-      // await device.initShadow(appFwVersion, appType);
-    }
-
     // run callback
     if (onConnect && !onConnectExecuted && !onConnectExecuting) {
       onConnectExecuting = true;
@@ -104,10 +96,22 @@ export const nrfdevice = (
             );
             deviceAssociated = true;
 
-            if (res?.data?.state?.reported) {
-              deviceHasShadow = true;
+            //Init shadow
+            console.log(
+              'Shadow',
+              res?.data?.state?.reported?.simulator,
+              res?.data?.state,
+            );
+            if (
+              (appType ||
+                (!res?.data?.state?.reported?.simulator && !appType)) &&
+              !shadowInitialized
+            ) {
+              shadowInitialized = true;
+              log.info(`Initializing ${deviceId} shadow...`);
+              await device.initShadow(appFwVersion, appType);
             }
-            console.log(res.data?.state);
+
             log.info('listening for new jobs...');
             await jobsManager.waitForJobs();
           }
