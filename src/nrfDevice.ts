@@ -97,21 +97,12 @@ export const nrfdevice = (
             deviceAssociated = true;
 
             //Init shadow
-            console.log(
-              'Shadow',
-              res?.data?.state?.reported?.simulator,
-              res?.data?.state,
-            );
-            if (
-              (appType ||
-                (!res?.data?.state?.reported?.simulator && !appType)) &&
-              !shadowInitialized
-            ) {
-              shadowInitialized = true;
+            if (appType && !shadowInitialized) {
               log.info(`Initializing ${deviceId} shadow...`);
               await device.initShadow(appFwVersion, appType);
             }
 
+            shadowInitialized = true;
             log.info('listening for new jobs...');
             await jobsManager.waitForJobs();
           }
