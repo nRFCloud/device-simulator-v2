@@ -1,8 +1,66 @@
 #!/usr/bin/env node
 import * as program from 'commander';
+import { readFile } from 'fs/promises';
+import * as path from 'path';
 
 import { Log } from './models/Log';
 import { SimulatorConfig, run } from './index';
+
+function validateAppTypeJSONInput(input: any) {
+  if (typeof input.state !== 'object') {
+    new Log(false).error(
+      'appType custom shadow is missing object value for "state" key',
+    );
+    return false;
+  }
+
+  if (typeof input.state.reported !== 'object') {
+    new Log(false).error(
+      'appType custom shadow "state" object is missing object value for "reported" key',
+    );
+    return false;
+  }
+
+  return true;
+}
+
+const handleAppType = async (input: any, _: unknown) => {
+  if (input === 'mss' || input === 'atv2') {
+    return input;
+  }
+
+  if (input[0] !== '[' && input[0] !== '{' && !input.includes('.json')) {
+    new Log(false).error(
+      'Input for appType may only be "mss", "atv2", JSON-encoded object, or path to a json file.',
+    );
+    process.exit();
+  }
+
+  if (input.includes('.json')) {
+    //Adding an additional '../' to the input since it's being called from dist and not src
+    const file = path.join(__dirname, '../' + input);
+    try {
+      input = await readFile(file, 'utf8');
+    } catch (err) {
+      new Log(false).error(`Error opening file: ${err}`);
+      process.exit();
+    }
+  }
+
+  try {
+    input = JSON.parse(input);
+    if (!validateAppTypeJSONInput(input)) {
+      new Log(false).info(
+        `Expected input: '{"state":{"reported":{...}, "desired":{...}}}', "desired" is optional.`,
+      );
+      process.exit();
+    }
+  } catch (err) {
+    new Log(false).error('Error parsing JSON:' + (err as any).message);
+    process.exit();
+  }
+  return input;
+};
 
 const getConfig = (env: any, args: string[]): SimulatorConfig =>
   program
@@ -51,12 +109,12 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       'automatically associate device to account',
       false,
     )
+    .option('-v, --verbose', 'output debug info', false)
     .option(
       '-t, --app-type <appType>',
-      'Type of device application. "mss" or "atv2"',
-      'atv2',
+      'Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object or relative path to json file. Otherwise, pass "mss" or "atv2" to automatically generate a conformal shadow',
+      handleAppType,
     )
-    .option('-v, --verbose', 'output debug info', false)
     .parse(args)
     .opts() as SimulatorConfig;
 
@@ -74,5 +132,6 @@ let verbose: boolean;
   }
 
   config.stage = stage;
+  config.appType = await config.appType;
   return run(config);
 })().catch((err) => new Log(verbose).error(err));

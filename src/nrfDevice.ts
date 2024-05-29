@@ -30,9 +30,9 @@ export const nrfdevice = (
     tenantId,
   } = config;
 
-  let shadowInitted = false;
   let onConnectExecuted = false;
   let onConnectExecuting = false;
+  let shadowInitialized = false;
   log.success(`connecting to "${endpoint}"...`);
 
   const client = mqttClient({
@@ -56,13 +56,6 @@ export const nrfdevice = (
   const jobsManager = new NrfJobsManager(device, log);
 
   const notifyOfConnection = async (eventName: string) => {
-    // init shadow
-    if (!shadowInitted) {
-      shadowInitted = true;
-      log.info(`Initializing ${deviceId} shadow...`);
-      await device.initShadow(appFwVersion, appType);
-    }
-
     // run callback
     if (onConnect && !onConnectExecuted && !onConnectExecuting) {
       onConnectExecuting = true;
@@ -103,6 +96,13 @@ export const nrfdevice = (
             );
             deviceAssociated = true;
 
+            //Init shadow
+            if (appType && !shadowInitialized) {
+              log.info(`Initializing ${deviceId} shadow...`);
+              await device.initShadow(appFwVersion, appType);
+            }
+
+            shadowInitialized = true;
             log.info('listening for new jobs...');
             await jobsManager.waitForJobs();
           }
