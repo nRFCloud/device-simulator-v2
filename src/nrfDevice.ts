@@ -10,7 +10,7 @@ import { AxiosInstance, AxiosResponse } from 'axios';
 
 export type SendMessage = (timestamp: number, message: AppMessage) => void;
 
-export const nrfdevice = (
+export const nrfDevice = (
   config: DeviceConfig,
   sensors: Map<string, ISensor>,
   apiConn: AxiosInstance,
@@ -28,7 +28,7 @@ export const nrfdevice = (
     appType,
     stage,
     tenantId,
-    jobExectutionPath: jobExecutionPath,
+    jobExecutionPath,
   } = config;
 
   let onConnectExecuted = false;

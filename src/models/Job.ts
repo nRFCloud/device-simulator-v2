@@ -27,7 +27,7 @@ enum JobExecutionStatus {
 	DOWNLOADING = 7,
 }
 
-enum JobExectutionPath {
+enum JobExecutionPath {
 	Ignore = 0,
 	Reject = 1,
 	DownloadHang = 2,
@@ -35,14 +35,25 @@ enum JobExectutionPath {
 	DownloadTimeout = 4,
 }
 
-const getExectutionPath = (path: JobExectutionPath): JobExecutionStatus[] => {
+const getExecutionPath = (path: JobExecutionPath): JobExecutionStatus[] => {
 	return $enum.mapValue(path).with({
-		[JobExectutionPath.Ignore]: [JobExecutionStatus.QUEUED],
-		[JobExectutionPath.Reject]: [JobExecutionStatus.QUEUED, JobExecutionStatus.REJECTED],
-		[JobExectutionPath.DownloadHang]: [JobExecutionStatus.QUEUED, JobExecutionStatus.DOWNLOADING],
-		[JobExectutionPath.DownloadInProgress]: [JobExecutionStatus.QUEUED, JobExecutionStatus.DOWNLOADING, JobExecutionStatus.IN_PROGRESS],
-		[JobExectutionPath.DownloadTimeout]: [JobExecutionStatus.QUEUED, JobExecutionStatus.DOWNLOADING, JobExecutionStatus.IN_PROGRESS, JobExecutionStatus.TIMED_OUT],
+		[JobExecutionPath.Ignore]: [JobExecutionStatus.QUEUED],
+		[JobExecutionPath.Reject]: [JobExecutionStatus.QUEUED, JobExecutionStatus.REJECTED],
+		[JobExecutionPath.DownloadHang]: [JobExecutionStatus.QUEUED, JobExecutionStatus.DOWNLOADING],
+		[JobExecutionPath.DownloadInProgress]: [JobExecutionStatus.QUEUED, JobExecutionStatus.DOWNLOADING, JobExecutionStatus.IN_PROGRESS],
+		[JobExecutionPath.DownloadTimeout]: [JobExecutionStatus.QUEUED, JobExecutionStatus.DOWNLOADING, JobExecutionStatus.IN_PROGRESS, JobExecutionStatus.TIMED_OUT],
 	})
+}
+
+const getNextExecutionStatus = (pathType: JobExecutionPath, currentStatus: JobExecutionStatus): JobExecutionStatus => {
+	const path = getExecutionPath(pathType);
+	const currentStep = path.indexOf(currentStatus);
+
+	if (currentStep === -1) {
+		return path[0];
+	}
+
+	return path[currentStep +1] ?? path[currentStep];
 }
 
 type JobId = string;
@@ -81,7 +92,6 @@ export class NrfJobsManager {
 	}
 
 	async setupJobsListener(): Promise<void> {
-		console.log('This is being called');
 		this.device.registerListener(
 			this.device.topics.jobs.receive,
 			async ({ payload }: { payload: Job }) => {
@@ -99,7 +109,8 @@ export class NrfJobsManager {
 
 				const prevStatus: JobExecutionStatus = this.cache[jobId] || JobExecutionStatus.QUEUED;
 				let newStatus: JobExecutionStatus | undefined = undefined;
-				let message: string | undefined = this.path || undefined;
+				let message: string | undefined = undefined;
+				console.debug('this path', this.path);
 
 				const firmwareTypes: { [key: number]: string } = {};
 				$enum(FirmwareType).getEntries().forEach(([key, val]) => firmwareTypes[val] = key);
@@ -110,17 +121,17 @@ export class NrfJobsManager {
 				switch (prevStatus) {
 					case JobExecutionStatus.QUEUED:
 						message = `downloading "${firmwareTypes[firmwareType]}" firmware file from "${host}${path}"`;
-						newStatus = JobExecutionStatus.DOWNLOADING;
+						newStatus = this.path ? getNextExecutionStatus(this.path, prevStatus) : JobExecutionStatus.DOWNLOADING;
 						break;
 
 					case JobExecutionStatus.DOWNLOADING:
 						message = `installing "${firmwareTypes[firmwareType]}" firmware file from "${host}${path}"`;
-						newStatus = JobExecutionStatus.IN_PROGRESS;
+						newStatus = this.path ? getNextExecutionStatus(this.path, prevStatus) : JobExecutionStatus.IN_PROGRESS;
 						break;
 
 					case JobExecutionStatus.IN_PROGRESS:
 						message = `installation successful for "${firmwareTypes[firmwareType]}" firmware file from "${host}${path}"`;
-						newStatus = JobExecutionStatus.SUCCEEDED;
+						newStatus = this.path ? getNextExecutionStatus(this.path, prevStatus) : JobExecutionStatus.SUCCEEDED;
 						break;
 
 					case JobExecutionStatus.SUCCEEDED:

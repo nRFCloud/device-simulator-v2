@@ -35,7 +35,7 @@ export type DeviceConfig = {
 	mqttMessagesPrefix: string;
 	stage: string;
 	tenantId: string;
-	jobExectutionPath: any;
+	jobExecutionPath: any;
 };
 
 export class NrfDevice {
