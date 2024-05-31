@@ -45,6 +45,17 @@ const getExecutionPath = (path: JobExecutionPath): JobExecutionStatus[] => {
 	})
 }
 
+const getPathName = (path: JobExecutionPath): string => {
+	return $enum.mapValue(path).with({
+		[JobExecutionPath.Ignore]: 'Ignore Job',
+		[JobExecutionPath.Reject]: 'Reject Job',
+		[JobExecutionPath.DownloadHang]: 'Hang on DOWNLOADING state',
+		[JobExecutionPath.DownloadInProgress]: 'Hang on IN_PROGRESS state',
+		[JobExecutionPath.DownloadTimeout]: 'End with a TIME_OUT',
+		[$enum.handleUnexpected]: 'Normal',
+	})
+}
+
 const getNextExecutionStatus = (pathType: JobExecutionPath, currentStatus: JobExecutionStatus): JobExecutionStatus => {
 	const path = getExecutionPath(pathType);
 	const currentStep = path.indexOf(currentStatus);
@@ -53,7 +64,7 @@ const getNextExecutionStatus = (pathType: JobExecutionPath, currentStatus: JobEx
 		return path[0];
 	}
 
-	return path[currentStep +1] ?? path[currentStep];
+	return path[currentStep + 1] ?? '';
 }
 
 type JobId = string;
@@ -151,6 +162,7 @@ export class NrfJobsManager {
 						break;
 				}
 
+				console.log('newStatus', newStatus);
 				if (newStatus) {
 					// subscribe to changes
 					this.log.info('Subscribing to jobExecution updates...');
@@ -166,8 +178,9 @@ export class NrfJobsManager {
 					this.log.info(this.log.prettify(this.device.id, [
 						['JOB ID', jobId],
 						['OLD STATUS', `${jobExecutionStatuses[prevStatus]} (${prevStatus})`],
-						['NEW STATUS', `${newStatus ? jobExecutionStatuses[newStatus] : ''} (${newStatus})`],
+						['NEW STATUS', `${newStatus ? jobExecutionStatuses[newStatus] : ''} (${newStatus ?? ''})`],
 						['MESSAGE', message],
+						['JOB EXECUTION PATH', getPathName(this.path)]
 					]));
 				}
 			},
