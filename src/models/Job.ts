@@ -121,7 +121,6 @@ export class NrfJobsManager {
 				const prevStatus: JobExecutionStatus = this.cache[jobId] || JobExecutionStatus.QUEUED;
 				let newStatus: JobExecutionStatus | undefined = undefined;
 				let message: string | undefined = undefined;
-				console.debug('this path', this.path);
 
 				const firmwareTypes: { [key: number]: string } = {};
 				$enum(FirmwareType).getEntries().forEach(([key, val]) => firmwareTypes[val] = key);
@@ -162,7 +161,6 @@ export class NrfJobsManager {
 						break;
 				}
 
-				console.log('newStatus', newStatus);
 				if (newStatus) {
 					// subscribe to changes
 					this.log.info('Subscribing to jobExecution updates...');

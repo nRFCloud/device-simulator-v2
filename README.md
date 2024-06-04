@@ -15,7 +15,7 @@ The host defaults to the production environment (https://api.nrfcloud.com). **No
 
 This will create a new device with AWS IoT, but it will not associate it to your account (use the `-a` flag) for that.
 ```
-npx @nrfcloud/device-simulator-v2 -k <api key> [-d <desired device ID>]
+npx @nrfcloud/device-simulator-v2 -k <api key> [-d <desired device ID>] -t atv2
 ```
 If you would like to use the local code instead of npx, first run `yarn && yarn build` and then replace `npx @nrfcloud/device-simulator-v2` with `node dist/cli.js`.
 
@@ -24,7 +24,7 @@ You can name the device whatever you want with the `-d` option. If not present, 
 ### Associate device to your account
 This will create a new device and associate it to the account for the API key.
 ```
-npx @nrfcloud/device-simulator-v2 -k <api key> -a
+npx @nrfcloud/device-simulator-v2 -k <api key> -a -t atv2
 ```
 
 ### Simulate sensor outputs
@@ -280,6 +280,10 @@ Your device is now associated with your account (tenant) and is ready to start s
 1. Open a new terminal window/tab.
 2. Set up the environment variables (see above, but use the same `DEVICE_ID` that you had generated).
 3. Upload a dummy firmware file as binary data.
+
+>[!NOTE]
+>If you don't use the -t (atv2,mss) you won't be able to create an update.
+
 ```sh
 curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/zip" --data-binary @data/fota_app_fw.zip | jq
 ```
@@ -340,6 +344,16 @@ or
 curl $API_HOST/v1/fota-job-executions/$DEVICE_ID/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
 ```
 
+### Use an unhappy path for FOTA execution
+If you want to test devices failing, stalling, or timing out you can add the `-p` flag with one of the following options:
+
+| Value | Execution Path | Description |
+| --- | --- | --- |
+| 0 | QUEUED | Simulates a device not being turned on |
+| 1 | QUEUED ---> REJECTED | Simulates a device instantly rejecting a job |
+| 2 | QUEUED ---> DOWNLOADING | Simulates a device hanging in the DOWNLOADING state |
+| 3 | QUEUED ---> DOWNLOADING ---> IN_PROGRESS | Simulates a device attempting to update, but is unable to respond |
+| 4 | QUEUED --- > DOWNLOADING ---> IN_PROGRESS ---> TIMED_OUT | Simulates a device timing out |
 
 ### Clean up (if desired)
 
