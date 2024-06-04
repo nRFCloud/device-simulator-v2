@@ -65,7 +65,6 @@ These are the options. Most of them are set with environment variables.
   -v, --verbose                                      Output debug information
   -t, --app-type <appType>                           Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object or relative path to json file. Otherwise,
                                                      pass "mss" or "atv2" to automatically generate a conformal shadow
-                                                     (default: "atv2")
   -p, --job-execution-path <jobExecutionPath>        Specifies an unhappy job execution path for a fota update.																										                         
   -h, --help                                         Output usage information
 ```
