@@ -63,10 +63,10 @@ const handleAppType = async (input: any, _: unknown) => {
 };
 
 const handleJobExecution = (input: string, _: unknown) => {
-  const validPath = /^[0-4]$/;
+  const validPath = /^[0-5]$/;
   if (!validPath.test(input)) {
     new Log(false).error(
-      'Input for jobExecutionPath must be a number between 0 and 4',
+      'Input for jobExecutionPath must be a number between 0 and 5',
     );
     process.exit();
   }
@@ -128,7 +128,7 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
     )
     .option(
       '-p, --job-execution-path <jobExecutionPath>',
-      'Specifies an unhappy job execution path for a fota update.',
+      'Specifies an unhappy job execution path for a fota update. View the "Use an unhappy path for FOTA execution" section of the README for more details.',
       handleJobExecution,
     )
     .parse(args)

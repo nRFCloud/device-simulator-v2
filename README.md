@@ -65,7 +65,8 @@ These are the options. Most of them are set with environment variables.
   -v, --verbose                                      Output debug information
   -t, --app-type <appType>                           Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object or relative path to json file. Otherwise,
                                                      pass "mss" or "atv2" to automatically generate a conformal shadow
-  -p, --job-execution-path <jobExecutionPath>        Specifies an unhappy job execution path for a fota update.																										                         
+  -p, --job-execution-path <jobExecutionPath>        Specifies an unhappy job execution path for a fota update.	View the "Use an unhappy path for FOTA execution" section
+                                                     of the README for more details.																									                         
   -h, --help                                         Output usage information
 ```
 
@@ -353,7 +354,8 @@ If you want to test devices failing, stalling, or timing out you can add the `-p
 | 1 | QUEUED --> REJECTED | Simulates a device instantly rejecting a job |
 | 2 | QUEUED --> DOWNLOADING | Simulates a device hanging in the DOWNLOADING state |
 | 3 | QUEUED --> DOWNLOADING --> IN_PROGRESS | Simulates a device attempting to update, but is unable to respond |
-| 4 | QUEUED --> DOWNLOADING --> IN_PROGRESS --> TIMED_OUT | Simulates a device timing out |
+| 4 | QUEUED --> DOWNLOADING --> IN_PROGRESS --> TIMED_OUT | Simulates a device timing out while processing the update |
+| 5 | QUEUED --> DOWNLOADING --> IN_PROGRESS --> FAILED | Simulates a device failing to apply the update and keeping the existing firmware installed |
 
 ### Clean up (if desired)
 

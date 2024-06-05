@@ -33,6 +33,7 @@ enum JobExecutionPath {
 	DownloadHang = 2,
 	DownloadInProgress = 3,
 	DownloadTimeout = 4,
+	DownloadFailed = 5,
 }
 
 const getExecutionPath = (path: JobExecutionPath): JobExecutionStatus[] => {
@@ -42,6 +43,7 @@ const getExecutionPath = (path: JobExecutionPath): JobExecutionStatus[] => {
 		[JobExecutionPath.DownloadHang]: [JobExecutionStatus.QUEUED, JobExecutionStatus.DOWNLOADING],
 		[JobExecutionPath.DownloadInProgress]: [JobExecutionStatus.QUEUED, JobExecutionStatus.DOWNLOADING, JobExecutionStatus.IN_PROGRESS],
 		[JobExecutionPath.DownloadTimeout]: [JobExecutionStatus.QUEUED, JobExecutionStatus.DOWNLOADING, JobExecutionStatus.IN_PROGRESS, JobExecutionStatus.TIMED_OUT],
+		[JobExecutionPath.DownloadFailed]: [JobExecutionStatus.QUEUED, JobExecutionStatus.DOWNLOADING, JobExecutionStatus.IN_PROGRESS, JobExecutionStatus.FAILED],
 	})
 }
 
@@ -52,6 +54,7 @@ const getPathName = (path: JobExecutionPath): string => {
 		[JobExecutionPath.DownloadHang]: 'Hang on DOWNLOADING state',
 		[JobExecutionPath.DownloadInProgress]: 'Hang on IN_PROGRESS state',
 		[JobExecutionPath.DownloadTimeout]: 'End with a TIME_OUT',
+		[JobExecutionPath.DownloadFailed]: 'End by FAILING',
 		[$enum.handleUnexpected]: 'Normal',
 	})
 }
@@ -158,6 +161,10 @@ export class NrfJobsManager {
 
 					case JobExecutionStatus.REJECTED:
 						this.log.error(`ERROR: job "${jobId}" was rejected.`);
+						break;
+					
+					case JobExecutionStatus.FAILED:
+						this.log.error(`ERROR: job "${jobId} was failed`);
 						break;
 				}
 
