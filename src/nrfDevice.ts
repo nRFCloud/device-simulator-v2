@@ -10,7 +10,7 @@ import { AxiosInstance, AxiosResponse } from 'axios';
 
 export type SendMessage = (timestamp: number, message: AppMessage) => void;
 
-export const nrfdevice = (
+export const nrfDevice = (
   config: DeviceConfig,
   sensors: Map<string, ISensor>,
   apiConn: AxiosInstance,
@@ -28,6 +28,7 @@ export const nrfdevice = (
     appType,
     stage,
     tenantId,
+    jobExecutionPath,
   } = config;
 
   let onConnectExecuted = false;
@@ -53,7 +54,7 @@ export const nrfdevice = (
     log,
   );
 
-  const jobsManager = new NrfJobsManager(device, log);
+  const jobsManager = new NrfJobsManager(device, log, jobExecutionPath);
 
   const notifyOfConnection = async (eventName: string) => {
     // run callback

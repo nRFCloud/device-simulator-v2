@@ -62,6 +62,17 @@ const handleAppType = async (input: any, _: unknown) => {
   return input;
 };
 
+const handleJobExecution = (input: string, _: unknown) => {
+  const validPath = /^[0-5]$/;
+  if (!validPath.test(input)) {
+    new Log(false).error(
+      'Input for jobExecutionPath must be a number between 0 and 5',
+    );
+    process.exit();
+  }
+  return input;
+};
+
 const getConfig = (env: any, args: string[]): SimulatorConfig =>
   program
     .requiredOption(
@@ -114,6 +125,11 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       '-t, --app-type <appType>',
       'Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object or relative path to json file. Otherwise, pass "mss" or "atv2" to automatically generate a conformal shadow',
       handleAppType,
+    )
+    .option(
+      '-p, --job-execution-path <jobExecutionPath>',
+      'Specifies an unhappy job execution path for a fota update. View the "Use an unhappy path for FOTA execution" section of the README for more details.',
+      handleJobExecution,
     )
     .parse(args)
     .opts() as SimulatorConfig;

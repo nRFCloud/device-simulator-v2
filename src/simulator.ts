@@ -1,6 +1,6 @@
 import * as path from 'path';
 
-import { nrfdevice } from './nrfDevice';
+import { nrfDevice } from './nrfDevice';
 import { DeviceConfig } from './models/Device';
 import { ISensor } from './sensors/Sensor';
 import { FakeGps } from './sensors/FakeGps';
@@ -27,6 +27,7 @@ export const simulator = async ({
   apiHost,
   apiKey,
   appType,
+  jobExecutionPath,
 }: SimulatorConfig): Promise<void> => {
   let certs;
   const log = new Log(!!verbose);
@@ -59,6 +60,7 @@ export const simulator = async ({
     mqttMessagesPrefix,
     stage,
     tenantId,
+    jobExecutionPath,
   };
 
   const sensors = new Map<string, ISensor>();
@@ -129,7 +131,7 @@ export const simulator = async ({
     });
   }
 
-  nrfdevice(
+  nrfDevice(
     config,
     sensors,
     getConn(apiHost!, apiKey!, !!verbose),

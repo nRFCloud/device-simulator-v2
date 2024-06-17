@@ -57,6 +57,7 @@ export type SimulatorConfig = {
   deviceOwnershipCode?: string;
   verbose?: boolean;
   associate?: boolean;
+  jobExecutionPath?: any;
   onConnect?: (deviceId: string, client?: device) => Promise<void>;
 };
 
