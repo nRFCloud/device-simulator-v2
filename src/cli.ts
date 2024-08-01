@@ -74,6 +74,7 @@ const handleJobExecution = (input: string, _: unknown) => {
 };
 
 const handleOnboardingType = (input: string, _: unknown) => {
+  console.debug('input', input);
   if (typeof input === 'undefined' || input === 'onboard') {
     return 'onboard';
   }
