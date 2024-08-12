@@ -141,6 +141,7 @@ export const getDefaults = async ({
 
   if (!certsResponse) {
     log.debug('Grabbing cert...');
+    console.debug('cachedDefaults', cachedDefaults);
     let defaultJsonCert = cachedDefaults.certsResponse || '';
 
     if (!defaultJsonCert) {
@@ -154,6 +155,7 @@ export const getDefaults = async ({
         defaultJsonCert = JSON.stringify(data);
       } else {
         log.debug('Generating self signed device certs.\n');
+        console.debug('Are we creating new certs?');
 
         const privateKey = execSync(
           `openssl ecparam -name prime256v1 -genkey`,
@@ -259,7 +261,6 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
     ]),
   );
 
-  console.debug(associate);
   const defaults: DeviceDefaults = await getDefaults({
     deviceId: config.deviceId,
     deviceOwnershipCode,

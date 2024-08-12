@@ -36,6 +36,8 @@ export const nrfDevice = (
   let shadowInitialized = false;
   log.success(`connecting to "${endpoint}"...`);
 
+  // console.debug()
+
   const client = mqttClient({
     id: deviceId,
     caCert,

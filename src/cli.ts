@@ -74,8 +74,7 @@ const handleJobExecution = (input: string, _: unknown) => {
 };
 
 const handleOnboardingType = (input: string, _: unknown) => {
-  console.debug('input', input);
-  if (typeof input === 'undefined' || input === 'onboard') {
+  if (input === 'onboard') {
     return 'onboard';
   }
 
@@ -132,7 +131,7 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       env.API_HOST ? env.API_HOST : 'https://api.nrfcloud.com',
     )
     .option(
-      '-a, --associate',
+      '-a, --associate <associationType>',
       'automatically onboard device to account, to associate with JITP use the "jitp" flag',
       handleOnboardingType,
     )
