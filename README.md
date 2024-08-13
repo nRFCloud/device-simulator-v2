@@ -24,15 +24,15 @@ You can name the device whatever you want with the `-d` option. If not present, 
 ### Associate device to your account
 This will create a new device and associate it to the account for the API key.
 ```
-npx @nrfcloud/device-simulator-v2 -k <api key> -a -t atv2
+npx @nrfcloud/device-simulator-v2 -k <api key> -a -t atv2 -a preconnect
 ```
 
 ### Simulate sensor outputs
 Include any combination of the options listed after `-s` below:
 ```
-npx @nrfcloud/device-simulator-v2 -k <api key> -a -d <device ID you already associated> -s gps,acc,device,temp
+npx @nrfcloud/device-simulator-v2 -k <api key> -a preconnect -d <device ID you already onboarded> -s gps,acc,device,temp
 ```
-*Note! Usually the `-a` is not necessary, since the device is already associated to your account. However, due to bug IRIS-3450, this does not always work. Adding the `-a` is harmless and is a workaround for now.*
+*Note! Usually the `-a` is not necessary, since the device is already onboarded to your account. However, due to bug IRIS-3450, this does not always work. Adding the `-a` is harmless and is a workaround for now.*
 
 *Note! Including `device` in the list will generate a LOT of device info messages which may overrun your Web browser. Best not to run it more than a few seconds with it, or you can leave out `device` and run it long-term.*
 
@@ -55,7 +55,7 @@ These are the options. Most of them are set with environment variables.
   -k, --api-key <apiKey> (required)                  API key for nRF Cloud (default: "")
   -h, --api-host <apiHost>                           API host for nRF Cloud (default: "https://api.nrfcloud.com")
   -d, --device-id <deviceId>                         ID of the device (default: <nrfsim-randomString>)
-  -a, --associate                                    Automatically associate device to your account (default: false)
+  -a, --onboard <onboardingType>                     Onboard the device with "jitp", or "preconnect"
   -s, --services <services>                          Comma-delimited list of services to enable. Any of: [gps,acc,temp,device,rsrp,location,log,alert]
   -f, --app-fw-version <appFwVersion>                Version of the app firmware (default: 1)
   -c, --certs-response <certsResponse>               JSON returned by call POST /devices/{deviceid}/certificates (default: "")
@@ -238,7 +238,7 @@ MESSAGE: {
 }
 ***************************************
 
-Cannot initialize jobs listener until the device "<your_device_id>" is associated to your account. You can associate the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d <your_device_id> -a".
+Cannot initialize jobs listener until the device "<your_device_id>" is onboarded to your account. You can onboard the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d <your_device_id> -a preconnect".
 ```
 
 This indicates that the device provisioned with AWS and updated its shadow.
@@ -261,7 +261,7 @@ node dist/cli.js
 ```
 You should see this JSON output: 
 ```sh
-confirmed that "<your_device_id>" has been associated with account "<your_tenant_id>"!
+confirmed that "<your_device_id>" has been onboarded with account "<your_tenant_id>"!
 
 listening for new jobs...
 
@@ -275,7 +275,7 @@ MESSAGE: [
 subscribed to "dev/<your_tenant_id>/<your_device_id>/jobs/rcv"
 ```
 
-Your device is now associated with your account (tenant) and is ready to start sending and receiving device messages! It is also listening for new FOTA jobs. 
+Your device is now onboarded with your account (tenant) and is ready to start sending and receiving device messages! It is also listening for new FOTA jobs. 
 
 ### Create a new Firmware Over-the-Air (FOTA) job
 1. Open a new terminal window/tab.

@@ -74,8 +74,8 @@ const handleJobExecution = (input: string, _: unknown) => {
 };
 
 const handleOnboardingType = (input: string, _: unknown) => {
-  if (input === 'onboard') {
-    return 'onboard';
+  if (input === 'preconnect') {
+    return 'preconnect';
   }
 
   if (input === 'jitp') {
@@ -83,7 +83,7 @@ const handleOnboardingType = (input: string, _: unknown) => {
   }
 
   new Log(false).error(
-    'Input for associate must be blank, "jitp" or "onboard"',
+    'Input for associate must be blank, "jitp" or "preconnect"',
   );
   process.exit();
 };
@@ -131,8 +131,8 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       env.API_HOST ? env.API_HOST : 'https://api.nrfcloud.com',
     )
     .option(
-      '-a, --associate <associationType>',
-      'automatically onboard device to account, to associate with JITP use the "jitp" flag',
+      '-a, --onboard <onboardingType>',
+      'Onboard the device with "jitp", or "preconnect"',
       handleOnboardingType,
     )
     .option('-v, --verbose', 'output debug info', false)
