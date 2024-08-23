@@ -158,10 +158,10 @@ You should see some JSON output, with something like this at the end:
 ************** CONFIG ***********
 DEVICE ID: <your_device_id>
 DEVICE PIN: 123456
-API HOST: https://api.<stage.>nrfcloud.com
+API HOST: https://api.nrfcloud.com
 API KEY: <your_api_key>
 TENANT ID: <your_tenant_id>
-STAGE: <stage>
+STAGE: prod
 *********************************
 
 starting simulator...
