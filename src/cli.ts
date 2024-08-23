@@ -74,16 +74,12 @@ const handleJobExecution = (input: string, _: unknown) => {
 };
 
 const handleOnboardingType = (input: string, _: unknown) => {
-  if (input === 'preconnect') {
-    return 'preconnect';
-  }
-
-  if (input === 'jitp') {
+  if (input === 'preconnect' || input === 'jitp') {
     return input;
   }
 
   new Log(false).error(
-    'Input for associate must be blank, "jitp" or "preconnect"',
+    'Input for onboard must be blank, "jitp" or "preconnect"',
   );
   process.exit();
 };

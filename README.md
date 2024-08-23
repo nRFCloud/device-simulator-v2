@@ -13,7 +13,7 @@ The most basic usage is just creating a device. For that you just need an API ke
 
 The host defaults to the production environment (https://api.nrfcloud.com). **Nordic Semiconductor personnel**: if you want to use the simulator on our `dev`, `feature`, or `beta` environments, set a `API_HOST` env var to `https://api.[dev|feature|beta].nrfcloud.com` (you will need an AWS account for that environment). You can also set the `API_HOST` env var to the url of your sub account (ie `https://api.<user_id>.nrfcloud.com`) and the `stage` will be automatically set to `dev` (the stage is used for the job subscription topics for FOTA). You no longer need to set a `STAGE` variable, and it will be ignored.
 
-This will create a new device with AWS IoT, but it will not associate it to your account (use the `-a` flag) for that.
+This will create a new device with AWS IoT, but it will not onboard it to your account (use the `-a preconnect` flag) for that.
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key> [-d <desired device ID>] -t atv2
 ```
@@ -21,19 +21,17 @@ If you would like to use the local code instead of npx, first run `yarn && yarn 
 
 You can name the device whatever you want with the `-d` option. If not present, it will be named `nrfsim-<random 21 digits>`.
 
-### Associate device to your account
-This will create a new device and associate it to the account for the API key.
+### Onboard a device to your account
+This example will onboard a device to nRF Cloud by creating a new simulated device and associating it to the user's team. The user's API key authenticates the REST request. A default device shadow will be created in the style of the Asset Tracker v2 (atv2) sample firmware. For the pre-connect mode of onboarding, the device simulator will create and provide self-signed certificates in the onboarding process.
 ```
-npx @nrfcloud/device-simulator-v2 -k <api key> -a -t atv2 -a preconnect
+npx @nrfcloud/device-simulator-v2 -k <api key> -t atv2 -a preconnect
 ```
 
 ### Simulate sensor outputs
-Include any combination of the options listed after `-s` below:
+After creating and onboarding your device, you can include any combination of the options listed after `-s` below, to simulate the device sending messages containing device sensor data:
 ```
-npx @nrfcloud/device-simulator-v2 -k <api key> -a preconnect -d <device ID you already onboarded> -s gps,acc,device,temp
+npx @nrfcloud/device-simulator-v2 -k <api key> -d <device ID you already onboarded> -s gps,acc,device,temp
 ```
-*Note! Usually the `-a` is not necessary, since the device is already onboarded to your account. However, due to bug IRIS-3450, this does not always work. Adding the `-a` is harmless and is a workaround for now.*
-
 *Note! Including `device` in the list will generate a LOT of device info messages which may overrun your Web browser. Best not to run it more than a few seconds with it, or you can leave out `device` and run it long-term.*
 
 *Note! The `acc` option sends FLIP accelerometer messages, simulating the device being flipped right-side-up or upside-down. This was a feature of the Asset Tracker v1 firmware example that has been removed for the currently supported Asset Tracker v2.*
@@ -43,7 +41,7 @@ If you want to use different GPS data, replace the appropriate file in [./data/s
 GPS data is based on NMEA sentences. If you want to make your own GPS data, go to https://nmeagen.org. The "Multi-point line" seems to work best. Lay some points and then click the "Generate NMEA file" button.
 
 ### Do it all at once
-You can create a new simulated device, associate it, and start sending sensor data all in one command, which is a typical way to use the simulator:
+You can create a new simulated device, onboard it, and start sending sensor data all in one command, which is a typical way to use the simulator:
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key> [-d <desired device ID>] -a -s gps,acc,device,temp
 ```
