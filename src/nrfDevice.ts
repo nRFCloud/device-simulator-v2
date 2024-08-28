@@ -86,14 +86,14 @@ export const nrfDevice = (
       let didHaveError = false;
 
       // listen for jobs, if associated
-      log.debug(`checking to see if device ${deviceId} has been associated...`);
+      log.debug(`checking to see if device ${deviceId} has been onboarded...`);
 
       await apiConn
         .get(`v1/devices/${deviceId}`)
         .then(async (res: AxiosResponse) => {
           if (res?.data?.tenantId === tenantId) {
             log.success(
-              `confirmed that "${deviceId}" has been associated with account "${tenantId}"!`,
+              `confirmed that "${deviceId}" has been onboarded with account "${tenantId}"!`,
             );
             deviceAssociated = true;
 
@@ -124,7 +124,7 @@ export const nrfDevice = (
         .finally(() => {
           if (!deviceAssociated && !didHaveError) {
             log.info(
-              `Cannot initialize jobs listener until the device "${deviceId}" is associated to your account. You can associate the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d ${deviceId} -a".`,
+              `Cannot initialize jobs listener until the device "${deviceId}" is onboarded to your account. You can onboard the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d ${deviceId} -a preconnect".`,
             );
           }
         });
