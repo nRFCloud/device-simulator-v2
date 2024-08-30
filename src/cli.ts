@@ -114,7 +114,7 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
     )
     .option(
       '-s, --services <services>',
-      'Comma-delimited list of services to enable. Any of: [gps,acc,temp,device,rsrp,location,log,alert]',
+      'Comma-delimited list of services to enable. Any of: [gps,gnss,acc,temp,device,rsrp,location,log,alert]',
     )
     .option(
       '-f, --app-fw-version <appFwVersion>',
