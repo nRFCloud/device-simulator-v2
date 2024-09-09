@@ -300,9 +300,9 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
       );
 
       try {
-				if (onboard === 'jitp') {
-					// wait to ensure the device is available in AWS IoT so it can be associated
-					await new Promise((resolve) => setTimeout(resolve, 2000));
+        if (onboard === 'jitp') {
+          // wait to ensure the device is available in AWS IoT so it can be associated
+          await new Promise((resolve) => setTimeout(resolve, 2000));
           await associateDevice({
             deviceId,
             deviceOwnershipCode,

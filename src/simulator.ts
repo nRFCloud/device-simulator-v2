@@ -13,6 +13,7 @@ import { FakeLocation } from './sensors/FakeLocation';
 import { FakeRsrp } from './sensors/FakeRsrp';
 import { FakeLog } from './sensors/FakeLog';
 import { FakeAlert } from './sensors/FakeAlert';
+import { FakeGnss } from './sensors/FakeGnss';
 
 export const simulator = async ({
   certsResponse,
@@ -81,6 +82,12 @@ export const simulator = async ({
           sensors.set(
             service,
             new FakeLocation(sensorDataFilePath('location.txt'), true, 10000),
+          );
+          break;
+        case 'gnss':
+          sensors.set(
+            service,
+            new FakeGnss(sensorDataFilePath('gnss.json'), true, 10000),
           );
           break;
         case 'acc':

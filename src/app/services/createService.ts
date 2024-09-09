@@ -9,31 +9,33 @@ import { Rsrp } from './Rsrp';
 import { Location } from './Location';
 import { Alert } from './Alert';
 import { Log } from './Log';
+import { Gnss } from './Gnss';
 
 interface ServiceConstructors {
-  [index: string]: new (sensor: ISensor, sendMessage: SendMessage) => Service;
+	[index: string]: new (sensor: ISensor, sendMessage: SendMessage) => Service;
 }
 
 const services: ServiceConstructors = {
-  acc: Flip,
-  gps: Gps,
-  temp: Temp,
-  device: Device,
-  rsrp: Rsrp,
-  location: Location,
-  alert: Alert,
-  log: Log,
+	acc: Flip,
+	gps: Gps,
+	gnss: Gnss,
+	temp: Temp,
+	device: Device,
+	rsrp: Rsrp,
+	location: Location,
+	alert: Alert,
+	log: Log,
 };
 
 export const createService = (
-  name: string,
-  sensor: ISensor,
-  sendMessage: SendMessage,
+	name: string,
+	sensor: ISensor,
+	sendMessage: SendMessage,
 ): Service => {
-  const Service = services[name];
-  if (Service == null) {
-    throw new Error(`No service for a sensor named '${name}' is known.`);
-  }
+	const Service = services[name];
+	if (Service == null) {
+		throw new Error(`No service for a sensor named '${name}' is known.`);
+	}
 
-  return new Service(sensor, sendMessage);
+	return new Service(sensor, sendMessage);
 };
