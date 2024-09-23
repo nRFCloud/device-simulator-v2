@@ -27,7 +27,7 @@ export const nrfDevice = (
     mqttMessagesPrefix,
     appType,
     stage,
-    tenantId,
+    teamId,
     jobExecutionPath,
   } = config;
 
@@ -48,7 +48,7 @@ export const nrfDevice = (
     deviceId,
     mqttMessagesPrefix,
     stage,
-    tenantId,
+    teamId,
     client,
     sensors,
     log,
@@ -91,9 +91,9 @@ export const nrfDevice = (
       await apiConn
         .get(`v1/devices/${deviceId}`)
         .then(async (res: AxiosResponse) => {
-          if (res?.data?.tenantId === tenantId) {
+          if (res?.data?.teamId === teamId) {
             log.success(
-              `confirmed that "${deviceId}" has been onboarded with account "${tenantId}"!`,
+              `confirmed that "${deviceId}" has been onboarded with account "${teamId}"!`,
             );
             deviceAssociated = true;
 

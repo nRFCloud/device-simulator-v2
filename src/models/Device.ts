@@ -34,7 +34,7 @@ export type DeviceConfig = {
 	appType: string;
 	mqttMessagesPrefix: string;
 	stage: string;
-	tenantId: string;
+	teamId: string;
 	jobExecutionPath: any;
 };
 
@@ -51,7 +51,7 @@ export class NrfDevice {
 		deviceId: string,
 		mqttMessagesPrefix: string,
 		stage: string,
-		tenantId: string,
+		teamId: string,
 		client: device,
 		sensors: Map<string, ISensor>,
 		log: Logger,
@@ -63,9 +63,9 @@ export class NrfDevice {
 		this.topics = {
 			d2c: `${mqttMessagesPrefix}d/${deviceId}/d2c`,
 			jobs: {
-				request: `${stage}/${tenantId}/${deviceId}/jobs/req`,
-				receive: `${stage}/${tenantId}/${deviceId}/jobs/rcv`,
-				update: `${stage}/${tenantId}/${deviceId}/jobs/update`,
+				request: `${stage}/${teamId}/${deviceId}/jobs/req`,
+				receive: `${stage}/${teamId}/${deviceId}/jobs/rcv`,
+				update: `${stage}/${teamId}/${deviceId}/jobs/update`,
 			},
 			shadow: {
 				update: {

@@ -23,7 +23,7 @@ export const simulator = async ({
   services = '',
   onConnect,
   stage,
-  tenantId,
+  teamId,
   verbose,
   apiHost,
   apiKey,
@@ -60,7 +60,7 @@ export const simulator = async ({
     appType,
     mqttMessagesPrefix,
     stage,
-    tenantId,
+    teamId,
     jobExecutionPath,
   };
 

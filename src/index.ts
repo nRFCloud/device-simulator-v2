@@ -43,7 +43,7 @@ export type DeviceDefaults = {
   endpoint: string;
   mqttMessagesPrefix: string;
   certsResponse: string;
-  tenantId: string;
+  teamId: string;
 };
 
 export type SimulatorConfig = {
@@ -53,7 +53,7 @@ export type SimulatorConfig = {
   deviceId: string;
   mqttMessagesPrefix: string;
   stage: string;
-  tenantId: string;
+  teamId: string;
   appType: string;
   services?: string;
   apiKey?: string;
@@ -110,7 +110,7 @@ export const getDefaults = async ({
     endpoint: endpoint || '',
     mqttMessagesPrefix: mqttMessagesPrefix || '',
     certsResponse: certsResponse || '',
-    tenantId: '',
+    teamId: '',
   };
 
   const cacheFile = cache.getFilePath(deviceId);
@@ -210,20 +210,20 @@ export const getDefaults = async ({
     defaults.certsResponse = defaultJsonCert;
   }
 
-  let tenantId = defaults.mqttMessagesPrefix.split('/')[1];
+  let teamId = defaults.mqttMessagesPrefix.split('/')[1];
 
-  if (!tenantId) {
+  if (!teamId) {
     const { data } = await conn.get(`/v1/account`);
-    tenantId = data.team.tenantId;
+    teamId = data.team.teamId;
   }
 
-  if (!tenantId) {
+  if (!teamId) {
     throw new Error(
-      `Cannot continue without tenantId! defaults: ${JSON.stringify(defaults)}`,
+      `Cannot continue without teamId! defaults: ${JSON.stringify(defaults)}`,
     );
   }
 
-  defaults.tenantId = tenantId;
+  defaults.teamId = teamId;
   await cache.set(cacheFile, defaults);
   return defaults;
 };
@@ -258,7 +258,7 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
       ['DEVICE PIN', config.deviceOwnershipCode!],
       ['API HOST', config.apiHost!],
       ['API KEY', config.apiKey!],
-      ['TENANT ID', config.tenantId],
+      ['TENANT ID', config.teamId],
       ['STAGE', config.stage],
     ]),
   );
@@ -278,7 +278,7 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
   config.certsResponse = defaults.certsResponse;
   config.mqttMessagesPrefix = defaults.mqttMessagesPrefix;
   config.endpoint = defaults.endpoint;
-  config.tenantId = defaults.tenantId;
+  config.teamId = defaults.teamId;
 
   log.info(
     log.prettify('CONFIG', [
@@ -286,7 +286,7 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
       ['DEVICE PIN', config.deviceOwnershipCode!],
       ['API HOST', config.apiHost!],
       ['API KEY', config.apiKey!],
-      ['TENANT ID', config.tenantId],
+      ['TENANT ID', config.teamId],
       ['STAGE', config.stage],
     ]),
   );
