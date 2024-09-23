@@ -4,6 +4,8 @@ import { AppMessage } from '../appMessage';
 import { Service } from './Service';
 
 export class Gnss implements Service {
+  messageId = 1;
+
   constructor(
     private readonly sensor: ISensor,
     private readonly sendMessage: SendMessage,
@@ -14,6 +16,7 @@ export class Gnss implements Service {
       const message = <AppMessage> {
         appId: 'GNSS',
         messageType: 'DATA',
+        messageId: this.messageId++,
         data,
       };
       this.sendMessage(timestamp, message);

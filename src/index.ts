@@ -213,7 +213,7 @@ export const getDefaults = async ({
 
   if (!teamId) {
     const { data } = await conn.get(`/v1/account`);
-    teamId = data.team.teamId;
+    teamId = data.team.tenantId;
   }
 
   if (!teamId) {

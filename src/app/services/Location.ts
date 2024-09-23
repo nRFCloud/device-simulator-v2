@@ -6,6 +6,8 @@ import { Service } from './Service';
 const APPID = ['MCELL', 'SCELL', 'WIFI'];
 
 export class Location implements Service {
+  messageId = 1;
+
   constructor(
     private readonly sensor: ISensor,
     private readonly sendMessage: SendMessage,
@@ -18,6 +20,7 @@ export class Location implements Service {
       const message = <AppMessage> {
         appId: APPID[Math.floor(Math.random() * 100) % 3],
         messageType: 'DATA',
+        messageId: this.messageId++,
         data,
       };
       this.sendMessage(timestamp, message);

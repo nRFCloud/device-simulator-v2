@@ -1,5 +1,6 @@
 import { device } from 'aws-iot-device-sdk';
 
+import { AppMessage } from '../app/appMessage';
 import { createService } from '../app/services/createService';
 import { Service } from '../app/services/Service';
 import { KEEP_ALIVE } from '../mqttClient';
@@ -103,11 +104,15 @@ export class NrfDevice {
     delete this.listeners[topic];
   }
 
-  async sendMessage(timestamp: number, payload: object): Promise<void> {
+  async sendMessage(ts: number, payload: AppMessage): Promise<void> {
+    const _payload = {
+      ...payload,
+      ts,
+    };
     this.log.debug(
-      `${new Date(timestamp).toISOString()} >>> attempting to publish payload ${JSON.stringify(payload, null, 2)}`,
+      `${new Date(ts).toISOString()} >>> attempting to publish payload ${JSON.stringify(_payload, null, 2)}`,
     );
-    await this.publish(this.topics.d2c, payload);
+    await this.publish(this.topics.d2c, _payload);
   }
 
   async subscribe(topic: string): Promise<void> {

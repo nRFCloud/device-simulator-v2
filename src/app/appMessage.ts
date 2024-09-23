@@ -16,7 +16,8 @@ export interface AppMessage {
    * This number is incremented by one for each message transmitted
    */
   messageId?: number;
-  timeStamp?: string;
+  // Unix timestamp in milliseconds
+  ts?: string;
   data?: string | Object;
   [k: string]: any;
 }

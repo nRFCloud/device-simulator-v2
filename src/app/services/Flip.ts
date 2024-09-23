@@ -24,6 +24,7 @@ const convertToInt8 = (data: Uint8Array): Int8Array => {
 export class Flip implements Service {
   private currentOrientation = Orientation.NORMAL;
   private orientationChange = false;
+  messageId = 1;
 
   constructor(
     private readonly sensor: ISensor,
@@ -41,6 +42,7 @@ export class Flip implements Service {
         const message = <AppMessage> {
           appId: APPID,
           messageType: 'DATA',
+          messageId: this.messageId++,
           data: this.orientation,
         };
         this.sendMessage(timestamp, message);

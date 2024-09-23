@@ -8,6 +8,7 @@ const GPS_SEND_INTERVAL = 10000;
 
 export class Gps implements Service {
   lastGpsSend = 0;
+  messageId = 1;
 
   constructor(
     private readonly sensor: ISensor,
@@ -22,6 +23,7 @@ export class Gps implements Service {
         const message = <AppMessage> {
           appId: APPID,
           messageType: 'DATA',
+          messageId: this.messageId++,
           data: String.fromCharCode.apply(null, data),
         };
         this.sendMessage(timestamp, message);

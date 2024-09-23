@@ -6,6 +6,8 @@ import { Service } from './Service';
 const APPID = 'LOG';
 
 export class Log implements Service {
+  messageId = 1;
+
   constructor(
     private readonly sensor: ISensor,
     private readonly sendMessage: SendMessage,
@@ -17,6 +19,7 @@ export class Log implements Service {
         appId: APPID,
         messageType: 'DATA',
         ts: new Date().getTime(),
+        messageId: this.messageId++,
         ...data,
       };
       this.sendMessage(timestamp, message);

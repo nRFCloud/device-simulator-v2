@@ -6,6 +6,8 @@ import { Service } from './Service';
 const APPID = 'DEVICE';
 
 export class Device implements Service {
+  messageId = 1;
+
   constructor(
     private readonly sensor: ISensor,
     private readonly sendMessage: SendMessage,
@@ -16,6 +18,7 @@ export class Device implements Service {
       const message = <AppMessage> {
         appId: APPID,
         messageType: 'STATUS',
+        messageId: this.messageId++,
         // @ts-ignore
         data: String.fromCharCode.apply(null, data),
       };

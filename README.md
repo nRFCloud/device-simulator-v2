@@ -58,7 +58,7 @@ These are the options. Most of them are set with environment variables.
   -f, --app-fw-version <appFwVersion>                Version of the app firmware (default: 1)
   -c, --certs-response <certsResponse>               JSON returned by call POST /devices/{deviceid}/certificates (default: "")
   -e, --endpoint <endpoint>                          AWS IoT MQTT endpoint (default: "")
-  -o, --device-ownership-code <deviceOwnershipCode>  PIN/ownership code of the device (default: "123456")
+  -o, --device-ownership-code <deviceOwnershipCode>  PIN/ownership code of the device
   -m, --mqtt-messages-prefix <mqttMessagesPrefix>    The prefix for the MQTT for this team for sending and receiving device messages (default: "")
   -v, --verbose                                      Output debug information
   -t, --app-type <appType>                           Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object or relative path to json file. Otherwise,
