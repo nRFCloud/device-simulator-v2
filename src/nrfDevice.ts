@@ -35,6 +35,7 @@ export const nrfDevice = (
   let onConnectExecuted = false;
   let onConnectExecuting = false;
   let shadowInitialized = false;
+  let onboardingConfirmed = false;
   log.success(`connecting to "${endpoint}"...`);
 
   const client = mqttClient({
@@ -87,53 +88,55 @@ export const nrfDevice = (
       let deviceAssociated = false;
       let didHaveError = false;
 
-      // listen for jobs, if associated
-      log.debug(`checking to see if device ${deviceId} has been onboarded...`);
+      if (!onboardingConfirmed) {
+        log.debug(`checking to see if device ${deviceId} has been onboarded...`);
 
-      await apiConn
-        .get(`v1/devices/${deviceId}`)
-        .then(async (res: AxiosResponse) => {
-          if (res?.data?.tenantId === teamId) {
-            log.success(
-              `confirmed that "${deviceId}" has been onboarded to team "${teamId}"`,
-            );
-            deviceAssociated = true;
+        await apiConn
+          .get(`v1/devices/${deviceId}`)
+          .then(async (res: AxiosResponse) => {
+            if (res?.data?.tenantId === teamId) {
+              onboardingConfirmed = true;
+              log.success(
+                `confirmed that "${deviceId}" has been onboarded to team "${teamId}"`,
+              );
+              deviceAssociated = true;
 
-            if (mqttTeamDevice) {
-              const topicsTeamAll = `${stage}/${teamId}/#`;
-              await device.subscribe(`${topicsTeamAll}`);
-            } else {
-              if (appType && !shadowInitialized) {
-                log.info(`Initializing ${deviceId} shadow...`);
-                await device.initShadow(appFwVersion, appType);
+              if (mqttTeamDevice) {
+                const topicsTeamAll = `${stage}/${teamId}/#`;
+                await device.subscribe(`${topicsTeamAll}`);
+              } else {
+                if (appType && !shadowInitialized) {
+                  log.info(`Initializing ${deviceId} shadow...`);
+                  await device.initShadow(appFwVersion, appType);
+                }
+
+                shadowInitialized = true;
+                log.info('listening for new jobs...');
+                await jobsManager.waitForJobs();
               }
-
-              shadowInitialized = true;
-              log.info('listening for new jobs...');
-              await jobsManager.waitForJobs();
             }
-          }
-        })
-        .catch((err) => {
-          const code = err?.response?.data?.code;
-          if (code !== 40410) {
-            log.error(
-              `Error getting data for device "${deviceId}". Cannot initialize jobs listener. Error: "${
-                err?.response?.data
-                  ? JSON.stringify(err.response.data, null, 2)
-                  : err
-              }"`,
-            );
-            didHaveError = true;
-          }
-        })
-        .finally(() => {
-          if (!deviceAssociated && !didHaveError) {
-            log.info(
-              `Cannot initialize jobs listener until the device "${deviceId}" is onboarded to your team. You can onboard the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d ${deviceId} -a preconnect".`,
-            );
-          }
-        });
+          })
+          .catch((err) => {
+            const code = err?.response?.data?.code;
+            if (code !== 40410) {
+              log.error(
+                `Error getting data for device "${deviceId}". Cannot initialize jobs listener. Error: "${
+                  err?.response?.data
+                    ? JSON.stringify(err.response.data, null, 2)
+                    : err
+                }"`,
+              );
+              didHaveError = true;
+            }
+          })
+          .finally(() => {
+            if (!deviceAssociated && !didHaveError) {
+              log.info(
+                `Cannot initialize jobs listener until the device "${deviceId}" is onboarded to your team. You can onboard the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d ${deviceId} -a preconnect".`,
+              );
+            }
+          });
+      }
     }
   };
 
