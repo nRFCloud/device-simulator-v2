@@ -162,19 +162,17 @@ export class NrfJobsManager {
 					case JobExecutionStatus.REJECTED:
 						this.log.error(`ERROR: job "${jobId}" was rejected.`);
 						break;
-					
+
 					case JobExecutionStatus.FAILED:
 						this.log.error(`ERROR: job "${jobId} was failed`);
 						break;
 				}
 
 				if (newStatus) {
-					// subscribe to changes
-					this.log.info('Subscribing to jobExecution updates...');
+					this.log.info('Requesting job execution updates...');
 					await this.device.publish(this.device.topics.jobs.request, [jobId]);
 
-					// update jobExecution status
-					this.log.info(`Updating jobExecution "${jobId}"...`);
+					this.log.info(`Updating job execution status to "${newStatus}" for jobId "${jobId}"...`);
 					await this.updateJobExecution(jobId, newStatus);
 					this.cache[jobId] = newStatus;
 				}

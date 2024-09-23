@@ -36,12 +36,14 @@ export type DeviceConfig = {
 	stage: string;
 	teamId: string;
 	jobExecutionPath: any;
+  mqttTeamDevice: boolean;
 };
 
 export class NrfDevice {
 	public readonly listeners: DeviceListeners;
 	public readonly topics: DeviceTopics;
 	public readonly id: string;
+  public readonly mqttTeamDevice: boolean;
 
 	private readonly client: device;
 	private readonly sensors: Service[];
@@ -55,24 +57,26 @@ export class NrfDevice {
 		client: device,
 		sensors: Map<string, ISensor>,
 		log: Logger,
+    mqttTeamDevice: boolean,
 	) {
 		this.log = log;
 		this.id = deviceId;
 		this.listeners = {};
+    this.mqttTeamDevice = mqttTeamDevice;
 		this.client = client;
-		this.topics = {
-			d2c: `${mqttMessagesPrefix}d/${deviceId}/d2c`,
-			jobs: {
-				request: `${stage}/${teamId}/${deviceId}/jobs/req`,
-				receive: `${stage}/${teamId}/${deviceId}/jobs/rcv`,
-				update: `${stage}/${teamId}/${deviceId}/jobs/update`,
-			},
-			shadow: {
-				update: {
-					_: `$aws/things/${deviceId}/shadow/update`,
-				},
-			},
-		};
+    this.topics = {
+      d2c: `${mqttMessagesPrefix}d/${deviceId}/d2c`,
+      jobs: {
+        request: `${stage}/${teamId}/${deviceId}/jobs/req`,
+        receive: `${stage}/${teamId}/${deviceId}/jobs/rcv`,
+        update: `${stage}/${teamId}/${deviceId}/jobs/update`,
+      },
+      shadow: {
+        update: {
+          _: `$aws/things/${deviceId}/shadow/update`,
+        },
+      },
+    };
 
 		const that = this;
 
@@ -89,7 +93,7 @@ export class NrfDevice {
 	}
 
 	registerListener(topic: string, callback: any): void {
-		if (this.listeners.topic) {
+		if (this.listeners.topic !== undefined) {
 			this.log.debug(`Already registered listener for "${topic}"`);
 			return;
 		}

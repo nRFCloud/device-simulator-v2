@@ -1,12 +1,12 @@
-import { device } from 'aws-iot-device-sdk';
+import { device } from "aws-iot-device-sdk";
 
-import { mqttClient } from './mqttClient';
-import { ISensor } from './sensors/Sensor';
-import { AppMessage } from './app/appMessage';
-import { DeviceConfig, NrfDevice } from './models/Device';
-import { NrfJobsManager } from './models/Job';
-import { Log, Logger } from './models/Log';
-import { AxiosInstance, AxiosResponse } from 'axios';
+import { AxiosInstance, AxiosResponse } from "axios";
+import { AppMessage } from "./app/appMessage";
+import { DeviceConfig, NrfDevice } from "./models/Device";
+import { NrfJobsManager } from "./models/Job";
+import { Log, Logger } from "./models/Log";
+import { mqttClient } from "./mqttClient";
+import { ISensor } from "./sensors/Sensor";
 
 export type SendMessage = (timestamp: number, message: AppMessage) => void;
 
@@ -29,6 +29,7 @@ export const nrfDevice = (
     stage,
     teamId,
     jobExecutionPath,
+    mqttTeamDevice,
   } = config;
 
   let onConnectExecuted = false;
@@ -52,6 +53,7 @@ export const nrfDevice = (
     client,
     sensors,
     log,
+    mqttTeamDevice,
   );
 
   const jobsManager = new NrfJobsManager(device, log, jobExecutionPath);
@@ -67,9 +69,9 @@ export const nrfDevice = (
       await new Promise<void>((resolve) => {
         let halfSecondsElapsed = 1;
         const totalDelay = 10; // 10 half seconds
-        log.info('waiting for aws IoT to associate device...');
+        log.info("waiting for aws IoT to associate device...");
         const intervalId = setInterval(() => {
-          log.debug('.'.repeat(totalDelay - halfSecondsElapsed));
+          log.debug(".".repeat(totalDelay - halfSecondsElapsed));
           halfSecondsElapsed++;
 
           if (halfSecondsElapsed >= totalDelay) {
@@ -91,21 +93,25 @@ export const nrfDevice = (
       await apiConn
         .get(`v1/devices/${deviceId}`)
         .then(async (res: AxiosResponse) => {
-          if (res?.data?.teamId === teamId) {
+          if (res?.data?.tenantId === teamId) {
             log.success(
-              `confirmed that "${deviceId}" has been onboarded with account "${teamId}"!`,
+              `confirmed that "${deviceId}" has been onboarded to team "${teamId}"`,
             );
             deviceAssociated = true;
 
-            //Init shadow
-            if (appType && !shadowInitialized) {
-              log.info(`Initializing ${deviceId} shadow...`);
-              await device.initShadow(appFwVersion, appType);
-            }
+            if (mqttTeamDevice) {
+              const topicsTeamAll = `${stage}/${teamId}/#`;
+              await device.subscribe(`${topicsTeamAll}`);
+            } else {
+              if (appType && !shadowInitialized) {
+                log.info(`Initializing ${deviceId} shadow...`);
+                await device.initShadow(appFwVersion, appType);
+              }
 
-            shadowInitialized = true;
-            log.info('listening for new jobs...');
-            await jobsManager.waitForJobs();
+              shadowInitialized = true;
+              log.info("listening for new jobs...");
+              await jobsManager.waitForJobs();
+            }
           }
         })
         .catch((err) => {
@@ -131,16 +137,16 @@ export const nrfDevice = (
     }
   };
 
-  client.on('error', (error: any) => {
+  client.on("error", (error: any) => {
     log.error(`AWS IoT error ${error.message}`);
   });
 
-  client.on('connect', async () => {
-    log.success('connected');
-    await notifyOfConnection('connect');
+  client.on("connect", async () => {
+    log.success("connected");
+    await notifyOfConnection("connect");
   });
 
-  client.on('message', (topic: string, payload: any) => {
+  client.on("message", (topic: string, payload: any) => {
     log.incoming(topic, payload || {});
     const p = payload ? JSON.parse(payload.toString()) : {};
 
@@ -150,17 +156,19 @@ export const nrfDevice = (
         payload: p,
       });
     } else {
-      throw new Error(`No listener registered for topic ${topic}!`);
+      if (!device.mqttTeamDevice) {
+        throw new Error(`No listener registered for topic ${topic}!`);
+      }
     }
   });
 
-  client.on('close', () => {
-    log.error('disconnect');
+  client.on("close", () => {
+    log.error("disconnect");
   });
 
-  client.on('reconnect', async () => {
-    log.success('reconnect');
-    await notifyOfConnection('reconnect');
+  client.on("reconnect", async () => {
+    log.success("reconnect");
+    await notifyOfConnection("reconnect");
   });
 
   return {
