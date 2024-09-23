@@ -278,7 +278,7 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
       ],
       ['API HOST', config.apiHost!],
       ['API KEY', config.apiKey!],
-      ['TENANT ID', config.teamId],
+      ['TEAM ID', config.teamId],
       ['STAGE', config.stage],
     ]),
   );

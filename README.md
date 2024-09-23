@@ -4,14 +4,14 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
-This is an AWS IoT Thing simulator for nRF91. It shows how to use the Device API for creating JITP certs, associating a newly provisioned device with your tenant (account), doing Firmware Over-the-Air Updates (FOTA), and more.
+This is an AWS IoT Thing simulator for nRF91. It shows how to use the Device API for creating JITP certs, associating a newly provisioned device with your team, doing Firmware Over-the-Air Updates (FOTA), and more.
 
 ## Usage
 
 ### Most basic usage
 The most basic usage is just creating a device. For that you just need an API key. The device ID will be randomly generated and the rest of the necessary information (mqtt endpoint, cert, and mqtt prefix) will be pulled from the device API. 
 
-This will create a new device with AWS IoT, but it will not onboard it to your account (use the `-a preconnect` flag) for that.
+This will create a new device with AWS IoT, but it will not onboard it to your team (use the `-a preconnect` flag) for that.
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key> [-d <desired device ID>] -t atv2
 ```
@@ -19,12 +19,12 @@ If you would like to use the local code instead of npx, first run `yarn && yarn 
 
 You can name the device whatever you want with the `-d` option. If not present, it will be named `nrfsim-<random 21 digits>`.
 
-### Onboard a device to your account
+### Onboard a device to your team
 This example will onboard a device to nRF Cloud by creating a new simulated device and associating it to the user's team. The user's API key authenticates the REST request. A default device shadow will be created in the style of the Asset Tracker v2 (atv2) sample firmware. For the pre-connect mode of onboarding, the device simulator will create and provide self-signed certificates in the onboarding process.
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key> -t atv2 -a preconnect
 ```
-Note: If you are using certificates for an MQTT Team Device (formerly known as an Account Device), you do not need to use the `-a preconnect` flag because by definition, these devices are already onboarded to your account.
+Note: If you are using certificates for an MQTT Team Device (formerly known as an Account Device), you do not need to use the `-a preconnect` flag because by definition, these devices are already onboarded to your team.
 See the [documentation](https://docs.nordicsemi.com/bundle/nrf-cloud/page/Devices/Properties/Types.html) for more information about the different types of devices supported by nRF Cloud.
 
 ### Simulate sensor outputs
@@ -59,7 +59,7 @@ These are the options. Most of them are set with environment variables.
   -c, --certs-response <certsResponse>               JSON returned by call POST /devices/{deviceid}/certificates (default: "")
   -e, --endpoint <endpoint>                          AWS IoT MQTT endpoint (default: "")
   -o, --device-ownership-code <deviceOwnershipCode>  PIN/ownership code of the device (default: "123456")
-  -m, --mqtt-messages-prefix <mqttMessagesPrefix>    The prefix for the MQTT for this tenant for sending and receiving device messages (default: "")
+  -m, --mqtt-messages-prefix <mqttMessagesPrefix>    The prefix for the MQTT for this team for sending and receiving device messages (default: "")
   -v, --verbose                                      Output debug information
   -t, --app-type <appType>                           Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object or relative path to json file. Otherwise,
                                                      pass "mss" or "atv2" to automatically generate a conformal shadow
@@ -130,7 +130,7 @@ See [cli.ts](src/cli.ts) for the options. Most of these are set with environment
 
 ### Set up your environment and provision a device
 
-1. Log in to [nrfcloud.com](https://nrfcloud.com) and go to the accounts page and grab your API key.
+1. Log in to [nrfcloud.com](https://nrfcloud.com) and go to your User Account page and grab your API key. If you are a member of more than one team, be sure to select the team you want to use with the simulator.
 1. Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 1. If running this on your own AWS account, ensure that Event-based Messages for jobs are enabled in [AWS IoT Settings](https://us-east-1.console.aws.amazon.com/iot/home?region=us-east-1#/settings).
 1. Set up your environment:
@@ -160,9 +160,10 @@ You should see some JSON output, with something like this at the end:
 ************** CONFIG ***********
 DEVICE ID: <your_device_id>
 DEVICE PIN: 123456
+MQTT TEAM DEVICE: false
 API HOST: https://api.nrfcloud.com
 API KEY: <your_api_key>
-TENANT ID: <your_tenant_id>
+TEAM ID: <your_team_id>
 STAGE: prod
 *********************************
 
@@ -238,12 +239,14 @@ MESSAGE: {
 }
 ***************************************
 
-Cannot initialize jobs listener until the device "<your_device_id>" is onboarded to your account. You can onboard the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d <your_device_id> -a preconnect".
+Cannot initialize jobs listener until the device "<your_device_id>" is onboarded to your team. You can onboard the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d <your_device_id> -a preconnect".
 ```
 
 This indicates that the device provisioned with AWS and updated its shadow.
 
-### Associate the device with your account (tenant)
+### Associate the device with your team
+Note: you will sometimes see `tenantId` in the JSON output. This is the same as `teamId`.
+
 1. Shut down the script (CMD or CTRL + C).
 2. Call the `association` endpoint:
 ```sh
@@ -261,21 +264,21 @@ node dist/cli.js
 ```
 You should see this JSON output: 
 ```sh
-confirmed that "<your_device_id>" has been onboarded with account "<your_tenant_id>"!
+confirmed that "<your_device_id>" has been onboarded for team "<your_team_id>"!
 
 listening for new jobs...
 
 ************** MESSAGE SENT ***********
-TOPIC: dev/<your_tenant_id>/<your_device_id>/jobs/req
+TOPIC: dev/<your_team_id>/<your_device_id>/jobs/req
 MESSAGE: [
   ""
 ]
 ***************************************
 
-subscribed to "dev/<your_tenant_id>/<your_device_id>/jobs/rcv"
+subscribed to "dev/<your_team_id>/<your_device_id>/jobs/rcv"
 ```
 
-Your device is now onboarded with your account (tenant) and is ready to start sending and receiving device messages! It is also listening for new FOTA jobs. 
+Your device is now onboarded with your team and is ready to start sending and receiving device messages! It is also listening for new FOTA jobs. 
 
 ### Create a new Firmware Over-the-Air (FOTA) job
 1. Open a new terminal window/tab.

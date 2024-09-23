@@ -110,7 +110,7 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
     )
     .option(
       '-m, --mqtt-messages-prefix <mqttMessagesPrefix>',
-      'The prefix for the MQTT unique to this tenant for sending and receiving device messages',
+      'The prefix for the MQTT unique to this team for sending and receiving device messages',
       env.MQTT_MESSAGES_PREFIX,
     )
     .option(

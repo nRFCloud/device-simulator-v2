@@ -130,7 +130,7 @@ export const nrfDevice = (
         .finally(() => {
           if (!deviceAssociated && !didHaveError) {
             log.info(
-              `Cannot initialize jobs listener until the device "${deviceId}" is onboarded to your account. You can onboard the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d ${deviceId} -a preconnect".`,
+              `Cannot initialize jobs listener until the device "${deviceId}" is onboarded to your team. You can onboard the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d ${deviceId} -a preconnect".`,
             );
           }
         });
