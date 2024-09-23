@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
-import { ISensor } from './Sensor';
 import * as fs from 'fs';
 import * as readline from 'readline';
+import { ISensor } from './Sensor';
 
 export class FakeGps extends EventEmitter implements ISensor {
   private readonly nmeaSentences: string[] = [];
@@ -58,9 +58,7 @@ export class FakeGps extends EventEmitter implements ISensor {
   }
 
   async start(): Promise<void> {
-    const fileExists = await new Promise(resolve =>
-      fs.exists(this.nmeaRecording, resolve),
-    );
+    const fileExists = await new Promise(resolve => fs.exists(this.nmeaRecording, resolve));
 
     if (!fileExists) {
       throw new Error(

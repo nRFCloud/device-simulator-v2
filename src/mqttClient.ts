@@ -1,4 +1,4 @@
-import { device } from "aws-iot-device-sdk";
+import { device } from 'aws-iot-device-sdk';
 // seconds; see https://docs.aws.amazon.com/general/latest/gr/iot-core.html#iot-protocol-limits.
 // At 1.5x the keep-alive AWS will publish a "disconnected" life-cycle event:
 // https://docs.aws.amazon.com/iot/latest/developerguide/life-cycle-events.html.

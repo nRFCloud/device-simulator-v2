@@ -1,15 +1,15 @@
-import { device } from "aws-iot-device-sdk";
-import axios from "axios";
-import { AxiosInstance } from "axios/index";
-import { execSync } from "child_process";
-import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
+import { device } from 'aws-iot-device-sdk';
+import axios from 'axios';
+import { AxiosInstance } from 'axios/index';
+import { execSync } from 'child_process';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
-import { Log } from "./models/Log";
-import { simulator } from "./simulator";
+import { Log } from './models/Log';
+import { simulator } from './simulator';
 
-const cache = require("ez-cache")();
+const cache = require('ez-cache')();
 let conn: AxiosInstance;
 
 export const getRestApiConn = (
@@ -23,7 +23,7 @@ export const getRestApiConn = (
       baseURL: apiHost,
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
@@ -84,7 +84,7 @@ export const onboardDevice = ({
   apiKey,
   verbose,
 }: Partial<SimulatorConfig>) => {
-  let certificate = JSON.parse(certsResponse as string).clientCert;
+  const certificate = JSON.parse(certsResponse as string).clientCert;
   return getRestApiConn(
     apiHost as string,
     apiKey as string,
@@ -107,10 +107,10 @@ export const getDefaults = async ({
   const log = new Log(!!verbose);
 
   const defaults: DeviceDefaults = {
-    endpoint: endpoint || "",
-    mqttMessagesPrefix: mqttMessagesPrefix || "",
-    certsResponse: certsResponse || "",
-    teamId: "",
+    endpoint: endpoint || '',
+    mqttMessagesPrefix: mqttMessagesPrefix || '',
+    certsResponse: certsResponse || '',
+    teamId: '',
   };
 
   const cacheFile = cache.getFilePath(deviceId);
@@ -121,13 +121,13 @@ export const getDefaults = async ({
 
   if (!(endpoint && mqttMessagesPrefix)) {
     log.debug(`Grabbing mqttEndpoint and messagesPrefix...`);
-    let defaultEndpoint = cachedDefaults.endpoint || "",
-      defaultMqttMessagesPrefix = cachedDefaults.mqttMessagesPrefix || "";
+    let defaultEndpoint = cachedDefaults.endpoint || '',
+      defaultMqttMessagesPrefix = cachedDefaults.mqttMessagesPrefix || '';
 
     if (!(defaultEndpoint && defaultMqttMessagesPrefix)) {
-      log.debug("Fetching endpoints from device API.\n");
+      log.debug('Fetching endpoints from device API.\n');
       const { data } = await conn.get(`/v1/account`);
-      defaultMqttMessagesPrefix = data.mqttTopicPrefix + "m/";
+      defaultMqttMessagesPrefix = data.mqttTopicPrefix + 'm/';
       defaultEndpoint = data.mqttEndpoint;
     }
 
@@ -141,12 +141,12 @@ export const getDefaults = async ({
   }
 
   if (!certsResponse) {
-    log.debug("Grabbing cert...");
-    let defaultJsonCert = cachedDefaults.certsResponse || "";
+    log.debug('Grabbing cert...');
+    let defaultJsonCert = cachedDefaults.certsResponse || '';
 
     if (!defaultJsonCert) {
-      if (onboard === "jitp") {
-        log.debug("Fetching cert from device API.\n");
+      if (onboard === 'jitp') {
+        log.debug('Fetching cert from device API.\n');
         const { data } = await conn.post(
           `/v1/devices/${deviceId}/certificates`,
           deviceOwnershipCode,
@@ -154,18 +154,18 @@ export const getDefaults = async ({
 
         defaultJsonCert = JSON.stringify(data);
       } else {
-        log.debug("Generating self signed device certs.\n");
+        log.debug('Generating self signed device certs.\n');
 
         const privateKey = execSync(
           `openssl ecparam -name prime256v1 -genkey`,
         ).toString();
 
-        const subject = "/C=NO/ST=Norway/L=Trondheim/O=Nordic Semiconductor/OU=Test Devices";
+        const subject = '/C=NO/ST=Norway/L=Trondheim/O=Nordic Semiconductor/OU=Test Devices';
         const caCert = execSync(
           `echo "${privateKey}" | openssl req -x509 -extensions v3_ca -new -nodes -key /dev/stdin -sha256 -days 1024 -subj "${subject}"`,
         ).toString();
 
-        let privateKey2 = execSync(
+        const privateKey2 = execSync(
           `openssl ecparam -name prime256v1 -genkey`,
         ).toString();
         let deviceCSR = execSync(
@@ -176,11 +176,11 @@ export const getDefaults = async ({
         ).toString();
 
         const tempDir = os.tmpdir();
-        const csrPath = path.join(tempDir, "device.csr");
-        const caCertPath = path.join(tempDir, "ca.crt");
-        const privateKeyPath = path.join(tempDir, "ca.key");
+        const csrPath = path.join(tempDir, 'device.csr');
+        const caCertPath = path.join(tempDir, 'ca.crt');
+        const privateKeyPath = path.join(tempDir, 'ca.key');
         const awsCa =
-          "-----BEGIN CERTIFICATE-----\nMIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF\nADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6\nb24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL\nMAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv\nb3QgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALJ4gHHKeNXj\nca9HgFB0fW7Y14h29Jlo91ghYPl0hAEvrAIthtOgQ3pOsqTQNroBvo3bSMgHFzZM\n9O6II8c+6zf1tRn4SWiw3te5djgdYZ6k/oI2peVKVuRF4fn9tBb6dNqcmzU5L/qw\nIFAGbHrQgLKm+a/sRxmPUDgH3KKHOVj4utWp+UhnMJbulHheb4mjUcAwhmahRWa6\nVOujw5H5SNz/0egwLX0tdHA114gk957EWW67c4cX8jJGKLhD+rcdqsq08p8kDi1L\n93FcXmn/6pUCyziKrlA4b9v7LWIbxcceVOF34GfID5yHI9Y/QCB/IIDEgEw+OyQm\njgSubJrIqg0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC\nAYYwHQYDVR0OBBYEFIQYzIU07LwMlJQuCFmcx7IQTgoIMA0GCSqGSIb3DQEBCwUA\nA4IBAQCY8jdaQZChGsV2USggNiMOruYou6r4lK5IpDB/G/wkjUu0yKGX9rbxenDI\nU5PMCCjjmCXPI6T53iHTfIUJrU6adTrCC2qJeHZERxhlbI1Bjjt/msv0tadQ1wUs\nN+gDS63pYaACbvXy8MWy7Vu33PqUXHeeE6V/Uq2V8viTO96LXFvKWlJbYK8U90vv\no/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU\n5MsI+yMRQ+hDKXJioaldXgjUkK642M4UwtBV8ob2xJNDd2ZhwLnoQdeXeGADbkpy\nrqXRfboQnoZsG4q5WTP468SQvvG5\n-----END CERTIFICATE-----\n";
+          '-----BEGIN CERTIFICATE-----\nMIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF\nADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6\nb24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL\nMAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv\nb3QgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALJ4gHHKeNXj\nca9HgFB0fW7Y14h29Jlo91ghYPl0hAEvrAIthtOgQ3pOsqTQNroBvo3bSMgHFzZM\n9O6II8c+6zf1tRn4SWiw3te5djgdYZ6k/oI2peVKVuRF4fn9tBb6dNqcmzU5L/qw\nIFAGbHrQgLKm+a/sRxmPUDgH3KKHOVj4utWp+UhnMJbulHheb4mjUcAwhmahRWa6\nVOujw5H5SNz/0egwLX0tdHA114gk957EWW67c4cX8jJGKLhD+rcdqsq08p8kDi1L\n93FcXmn/6pUCyziKrlA4b9v7LWIbxcceVOF34GfID5yHI9Y/QCB/IIDEgEw+OyQm\njgSubJrIqg0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC\nAYYwHQYDVR0OBBYEFIQYzIU07LwMlJQuCFmcx7IQTgoIMA0GCSqGSIb3DQEBCwUA\nA4IBAQCY8jdaQZChGsV2USggNiMOruYou6r4lK5IpDB/G/wkjUu0yKGX9rbxenDI\nU5PMCCjjmCXPI6T53iHTfIUJrU6adTrCC2qJeHZERxhlbI1Bjjt/msv0tadQ1wUs\nN+gDS63pYaACbvXy8MWy7Vu33PqUXHeeE6V/Uq2V8viTO96LXFvKWlJbYK8U90vv\no/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU\n5MsI+yMRQ+hDKXJioaldXgjUkK642M4UwtBV8ob2xJNDd2ZhwLnoQdeXeGADbkpy\nrqXRfboQnoZsG4q5WTP468SQvvG5\n-----END CERTIFICATE-----\n';
 
         try {
           // Write inputs to temporary files
@@ -209,7 +209,7 @@ export const getDefaults = async ({
     defaults.certsResponse = defaultJsonCert;
   }
 
-  let teamId = defaults.mqttMessagesPrefix.split("/")[1];
+  let teamId = defaults.mqttMessagesPrefix.split('/')[1];
 
   if (!teamId) {
     const { data } = await conn.get(`/v1/account`);
@@ -269,21 +269,21 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
   config.teamId = defaults.teamId;
 
   log.info(
-    log.prettify("CONFIG", [
-      ["DEVICE ID", config.deviceId],
-      ["MQTT TEAM DEVICE", config.mqttTeamDevice.toString()],
+    log.prettify('CONFIG', [
+      ['DEVICE ID', config.deviceId],
+      ['MQTT TEAM DEVICE', config.mqttTeamDevice.toString()],
       [
-        "DEVICE PIN",
-        config.deviceOwnershipCode || config.mqttTeamDevice ? "N/A" : "NOT SET",
+        'DEVICE PIN',
+        config.deviceOwnershipCode || config.mqttTeamDevice ? 'N/A' : 'NOT SET',
       ],
-      ["API HOST", config.apiHost!],
-      ["API KEY", config.apiKey!],
-      ["TENANT ID", config.teamId],
-      ["STAGE", config.stage],
+      ['API HOST', config.apiHost!],
+      ['API KEY', config.apiKey!],
+      ['TENANT ID', config.teamId],
+      ['STAGE', config.stage],
     ]),
   );
 
-  log.success("starting simulator...");
+  log.success('starting simulator...');
 
   if (onboard) {
     config.onConnect = async (deviceId) => {
@@ -292,7 +292,7 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
       );
 
       try {
-        if (onboard === "jitp") {
+        if (onboard === 'jitp') {
           // wait to ensure the device is available in AWS IoT so it can be associated
           await new Promise((resolve) => setTimeout(resolve, 2000));
           await associateDevice({
@@ -312,7 +312,7 @@ export const run = async (config: SimulatorConfig): Promise<void> => {
           });
         }
 
-        log.success("DEVICE ONBOARDED!");
+        log.success('DEVICE ONBOARDED!');
       } catch (err) {
         log.error(`Failed to onboard: ${err}`);
       }

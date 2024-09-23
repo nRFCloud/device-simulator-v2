@@ -24,6 +24,8 @@ This example will onboard a device to nRF Cloud by creating a new simulated devi
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key> -t atv2 -a preconnect
 ```
+Note: If you are using certificates for an MQTT Team Device (formerly known as an Account Device), you do not need to use the `-a preconnect` flag because by definition, these devices are already onboarded to your account.
+See the [documentation](https://docs.nordicsemi.com/bundle/nrf-cloud/page/Devices/Properties/Types.html) for more information about the different types of devices supported by nRF Cloud.
 
 ### Simulate sensor outputs
 After creating and onboarding your device, you can include any combination of the options listed after `-s` below, to simulate the device sending messages containing device sensor data:
@@ -62,7 +64,9 @@ These are the options. Most of them are set with environment variables.
   -t, --app-type <appType>                           Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object or relative path to json file. Otherwise,
                                                      pass "mss" or "atv2" to automatically generate a conformal shadow
   -p, --job-execution-path <jobExecutionPath>        Specifies an unhappy job execution path for a fota update.	View the "Use an unhappy path for FOTA execution" section
-                                                     of the README for more details.																									                         
+                                                     of the README for more details.
+  -q, --mqtt-team-device <mqttTeamDevice>            Specifies that the device certificates you provided are for an MQTT Team Device (formerly known as an Account Device), 
+                                                     which will auto-subscribe to topics for all devices in your team.                                                   																							                         
   -h, --help                                         Output usage information
 ```
 

@@ -1,7 +1,7 @@
-import { ISensor } from '../../sensors/Sensor';
-import { Service } from './Service';
-import { AppMessage } from '../appMessage';
 import { SendMessage } from '../../nrfDevice';
+import { ISensor } from '../../sensors/Sensor';
+import { AppMessage } from '../appMessage';
+import { Service } from './Service';
 
 const APPID = 'DEVICE';
 
@@ -13,7 +13,7 @@ export class Device implements Service {
 
   async start() {
     this.sensor.on('data', (timestamp: number, data) => {
-      const message = <AppMessage>{
+      const message = <AppMessage> {
         appId: APPID,
         messageType: 'STATUS',
         // @ts-ignore

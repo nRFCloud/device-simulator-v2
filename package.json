@@ -1,6 +1,6 @@
 {
   "name": "@nrfcloud/device-simulator-v2",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "AWS IoT Thing simulator for nRF91",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,10 +10,8 @@
     "clean": "rm -rf .ez-cache",
     "deploy": "yarn build && yarn publish",
     "deploy:beta": "yarn build && yarn publish --tag beta",
-    "fix": "yarn prettier",
-    "lint": "yarn run tslint && yarn run prettier:lint",
-    "prettier": "prettier --write \"./src/*.ts\"",
-    "prettier:lint": "prettier --list-different \"./src/*.ts\"",
+    "fix": "dprint fmt",
+    "lint": "dprint check && yarn run tslint",
     "schemas2ts": "json2ts schemas/message.schema.json src/app/appMessage.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "tslint": "tslint --project ./tsconfig.json"
@@ -32,19 +30,19 @@
     "@commitlint/cli": "^9.0.1",
     "@commitlint/config-angular": "^9.0.1",
     "@nrfcloud/tslint-config": "^3.11.1",
-    "@types/aws-iot-device-sdk": "^2.2.4",
+    "@types/aws-iot-device-sdk": "^2.2.8",
     "@types/jest": "^26.0.4",
     "@types/node": "^14.0.20",
     "@types/uuid": "^8.0.0",
+    "dprint": "^0.47.2",
     "husky": "^4.2.5",
     "json-schema-to-typescript": "^9.1.1",
     "lint-staged": "^10.2.11",
-    "prettier": "^2.0.5",
     "tslint": "^6.1.2",
     "typescript": "^3.9.6"
   },
   "dependencies": {
-    "aws-iot-device-sdk": "^2.2.12",
+    "aws-iot-device-sdk": "^2.2.15",
     "aws-sdk": "^2.712.0",
     "axios": "^0.19.2",
     "colors": "^1.4.0",
@@ -83,7 +81,7 @@
   "lint-staged": {
     "*.ts": [
       "tslint --project ./tsconfig.json --fix",
-      "prettier --write",
+      "dprint fmt",
       "git add"
     ]
   }

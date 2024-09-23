@@ -1,79 +1,74 @@
 import { EventEmitter } from 'events';
-import { ISensor } from './Sensor';
 import * as fs from 'fs';
+import { ISensor } from './Sensor';
 
 export class FakeGnss extends EventEmitter implements ISensor {
+  private readonly GnssSentences: Object[] = [];
+  private sentenceIndex: number = 0;
+  private started = false;
+  private GnssEmitterIntervalId: any = null;
 
-	private readonly GnssSentences: Object[] = [];
-	private sentenceIndex: number = 0;
-	private started = false;
-	private GnssEmitterIntervalId: any = null;
+  constructor(
+    private readonly gnssReading: string,
+    private readonly loop: boolean = false,
+    private readonly defaultSampleRate: number,
+  ) {
+    super();
+  }
 
-	constructor(
-		private readonly gnssReading: string,
-		private readonly loop: boolean = false,
-		private readonly defaultSampleRate: number,
-	) {
-		super();
-	}
+  private readGnssData() {
+    const data = require(this.gnssReading);
+    this.GnssSentences.push(...data);
+    this.cleanUpAndStartEmitting();
+  }
 
-	private readGnssData() {
-		const data = require(this.gnssReading);
-		this.GnssSentences.push(...data);
-		this.cleanUpAndStartEmitting();
-	}
+  private emitGnssData() {
+    this.emit(
+      'data',
+      Date.now(),
+      this.GnssSentences[this.sentenceIndex],
+    );
 
+    if (this.sentenceIndex === this.GnssSentences.length - 1) {
+      if (this.loop) {
+        this.sentenceIndex = 0;
+      } else {
+        this.stop();
+      }
+    } else {
+      this.sentenceIndex++;
+    }
+  }
 
-	private emitGnssData() {
+  async start(): Promise<void> {
+    const fileExists = await new Promise(resolve => fs.exists(this.gnssReading, resolve));
 
-		this.emit(
-			'data',
-			Date.now(),
-			this.GnssSentences[this.sentenceIndex]
-		);
+    if (!fileExists) {
+      throw new Error(
+        `Recording with filename '${this.gnssReading}' does not exist.`,
+      );
+    }
 
-		if (this.sentenceIndex === this.GnssSentences.length - 1) {
-			if (this.loop) {
-				this.sentenceIndex = 0;
-			} else {
-				this.stop();
-			}
-		} else {
-			this.sentenceIndex++;
-		}
-	}
+    this.started = true;
 
-	async start(): Promise<void> {
-		const fileExists = await new Promise(resolve =>
-			fs.exists(this.gnssReading, resolve),
-		);
+    this.readGnssData();
+  }
 
-		if (!fileExists) {
-			throw new Error(
-				`Recording with filename '${this.gnssReading}' does not exist.`,
-			);
-		}
+  private cleanUpAndStartEmitting() {
+    if (this.GnssSentences) {
+      this.GnssEmitterIntervalId = setInterval(() => {
+        this.emitGnssData();
+      }, this.defaultSampleRate);
+    }
+  }
 
-		this.started = true;
+  stop() {
+    clearInterval(this.GnssEmitterIntervalId);
+    this.started = false;
+    this.emit('stopped');
+  }
 
-		this.readGnssData();
-	}
-
-	private cleanUpAndStartEmitting() {
-		if (this.GnssSentences) {
-			this.GnssEmitterIntervalId = setInterval(() => {
-				this.emitGnssData();
-			}, this.defaultSampleRate);
-		}
-	}
-
-	stop() {
-		clearInterval(this.GnssEmitterIntervalId);
-		this.started = false;
-		this.emit('stopped');
-	}
-
-	isStarted(): boolean {
-		return this.started;
-	}
+  isStarted(): boolean {
+    return this.started;
+  }
 }

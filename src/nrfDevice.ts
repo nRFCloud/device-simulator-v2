@@ -1,12 +1,12 @@
-import { device } from "aws-iot-device-sdk";
+import { device } from 'aws-iot-device-sdk';
 
-import { AxiosInstance, AxiosResponse } from "axios";
-import { AppMessage } from "./app/appMessage";
-import { DeviceConfig, NrfDevice } from "./models/Device";
-import { NrfJobsManager } from "./models/Job";
-import { Log, Logger } from "./models/Log";
-import { mqttClient } from "./mqttClient";
-import { ISensor } from "./sensors/Sensor";
+import { AxiosInstance, AxiosResponse } from 'axios';
+import { AppMessage } from './app/appMessage';
+import { DeviceConfig, NrfDevice } from './models/Device';
+import { NrfJobsManager } from './models/Job';
+import { Log, Logger } from './models/Log';
+import { mqttClient } from './mqttClient';
+import { ISensor } from './sensors/Sensor';
 
 export type SendMessage = (timestamp: number, message: AppMessage) => void;
 
@@ -69,9 +69,9 @@ export const nrfDevice = (
       await new Promise<void>((resolve) => {
         let halfSecondsElapsed = 1;
         const totalDelay = 10; // 10 half seconds
-        log.info("waiting for aws IoT to associate device...");
+        log.info('waiting for aws IoT to associate device...');
         const intervalId = setInterval(() => {
-          log.debug(".".repeat(totalDelay - halfSecondsElapsed));
+          log.debug('.'.repeat(totalDelay - halfSecondsElapsed));
           halfSecondsElapsed++;
 
           if (halfSecondsElapsed >= totalDelay) {
@@ -109,7 +109,7 @@ export const nrfDevice = (
               }
 
               shadowInitialized = true;
-              log.info("listening for new jobs...");
+              log.info('listening for new jobs...');
               await jobsManager.waitForJobs();
             }
           }
@@ -137,16 +137,16 @@ export const nrfDevice = (
     }
   };
 
-  client.on("error", (error: any) => {
+  client.on('error', (error: any) => {
     log.error(`AWS IoT error ${error.message}`);
   });
 
-  client.on("connect", async () => {
-    log.success("connected");
-    await notifyOfConnection("connect");
+  client.on('connect', async () => {
+    log.success('connected');
+    await notifyOfConnection('connect');
   });
 
-  client.on("message", (topic: string, payload: any) => {
+  client.on('message', (topic: string, payload: any) => {
     log.incoming(topic, payload || {});
     const p = payload ? JSON.parse(payload.toString()) : {};
 
@@ -162,13 +162,13 @@ export const nrfDevice = (
     }
   });
 
-  client.on("close", () => {
-    log.error("disconnect");
+  client.on('close', () => {
+    log.error('disconnect');
   });
 
-  client.on("reconnect", async () => {
-    log.success("reconnect");
-    await notifyOfConnection("reconnect");
+  client.on('reconnect', async () => {
+    log.success('reconnect');
+    await notifyOfConnection('reconnect');
   });
 
   return {

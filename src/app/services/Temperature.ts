@@ -1,6 +1,6 @@
+import { SendMessage } from '../../nrfDevice';
 import { ISensor } from '../../sensors/Sensor';
 import { AppMessage } from '../appMessage';
-import { SendMessage } from '../../nrfDevice';
 import { Service } from './Service';
 
 const APPID = 'TEMP';
@@ -15,7 +15,7 @@ export class Temp implements Service {
     await this.sendHello();
 
     this.sensor.on('data', (timestamp: number, data: any) => {
-      const message = <AppMessage>{
+      const message = <AppMessage> {
         appId: APPID,
         messageType: 'DATA',
         data: String.fromCharCode.apply(null, data),
