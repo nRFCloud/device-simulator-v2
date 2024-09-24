@@ -139,7 +139,9 @@ export class NrfDevice {
       this.client.publish(
         topic,
         JSON.stringify(payload),
-        undefined,
+        {
+          qos: 1,
+        },
         (error: any) => {
           if (error) {
             return reject(error);

@@ -24,6 +24,8 @@ export const mqttClient = ({
     host: endpoint,
     debug: false,
     keepalive: KEEP_ALIVE,
+    // If you really want to connect in a way that disallows receiving QoS 1 and 2 messages that were published while the
+    // client was offline, set clean to true.
     clean: false,
     // Uncomment if you want to support Last Will and Testament messages. However, you
     // will need to add a publish permission to your IoT device policy for the topic.
