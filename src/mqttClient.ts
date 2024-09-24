@@ -24,6 +24,8 @@ export const mqttClient = ({
     host: endpoint,
     debug: false,
     keepalive: KEEP_ALIVE,
+    // A "clean session" is non-persistent, i.e. after connecting, the new session is a "clean slate", and any QoS 1 or
+    // 2 messages sent to *previously subscribed topics* while the device is offline will be discarded from the broker's queue.
     // If you really want to connect in a way that disallows receiving QoS 1 and 2 messages that were published while the
     // client was offline, set clean to true.
     clean: false,
@@ -33,6 +35,5 @@ export const mqttClient = ({
     //   topic: `presence/${id}/lwt`,
     //   payload: '"LWT"', // Must be a valid JSON string, which requires double quotes
     //   qos: 0,
-    //   retain: false, // Don't use true. See https://github.com/aws/aws-iot-device-sdk-js/issues/61
     // }
   });
