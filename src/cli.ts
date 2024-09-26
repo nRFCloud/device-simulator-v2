@@ -74,44 +74,27 @@ const handleJobExecution = (input: string, _: unknown) => {
   return input;
 };
 
-const handleOnboardingType = (input: string, _: unknown) => {
-  if (input === 'preconnect' || input === 'jitp') {
-    return input;
-  }
-
-  new Log(false).error(
-    'Input for onboard must be blank, "jitp" or "preconnect"',
-  );
-  process.exit();
-};
-
 const getConfig = (env: any, args: string[]): SimulatorConfig =>
   program
     .requiredOption(
       '-k, --api-key <apiKey>',
-      'API key for nRF Cloud',
+      'nRF Cloud REST API Key',
       env.API_KEY,
     )
     .option(
-      '-c, --certs-response <certsResponse>',
-      'JSON returned by call to the Device API endpoint: POST /devices/{deviceid}/certificates',
-      env.CERTS_RESPONSE,
+      '-h, --api-host <apiHost>',
+      'nRF Cloud API Host',
+      env.API_HOST ? env.API_HOST : 'https://api.nrfcloud.com',
     )
     .option(
-      '-e, --endpoint <endpoint>',
-      'AWS IoT MQTT endpoint',
-      env.MQTT_ENDPOINT,
-    )
-    .option('-d, --device-id <deviceId>', 'ID of the device', env.DEVICE_ID)
-    .option(
-      '-o, --device-ownership-code <deviceOwnershipCode>',
-      'PIN/ownership code of the device',
-      env.DEVICE_OWNERSHIP_CODE,
+      '-e, --mqttEndpoint <mqttEndpoint>',
+      'nRF Cloud MQTT Endpoint',
+      env.MQTT_ENDPOINT ? env.MQTT_ENDPOINT : 'mqtt.nrfcloud.com',
     )
     .option(
-      '-m, --mqtt-messages-prefix <mqttMessagesPrefix>',
-      'The prefix for the MQTT unique to this team for sending and receiving device messages',
-      env.MQTT_MESSAGES_PREFIX,
+      '-d, --device-id <deviceId>',
+      'ID of the device. If not set after onboarding a device, a new device is created.',
+      env.DEVICE_ID,
     )
     .option(
       '-s, --services <services>',
@@ -123,19 +106,8 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       '1',
     )
     .option(
-      '-h, --api-host <apiHost>',
-      'API host for nRF Cloud',
-      env.API_HOST ? env.API_HOST : 'https://api.nrfcloud.com',
-    )
-    .option(
-      '-a, --onboard <onboardingType>',
-      'Onboard the device with "jitp", or "preconnect"',
-      handleOnboardingType,
-    )
-    .option('-v, --verbose', 'output debug info', false)
-    .option(
       '-t, --app-type <appType>',
-      'Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object or relative path to json file. Otherwise, pass "mss" or "atv2" to automatically generate a conformal shadow',
+      'Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object or relative path to json file. Otherwise, pass "mss" or "atv2" to automatically generate a shadow that conforms to the nRF Cloud schema for the desired application.',
       handleAppType,
     )
     .option(
@@ -148,6 +120,7 @@ const getConfig = (env: any, args: string[]): SimulatorConfig =>
       'Specifies that the device certificates you provided are for an MQTT Team Device (formerly known as an Account Device), which will auto-subscribe to topics for all devices in your team.',
       false,
     )
+    .option('-v, --verbose', 'output debug info', false)
     .parse(args)
     .opts() as SimulatorConfig;
 

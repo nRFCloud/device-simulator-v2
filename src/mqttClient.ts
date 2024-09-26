@@ -8,20 +8,20 @@ export const mqttClient = ({
   clientCert,
   privateKey,
   id,
-  endpoint,
+  mqttEndpoint,
 }: {
   caCert: Buffer | string;
   clientCert: Buffer | string;
   privateKey: Buffer | string;
   id: string;
-  endpoint: string;
+  mqttEndpoint: string;
 }): device =>
   new device({
     privateKey,
     clientCert,
     caCert,
     clientId: id,
-    host: endpoint,
+    host: mqttEndpoint,
     debug: false,
     keepalive: KEEP_ALIVE,
     // A "clean session" is non-persistent, i.e. after connecting, the new session is a "clean slate", and any QoS 1 or

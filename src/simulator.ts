@@ -1,6 +1,6 @@
 import * as path from 'path';
 
-import { getRestApiConn, SimulatorConfig } from './index';
+import { SimulatorConfig } from './index';
 import { DeviceConfig } from './models/Device';
 import { Log } from './models/Log';
 import { nrfDevice } from './nrfDevice';
@@ -16,8 +16,8 @@ import { FakeThermometer } from './sensors/FakeThermometer';
 import { ISensor } from './sensors/Sensor';
 
 export const simulator = async ({
-  certsResponse,
-  endpoint,
+  deviceId,
+  mqttEndpoint,
   appFwVersion,
   mqttMessagesPrefix,
   services = '',
@@ -31,34 +31,11 @@ export const simulator = async ({
   jobExecutionPath,
   mqttTeamDevice,
 }: SimulatorConfig): Promise<void> => {
-  let certs;
   const log = new Log(!!verbose);
 
-  try {
-    certs = JSON.parse(certsResponse);
-  } catch (err) {
-    log.error(
-      `ERROR: failed to parse certsResponse: ${
-        JSON.stringify(
-          certsResponse,
-          null,
-          2,
-        )
-      }`,
-    );
-    throw new Error(`Error parsing certsResponse ${err} ${certsResponse}`);
-  }
-
-  const caCert = Buffer.from(certs.caCert, 'utf-8');
-  const clientCert = Buffer.from(certs.clientCert, 'utf-8');
-  const privateKey = Buffer.from(certs.privateKey, 'utf-8');
-
   const config: DeviceConfig = {
-    deviceId: certs.clientId,
-    caCert,
-    privateKey,
-    clientCert,
-    endpoint,
+    deviceId,
+    mqttEndpoint,
     appFwVersion,
     appType,
     mqttMessagesPrefix,
@@ -144,7 +121,6 @@ export const simulator = async ({
   nrfDevice(
     config,
     sensors,
-    getRestApiConn(apiHost!, apiKey!, !!verbose),
     onConnect,
     log,
   );

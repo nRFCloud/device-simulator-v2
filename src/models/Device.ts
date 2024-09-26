@@ -27,10 +27,10 @@ type DeviceTopics = {
 
 export type DeviceConfig = {
   deviceId: string;
-  caCert: Buffer | string;
-  clientCert: Buffer | string;
-  privateKey: Buffer | string;
-  endpoint: string;
+  caCert;
+  clientCert;
+  privateKey;
+  mqttEndpoint: string;
   appFwVersion: string;
   appType: string;
   mqttMessagesPrefix: string;

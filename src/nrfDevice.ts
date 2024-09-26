@@ -22,7 +22,7 @@ export const nrfDevice = (
     caCert,
     clientCert,
     privateKey,
-    endpoint,
+    mqtt,
     appFwVersion,
     mqttMessagesPrefix,
     appType,
@@ -36,14 +36,14 @@ export const nrfDevice = (
   let onConnectExecuting = false;
   let shadowInitialized = false;
   let onboardingConfirmed = false;
-  log.success(`connecting to "${endpoint}"...`);
+  log.success(`connecting to "${mqttEndpoint}"...`);
 
   const client = mqttClient({
     id: deviceId,
     caCert,
     clientCert,
     privateKey,
-    endpoint,
+    mqttEndpoint,
   });
 
   const device = new NrfDevice(
