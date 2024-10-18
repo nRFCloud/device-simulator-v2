@@ -17,8 +17,8 @@ import {
   ISensor,
 } from './sensors';
 
-export type DeviceType = 'generic' | 'team';
-export type CertificateType = 'self-signed' | 'jitp';
+export type DeviceType = 'Generic' | 'Team';
+export type CertificateType = 'self-signed' | 'JITP';
 export interface DeviceCredentials {
   caCert: string;
   clientCert: string;
@@ -31,7 +31,7 @@ interface ConfigCommon {
   deviceCredentials?: DeviceCredentials;
   appFwVersion: string;
   appType: string;
-  preventNewJitpDeviceAssociation: boolean;
+  preventAssociation: boolean;
   jobExecutionFailureScenario?: JobExecutionFailureScenario;
   verbose: boolean;
 }
@@ -52,7 +52,7 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
   const {
     deviceType,
     certificateType,
-    preventNewJitpDeviceAssociation,
+    preventAssociation,
     apiKey,
     apiHost,
     verbose,
@@ -69,12 +69,12 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
   const mqttEndpoint = `mqtt${stage === 'prod' ? '' : `.${stage}`}.nrfcloud.com`;
   let deviceId = simConfig.deviceId;
   if (deviceId) {
-    simConfig.deviceCredentials = getLocallyStoredDeviceCredentials(deviceId, certificateType, log);
+    simConfig.deviceCredentials = getLocallyStoredDeviceCredentials(deviceId, log);
     if (!simConfig.deviceCredentials) {
       throw new Error(`No locally stored device credentials were found for the device id you specified: ${deviceId}.`);
     }
   } else {
-    if (deviceType !== 'team') {
+    if (deviceType !== 'Team') {
       // MQTT Team devices are automatically assigned, by the REST API, a device id formatted as "mqtt-team-<teamId>-<deviceId>".
       // So, skip generating a device id for MQTT Team devices.
       deviceId = generateDeviceId();
@@ -91,7 +91,7 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
     // Check to see if the device is already onboarded by this team. If not, onboard it.
     const res = await restApiClient.fetchDevice(deviceId);
     if (res.status !== 200) {
-      // User provided device credentials, but the team does not own the device.
+      // User provided device credentials, but the device was not found for this team.
       //
       // JITP device connection mode is handled in the nrfDevice.ts file's connection handler because
       // a JITP device is not onboarded (associated with a team) until it first connects to nRF Cloud.
@@ -103,19 +103,25 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
           certificate: simConfig.deviceCredentials.clientCert,
         });
       }
-      if (deviceType === 'team') {
-        throw new Error(`You provided device credentials for device ${deviceId} of type 'team' (an MQTT Team device),
-        but this device could not be found for your team. Please verify the device id and type.`);
+      if (deviceType === 'Team') {
+        throw new Error(
+          `You provided device credentials for device ${deviceId} of type 'Team' (an MQTT Team device),
+        but this device could not be found for your team. Please verify the device id and type.`,
+        );
       }
+    } else if (preventAssociation) {
+      log.info(
+        `The device ${deviceId} is already associated with the team ${teamName} (${teamId}). The "--prevent-association" flag is ignored.`,
+      );
     }
   } else {
     // Run simulator with new device credentials.
-    if (deviceType === 'team') {
+    if (deviceType === 'Team') {
       const { clientId, ...credentials } = await restApiClient.createMqttTeamDevice();
       deviceId = clientId;
       simConfig.deviceCredentials = credentials;
     } else {
-      if (certificateType === 'jitp') {
+      if (certificateType === 'JITP') {
         simConfig.deviceCredentials = await restApiClient.createJitpCertificate({ deviceId, certificateType });
       } else {
         simConfig.deviceCredentials = createSelfSignedDeviceCertificate({ deviceId, verbose });
@@ -220,7 +226,7 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
     appFwVersion,
     appType,
     certificateType,
-    preventNewJitpDeviceAssociation,
+    preventAssociation,
     mqttTopicPrefix,
     mqttMessagesTopicPrefix: `${mqttTopicPrefix}/m`,
     jobExecutionFailureScenario,

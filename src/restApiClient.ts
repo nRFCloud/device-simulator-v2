@@ -63,11 +63,11 @@ export class RestApiClient {
       );
       this.log.success(`MQTT Team device successfully created.`);
     } catch (err) {
-      this.log.error(`JITP device failed to create. Error: ${err}`);
+      this.log.error(`JITP device failed to create: ${err}`);
     }
     const { clientId, ...credentials } = res?.data as CredentialsResponse;
     storeDeviceCredentials(
-      formatCredentialsFilePath(clientId, 'self-signed'),
+      formatCredentialsFilePath(clientId),
       credentials,
       this.log,
     );
@@ -76,7 +76,7 @@ export class RestApiClient {
 
   // As of Oct 2024 there is no endpoint for creating non-JITP certificates. This is why only the JITP certificate request is offered here.
   // See utils.ts for local generation of non-JITP certificates.
-  public async createJitpCertificate({ deviceId, certificateType }: CreateDeviceRequestParams) {
+  public async createJitpCertificate({ deviceId }: CreateDeviceRequestParams) {
     let res;
     try {
       res = await this.getRestApiConn().post(
@@ -86,10 +86,10 @@ export class RestApiClient {
       );
       this.log.success(`JITP certificate for device ${deviceId} successfully created.`);
     } catch (err) {
-      this.log.error(`JITP certificate for device ${deviceId} failed to create. Error: ${err}`);
+      this.log.error(`JITP certificate for device ${deviceId} failed to create: ${err}`);
     }
     storeDeviceCredentials(
-      formatCredentialsFilePath(deviceId, certificateType),
+      formatCredentialsFilePath(deviceId),
       res?.data as DeviceCredentials,
       this.log,
     );
@@ -103,7 +103,7 @@ export class RestApiClient {
       });
       this.log.success(`Device ${deviceId} successfully onboarded to nRF Cloud.`);
     } catch (err) {
-      this.log.error(`Device ${deviceId} failed to onboard to nRF Cloud. Error: ${err}`);
+      this.log.error(`Device ${deviceId} failed to onboard to nRF Cloud: ${err}`);
     }
   }
 
@@ -126,7 +126,7 @@ export class RestApiClient {
       );
       this.log.success(`JITP device ${deviceId} successfully associated.`);
     } catch (err) {
-      this.log.error(`JITP device ${deviceId} failed to associate. Error: ${err}`);
+      throw new Error(`JITP device ${deviceId} failed to associate: ${err}`);
     }
   }
 }

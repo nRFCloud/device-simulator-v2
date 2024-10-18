@@ -2,7 +2,8 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { CertificateType, DeviceCredentials, SimulatorConfig } from './index';
+import { promisify } from 'util';
+import { DeviceCredentials, SimulatorConfig } from './index';
 import { Log } from './models/Log';
 
 export const generateDeviceId = () => `nrfsim-${Math.floor(Math.random() * 1000000000000000000000)}`;
@@ -14,8 +15,7 @@ const getCredentialsDirPath = () => {
   }
   return credentialsDir;
 };
-export const formatCredentialsFilePath = (deviceId: string, certificateType: CertificateType) =>
-  path.join(getCredentialsDirPath(), `${deviceId}${certificateType === 'jitp' ? '-jitp' : ''}.json`);
+export const formatCredentialsFilePath = (deviceId: string) => path.join(getCredentialsDirPath(), `${deviceId}.json`);
 
 export const createSelfSignedDeviceCertificate = ({
   deviceId,
@@ -48,7 +48,7 @@ export const createSelfSignedDeviceCertificate = ({
   const csrPath = path.join(tempDir, 'device.csr');
   const caCertPath = path.join(tempDir, 'ca.crt');
   const privateKeyPath = path.join(tempDir, 'ca.key');
-  const credentialsFilePath = formatCredentialsFilePath(deviceId!, 'self-signed');
+  const credentialsFilePath = formatCredentialsFilePath(deviceId!);
 
   try {
     // Write temp files used to generate client cert.
@@ -104,11 +104,47 @@ export const storeDeviceCredentials = (filePath: string, credentials: DeviceCred
   log.info(`\nDevice certificates saved to ${filePath}`);
 };
 
-export const getLocallyStoredDeviceCredentials = (deviceId: string, certificateType: CertificateType, log: Log) => {
-  const credentialsFilePath = formatCredentialsFilePath(deviceId, certificateType);
+export const getLocallyStoredDeviceCredentials = (deviceId: string, log: Log) => {
+  const credentialsFilePath = formatCredentialsFilePath(deviceId);
   if (!fs.existsSync(credentialsFilePath)) {
-    throw new Error(`Device credentials for ${deviceId} not found.`);
+    throw new Error(
+      `You set device id ${deviceId} but credentials could not be found at their expected location: ${
+        formatCredentialsFilePath(deviceId)
+      }. If you lost the credentials, simply unset the device id and new credentials will be generated for you.`,
+    );
   }
-  log.info(`Using locally stored device credentials for ${deviceId}.`);
+  log.success(`\nUsing locally stored device credentials for ${deviceId}.`);
   return JSON.parse(fs.readFileSync(credentialsFilePath, 'utf8')) as DeviceCredentials;
 };
+
+export const timeoutAsync = promisify((ms: number, cb: (err: unknown) => void) => setTimeout(cb, ms));
+
+export function calculateExponentialBackoff(attempt: number, base: number, max: number) {
+  const delay = Math.min(base * 2 ** attempt, max);
+  return delay / 2 + Math.random() * delay / 2;
+}
+
+/**
+ * Retries the given function using a backoff algorithm.
+ * It times out after 27750ms
+ */
+export async function exponentialBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetryAttempts = 5,
+  base = 1000,
+  max = 30000,
+): Promise<Awaited<T>> {
+  let attempted = 0;
+  while (maxRetryAttempts--) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (maxRetryAttempts === 0) {
+        throw error;
+      }
+      const delay = calculateExponentialBackoff(attempted++, base, max);
+      await timeoutAsync(delay);
+    }
+  }
+  throw new Error('Unreachable');
+}

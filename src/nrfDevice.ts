@@ -5,6 +5,7 @@ import { NrfJobsManager } from './models/Job';
 import { Log, Logger } from './models/Log';
 import { mqttClient } from './mqttClient';
 import { RestApiClient } from './restApiClient';
+import { exponentialBackoff } from './utils';
 
 export type SendMessage = (timestamp: number, message: AppMessage) => void;
 
@@ -29,7 +30,7 @@ export const nrfDevice = (
     appFwVersion,
     mqttTopicPrefix,
     mqttMessagesTopicPrefix,
-    preventNewJitpDeviceAssociation,
+    preventAssociation,
     appType,
     certificateType,
     sensors,
@@ -39,13 +40,13 @@ export const nrfDevice = (
   log.info(
     log.prettify('DEVICE CONFIG', [
       ['DEVICE ID', deviceId],
-      ['DEVICE TYPE', deviceType === 'generic' ? 'Generic' : 'MQTT Team'],
+      ['DEVICE TYPE', deviceType],
       ['CERTIFICATE TYPE', certificateType],
-      ['PREVENT NEW JITP DEVICE ASSOCIATION', certificateType === 'jitp' ? preventNewJitpDeviceAssociation.toString() : 'N/A'],
+      ['PREVENT NEW JITP DEVICE ASSOCIATION', certificateType === 'JITP' ? preventAssociation.toString() : 'N/A'],
       ['APP FW VERSION', appFwVersion],
       ['APP TYPE', appType || 'None Set'],
-      ['SENSORS', Array.from(sensors.keys()).join(', ')],
-      ['JOB EXECUTION FAILURE SCENARIO', jobExecutionFailureScenario?.toString() || 'None Set: Normal Operation'],
+      ['SENSORS', Array.from(sensors.keys()).join(', ') || 'None Set'],
+      ['JOB EXECUTION FAILURE SCENARIO', jobExecutionFailureScenario?.toString() || 'None Set (Normal Operations)'],
     ]),
   );
 
@@ -76,25 +77,25 @@ export const nrfDevice = (
     log.info(`Handling MQTT ${eventName} event to ${mqttEndpoint}...`);
 
     if (!onConnectExecuted && !onConnectExecuting) {
-      onConnectExecuting = true;
-      if (certificateType === 'jitp' && !preventNewJitpDeviceAssociation && !jitpDeviceAssociated) {
-        await restApiClient.associateDevice({ deviceId });
+      if (certificateType === 'JITP' && !preventAssociation && !jitpDeviceAssociated) {
+        onConnectExecuting = true;
+        await exponentialBackoff(async () => restApiClient.associateDevice({ deviceId }), 5, 5000, 30000);
         jitpDeviceAssociated = true;
       }
       onConnectExecuted = true;
     }
 
     if (onConnectExecuted) {
-      if (deviceType === 'team') {
+      if (deviceType === 'Team') {
         const topicsTeamAll = `${mqttTopicPrefix}/#`;
         await device.subscribe(`${topicsTeamAll}`);
       } else {
         if (appType && !shadowInitialized) {
           log.info(`Initializing shadow for appType ${appType}...`);
           await device.initShadow(appFwVersion, appType);
+          shadowInitialized = true;
         }
 
-        shadowInitialized = true;
         if (!jitpDeviceInitialDisconnect) {
           log.info('Requesting new FOTA jobs by sending an empty message to the /jobs/req topic...');
         }
@@ -121,16 +122,18 @@ export const nrfDevice = (
         payload: p,
       });
     } else {
-      if (deviceType === 'generic') {
+      if (deviceType === 'Generic') {
         throw new Error(`No listener registered for topic ${topic}!`);
       }
     }
   });
 
   client.on('close', () => {
-    if (certificateType === 'jitp') {
+    if (certificateType === 'JITP') {
       jitpDeviceInitialDisconnect = true;
-      log.info('Initial disconnect when a JITP device is connecting for the first time. This is expected.');
+      log.info(
+        'Device disconnected. This behavior is expected for new JITP devices as they present their certificate to the broker and are disconnected until the certificate is registered.',
+      );
     } else {
       log.error(`Device disconnected. Make sure device id ${deviceId} matches the one for the certificate.`);
     }

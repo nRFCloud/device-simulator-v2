@@ -25,19 +25,17 @@
   },
   "homepage": "https://github.com/nRFCloud/device-simulator-v2#readme",
   "devDependencies": {
-    "@commitlint/cli": "^9.0.1",
-    "@commitlint/config-angular": "^9.0.1",
     "@nrfcloud/tslint-config": "^3.11.1",
     "@types/aws-iot-device-sdk": "^2.2.8",
     "@types/jest": "^26.0.4",
-    "@types/node": "^14.0.20",
+    "@types/node": "^18.19.56",
     "@types/uuid": "^8.0.0",
     "dprint": "^0.47.2",
     "husky": "^4.2.5",
     "json-schema-to-typescript": "^9.1.1",
     "lint-staged": "^10.2.11",
     "tslint": "^6.1.2",
-    "typescript": "^3.9.6"
+    "typescript": "^5.5.4"
   },
   "dependencies": {
     "aws-iot-device-sdk": "^2.2.15",
