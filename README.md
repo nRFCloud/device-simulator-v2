@@ -31,9 +31,10 @@ node dist/cli.js -k <api key> -s gps,acc,temp
 ## Use of simulated sensors
 The `-s` flag is optionally used to specify which sensors to simulate.
 
-Including `device` in the list will generate a LOT of device info messages which may overrun your Web browser. Best not to run it more than a few seconds with it, or you can leave out `device` and run it long-term.
-
 The `acc` option sends FLIP accelerometer messages, simulating the device being flipped right-side-up or upside-down. This was a feature of the Asset Tracker v1 firmware example that has been removed for the currently supported Asset Tracker v2.
+
+>[!NOTE]
+>Including `device` in the list will generate a LOT of device info messages which may overrun your Web browser. Best not to run it more than a few seconds with it, or you can leave out `device` and run it long-term.
 
 If you want to use different GPS data, replace the appropriate file in [./data/sensors](https://github.com/nRFCloud/device-simulator-v2/tree/saga/data/sensors) or change tne appropriate file path(s) in [cli.ts](src/cli.ts). (There is some additional GPS data in this repo for routes around Portland, Oregon, USA.)
 
@@ -45,7 +46,7 @@ GPS data is based on NMEA sentences. If you want to make your own GPS data, go t
 3. Upload a dummy firmware file as binary data.
 
 >[!NOTE]
->If you don't use the -s (atv2,mss) you won't be able to create an update.
+>If you don't use `-a` to specify an app type, you won't be able to create an update.
 
 ```sh
 curl -X POST $API_HOST/v1/firmwares -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/zip" --data-binary @data/fota_app_fw.zip | jq
