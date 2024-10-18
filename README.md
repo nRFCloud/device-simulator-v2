@@ -4,7 +4,7 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
-This is a software device simulator that shows how to use the [nRF Cloud APIs](https://docs.nordicsemi.com/bundle/nrf-cloud/page/APIs/APIOverview.html) to create device certificates, onboard a device to your team, do Firmware Over-the-Air Updates (FOTA), and more. Although we call it a "simulator", this tool creates real, working IoT devices that run from your local machine.
+This is a software device simulator that shows how to use the [nRF Cloud APIs](https://docs.nordicsemi.com/bundle/nrf-cloud/page/APIs/APIOverview.html) to create device certificates, onboard a device to your team, do Firmware Over-the-Air Updates (FOTA), and more. Although we call it a "simulator", this tool creates real, working IoT "soft devices" that run from your local machine.
 
 ## Installation and CLI Help
 ```
@@ -13,20 +13,20 @@ cd device-simulator-v2
 yarn
 node dist/cli.js --help
 ```
-Or you can run it directly from npx:
+Or you can run it directly using [npx](https://docs.npmjs.com/cli/v8/commands/npx):
 ```
 npx @nrfcloud/device-simulator-v2 --help
 ```
-The steps that follow use the `node dist/cli.js` command.
+Examples that follow use the `node dist/cli.js` command.
 
-### Basic Usage
+## Documentation
+The [nRF Cloud documentation](https://docs.nordicsemi.com/bundle/nrf-cloud/page/index.html) is a good place to start if you are unfamiliar with the nRF Cloud APIs, types of devices and certificates, device onboarding, and other concepts mentioned in this simulator.
+
+## Basic Usage
 You can create a new device, onboard it, and start sending sensor data all in one command, which is a typical way to use the simulator:
 ```
 node dist/cli.js -k <api key> -s gps,acc,temp
 ```
-
-## Documentation
-The [nRF Cloud documentation](https://docs.nordicsemi.com/bundle/nrf-cloud/page/index.html) is a good place to start if you are unfamiliar with the nRF Cloud APIs, types of devices and certificates, device onboarding, and other concepts mentioned in this simulator.
 
 ## Use of simulated sensors
 The `-s` flag is optionally used to specify which sensors to simulate.
