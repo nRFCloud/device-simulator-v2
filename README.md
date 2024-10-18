@@ -4,14 +4,17 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
-This is a software device simulator that shows how to use the [nRF Cloud APIs](https://docs.nordicsemi.com/bundle/nrf-cloud/page/APIs/APIOverview.html) to create device certificates, onboard a device to your team, do Firmware Over-the-Air Updates (FOTA), and more. Altough we call it a "simulator", this tool creates real, working IoT devices that run from your local machine.
+This is a software device simulator that shows how to use the [nRF Cloud APIs](https://docs.nordicsemi.com/bundle/nrf-cloud/page/APIs/APIOverview.html) to create device certificates, onboard a device to your team, do Firmware Over-the-Air Updates (FOTA), and more. Although we call it a "simulator", this tool creates real, working IoT devices that run from your local machine.
 
 ## Usage
 
-### Most basic usage
-The most basic usage is just creating a device. For that you just need an API key. The device ID can be randomly generated, and the rest of the necessary information (mqtt endpoint, cert, and mqtt prefix) will be pulled from the device API. 
+### CLI Options and Help
+Run `npx @nrfcloud/device-simulator-v2 --help` to see the list of options and additional information.
 
-This will create a new device with AWS IoT, but it will not onboard it to your team (use the `-a preconnect` flag for onboarding).
+### Most basic usage
+The most basic usage is just creating a device that connects to nRF Cloud. For that you just need an API key. The device ID can be randomly generated, and the rest of the necessary information (mqtt endpoint, cert, and mqtt prefix) will be set automatically. 
+
+The following command will create a new device with AWS IoT, but it will not onboard it to your team (use the `-a preconnect` flag for onboarding).
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key> [-d <desired device ID>] -t atv2
 ```
@@ -45,32 +48,6 @@ You can create a new device, onboard it, and start sending sensor data all in on
 ```
 npx @nrfcloud/device-simulator-v2 -k <api key> [-d <desired device ID>] -a preconnect -s gps,acc,device,temp
 ```
-
-## Options
-These are the options. Most of them are set with environment variables.
-
-```
-  -k, --api-key <apiKey> (required)                         API key for nRF Cloud (default: "")
-  -h, --api-host <apiHost>                                  API host for nRF Cloud (default: "https://api.nrfcloud.com")
-  -e, --mqttEndpoint <mqttEndpoint>                         AWS IoT MQTT endpoint (default: "")
-  -d, --device-id <deviceId>                                ID of the device you want to run with the simulator. If not set, a new device with a randomly generated ID is created and onboarded for you.
-                                                            If set, and the device has already been onboarded to nRF Cloud, the simulator will generate a new certificate for the device, 
-                                                            which effectively rotates the device's certificate. To safeguard against accidental, unwanted rotation of a real device's certificate, you 
-                                                            may only use device IDs that start with "nrfsim-", or device IDs for MQTT Team Devices (formerly known as Account Devices). Certificates for 
-                                                            MQTT Team (Account) Devices are *not* rotated, but merely retrieved for use with the simulator. (default: "")
-  -q, --create-mqtt-team-device <createMqttTeamDevice>      Specifies that you want an MQTT Team Device (formerly known as an Account Device) created for you, which wil be used to run the simulator. 
-                                                            This device will automatically subscribe to all topics for all devices in your team. (default: false) 
-  -s, --services <services>                                 Comma-delimited list of services to enable. Any of: [gps,acc,temp,device,rsrp,gnss,location,log,alert]
-  -f, --app-fw-version <appFwVersion>                       Version of the app firmware (default: 1)
-  -t, --app-type <appType>                                  Specifies how the device's shadow is initialized based on the nRF Connect SDK application you want to simulate. Use "mss" for the nRF Cloud Multi-Service sample, or "atv2" for the Asset Tracker v2 application. 
-                                                            For more information, see docs.nordicsemi.com. Otherwise, you may initialize your own custom shadow by passing a JSON-encoded shadow object or relative path to json file. (default: "atv2")
-  -p, --job-execution-path <jobExecutionPath>               Specifies an unhappy job execution path for a fota update.	View the "Use an unhappy path for FOTA execution" section
-                                                            of the README for more details.
-  -v, --verbose                                             Output debug information
-  -h, --help                                                Output usage information
-```
-
-Use `npx @nrfcloud/device-simulator-v2 --help` to see the most recent list of options.
 
 ## Contributing
 ```sh
@@ -324,8 +301,8 @@ or
 curl $API_HOST/v1/fota-job-executions/$DEVICE_ID/$JOB_ID -H "Authorization: Bearer $API_KEY" | jq
 ```
 
-### Use an unhappy path for FOTA execution
-If you want to test devices failing, stalling, or timing out you can add the `-p` flag with one of the following options:
+### Simulate a FOTA Job Execution Failure Scenario
+If you want to test devices failing, stalling, or timing out you can add the `-j` flag with one of the following options:
 
 | Value | Execution Path | Description |
 | --- | --- | --- |
@@ -341,5 +318,6 @@ If you want to test devices failing, stalling, or timing out you can add the `-p
 ```sh
 curl -X DELETE $API_HOST/v1/fota-jobs/<your-jobId> -H "Authorization: Bearer $API_KEY"
 curl -X DELETE $API_HOST/v1/firmwares/$BUNDLE_ID -H "Authorization: Bearer $API_KEY"
+# $DEVICE_OWNERSHIP_CODE only needed if used a JITP device
 curl -X DELETE $API_HOST/v1/devices/$DEVICE_ID -d $DEVICE_OWNERSHIP_CODE -H "Authorization: Bearer $API_KEY" -H "Content-Type: text/plain"
 ```

@@ -1,13 +1,11 @@
 {
   "name": "@nrfcloud/device-simulator-v2",
-  "version": "2.4.0",
+  "version": "3.0.0",
   "description": "AWS IoT Thing simulator for nRF91",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": "./dist/cli.js",
   "scripts": {
     "build": "tsc && cp -r ./data dist/",
-    "clean": "rm -rf .ez-cache",
     "deploy": "yarn build && yarn publish",
     "deploy:beta": "yarn build && yarn publish --tag beta",
     "fix": "dprint fmt",
@@ -46,7 +44,7 @@
     "aws-sdk": "^2.712.0",
     "axios": "^0.19.2",
     "colors": "^1.4.0",
-    "commander": "^6.2.0",
+    "commander": "^12.1.0",
     "event-stream": "^4.0.1",
     "ez-cache": "^1.1.0",
     "tcomb": "^3.2.29",

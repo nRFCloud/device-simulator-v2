@@ -27,32 +27,32 @@ enum JobExecutionStatus {
   DOWNLOADING = 7,
 }
 
-enum JobExecutionPath {
+export enum JobExecutionFailureScenario {
   Ignore = 0,
   Reject = 1,
   DownloadHang = 2,
-  DownloadInProgress = 3,
+  DownloadInProgressHang = 3,
   DownloadTimeout = 4,
   DownloadFailed = 5,
 }
 
-const getExecutionPath = (path: JobExecutionPath): JobExecutionStatus[] => {
-  return $enum.mapValue(path).with({
-    [JobExecutionPath.Ignore]: [JobExecutionStatus.QUEUED],
-    [JobExecutionPath.Reject]: [JobExecutionStatus.QUEUED, JobExecutionStatus.REJECTED],
-    [JobExecutionPath.DownloadHang]: [JobExecutionStatus.QUEUED, JobExecutionStatus.DOWNLOADING],
-    [JobExecutionPath.DownloadInProgress]: [
+const getExecutionPath = (scenario: JobExecutionFailureScenario): JobExecutionStatus[] => {
+  return $enum.mapValue(scenario).with({
+    [JobExecutionFailureScenario.Ignore]: [JobExecutionStatus.QUEUED],
+    [JobExecutionFailureScenario.Reject]: [JobExecutionStatus.QUEUED, JobExecutionStatus.REJECTED],
+    [JobExecutionFailureScenario.DownloadHang]: [JobExecutionStatus.QUEUED, JobExecutionStatus.DOWNLOADING],
+    [JobExecutionFailureScenario.DownloadInProgressHang]: [
       JobExecutionStatus.QUEUED,
       JobExecutionStatus.DOWNLOADING,
       JobExecutionStatus.IN_PROGRESS,
     ],
-    [JobExecutionPath.DownloadTimeout]: [
+    [JobExecutionFailureScenario.DownloadTimeout]: [
       JobExecutionStatus.QUEUED,
       JobExecutionStatus.DOWNLOADING,
       JobExecutionStatus.IN_PROGRESS,
       JobExecutionStatus.TIMED_OUT,
     ],
-    [JobExecutionPath.DownloadFailed]: [
+    [JobExecutionFailureScenario.DownloadFailed]: [
       JobExecutionStatus.QUEUED,
       JobExecutionStatus.DOWNLOADING,
       JobExecutionStatus.IN_PROGRESS,
@@ -61,27 +61,30 @@ const getExecutionPath = (path: JobExecutionPath): JobExecutionStatus[] => {
   });
 };
 
-const getPathName = (path: JobExecutionPath): string => {
-  return $enum.mapValue(path).with({
-    [JobExecutionPath.Ignore]: 'Ignore Job',
-    [JobExecutionPath.Reject]: 'Reject Job',
-    [JobExecutionPath.DownloadHang]: 'Hang on DOWNLOADING state',
-    [JobExecutionPath.DownloadInProgress]: 'Hang on IN_PROGRESS state',
-    [JobExecutionPath.DownloadTimeout]: 'End with a TIME_OUT',
-    [JobExecutionPath.DownloadFailed]: 'End by FAILING',
-    [$enum.handleUnexpected]: 'Normal',
+const getPathName = (scenario: JobExecutionFailureScenario): string => {
+  return $enum.mapValue(scenario).with({
+    [JobExecutionFailureScenario.Ignore]: 'Ignore Job',
+    [JobExecutionFailureScenario.Reject]: 'Reject Job',
+    [JobExecutionFailureScenario.DownloadHang]: 'Hang on DOWNLOADING state',
+    [JobExecutionFailureScenario.DownloadInProgressHang]: 'Hang on IN_PROGRESS state',
+    [JobExecutionFailureScenario.DownloadTimeout]: 'End with a TIME_OUT',
+    [JobExecutionFailureScenario.DownloadFailed]: 'End by FAILING',
+    [$enum.handleUnexpected]: `Unexpected failure scenario: ${scenario}`,
   });
 };
 
-const getNextExecutionStatus = (pathType: JobExecutionPath, currentStatus: JobExecutionStatus): JobExecutionStatus => {
-  const path = getExecutionPath(pathType);
-  const currentStep = path.indexOf(currentStatus);
+const getNextExecutionStatus = (
+  scenarioType: JobExecutionFailureScenario,
+  currentStatus: JobExecutionStatus,
+): JobExecutionStatus => {
+  const scenario = getExecutionPath(scenarioType);
+  const currentStep = scenario.indexOf(currentStatus);
 
   if (currentStep === -1) {
-    return path[0];
+    return scenario[0];
   }
 
-  return path[currentStep + 1] ?? '';
+  return scenario[currentStep + 1] ?? '';
 };
 
 type JobId = string;
@@ -95,13 +98,13 @@ export class NrfJobsManager {
   private readonly log: Logger;
   public readonly device: NrfDevice;
   private readonly cache: { [jobId: string]: JobExecutionStatus } = {};
-  private readonly path: any;
+  private readonly scenario: any;
   private didSendInitialJobRequest: boolean = false;
 
-  constructor(device: NrfDevice, log: Logger, path: any) {
+  constructor(device: NrfDevice, log: Logger, scenario: any) {
     this.device = device;
     this.log = log;
-    this.path = path;
+    this.scenario = scenario;
   }
 
   async waitForJobs(): Promise<void> {
@@ -127,7 +130,7 @@ export class NrfJobsManager {
           return;
         }
 
-        const [jobId, firmwareType, , host, path]: [
+        const [jobId, firmwareType, , host, scenario]: [
           JobId,
           FirmwareType,
           FileSize,
@@ -147,20 +150,26 @@ export class NrfJobsManager {
 
         switch (prevStatus) {
           case JobExecutionStatus.QUEUED:
-            message = `downloading "${firmwareTypes[firmwareType]}" firmware file from "${host}${path}"`;
-            newStatus = this.path ? getNextExecutionStatus(this.path, prevStatus) : JobExecutionStatus.DOWNLOADING;
+            message = `downloading "${firmwareTypes[firmwareType]}" firmware file from "${host}${scenario}"`;
+            newStatus = this.scenario
+              ? getNextExecutionStatus(this.scenario, prevStatus)
+              : JobExecutionStatus.DOWNLOADING;
             break;
 
           case JobExecutionStatus.DOWNLOADING:
-            message = `installing "${firmwareTypes[firmwareType]}" firmware file from "${host}${path}"`;
-            newStatus = this.path ? getNextExecutionStatus(this.path, prevStatus) : JobExecutionStatus.IN_PROGRESS;
+            message = `installing "${firmwareTypes[firmwareType]}" firmware file from "${host}${scenario}"`;
+            newStatus = this.scenario
+              ? getNextExecutionStatus(this.scenario, prevStatus)
+              : JobExecutionStatus.IN_PROGRESS;
             break;
 
           case JobExecutionStatus.IN_PROGRESS:
             message = `installation successful for "${
               firmwareTypes[firmwareType]
-            }" firmware file from "${host}${path}"`;
-            newStatus = this.path ? getNextExecutionStatus(this.path, prevStatus) : JobExecutionStatus.SUCCEEDED;
+            }" firmware file from "${host}${scenario}"`;
+            newStatus = this.scenario
+              ? getNextExecutionStatus(this.scenario, prevStatus)
+              : JobExecutionStatus.SUCCEEDED;
             break;
 
           case JobExecutionStatus.SUCCEEDED:
@@ -199,7 +208,7 @@ export class NrfJobsManager {
             ['OLD STATUS', `${jobExecutionStatuses[prevStatus]} (${prevStatus})`],
             ['NEW STATUS', `${newStatus ? jobExecutionStatuses[newStatus] : ''} (${newStatus ?? ''})`],
             ['MESSAGE', message],
-            ['JOB EXECUTION PATH', getPathName(this.path)],
+            ['JOB EXECUTION FAILURE SCENARIO', getPathName(this.scenario)],
           ]));
         }
       },

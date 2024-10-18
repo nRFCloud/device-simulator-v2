@@ -50,9 +50,9 @@ export class Log implements Logger {
   }
   prettify(header: string, body: MessageEntry[]): string {
     return `
-************** ${header} ***********
+======================= ${header} =======================
 ${body.map(([key, val]) => `${key?.length ? `${key}: ${val}` : ''}`).join('\n')}
-**************${'*'.repeat(header.length + 2)}***********
+=======================${'='.repeat(header.length + 2)}=======================
 `;
   }
   private log(coloredMessage: string) {

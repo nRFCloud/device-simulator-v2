@@ -1,10 +1,9 @@
 import { device } from 'aws-iot-device-sdk';
-
 import { AppMessage } from '../app/appMessage';
 import { createService } from '../app/services/createService';
 import { Service } from '../app/services/Service';
 import { KEEP_ALIVE } from '../mqttClient';
-import { ISensor } from '../sensors/Sensor';
+import { ISensor } from '../sensors';
 import { Logger } from './Log';
 
 type DeviceListeners = {
@@ -25,26 +24,10 @@ type DeviceTopics = {
   };
 };
 
-export type DeviceConfig = {
-  deviceId: string;
-  caCert;
-  clientCert;
-  privateKey;
-  mqttEndpoint: string;
-  appFwVersion: string;
-  appType: string;
-  mqttMessagesPrefix: string;
-  stage: string;
-  teamId: string;
-  jobExecutionPath: any;
-  mqttTeamDevice: boolean;
-};
-
 export class NrfDevice {
   public readonly listeners: DeviceListeners;
   public readonly topics: DeviceTopics;
   public readonly id: string;
-  public readonly mqttTeamDevice: boolean;
 
   private readonly client: device;
   private readonly sensors: Service[];
@@ -52,25 +35,22 @@ export class NrfDevice {
 
   constructor(
     deviceId: string,
-    mqttMessagesPrefix: string,
-    stage: string,
-    teamId: string,
+    mqttTopicPrefix: string,
+    mqttMessagesTopicPrefix: string,
     client: device,
     sensors: Map<string, ISensor>,
     log: Logger,
-    mqttTeamDevice: boolean,
   ) {
     this.log = log;
     this.id = deviceId;
     this.listeners = {};
-    this.mqttTeamDevice = mqttTeamDevice;
     this.client = client;
     this.topics = {
-      d2c: `${mqttMessagesPrefix}d/${deviceId}/d2c`,
+      d2c: `${mqttMessagesTopicPrefix}d/${deviceId}/d2c`,
       jobs: {
-        request: `${stage}/${teamId}/${deviceId}/jobs/req`,
-        receive: `${stage}/${teamId}/${deviceId}/jobs/rcv`,
-        update: `${stage}/${teamId}/${deviceId}/jobs/update`,
+        request: `${mqttTopicPrefix}/${deviceId}/jobs/req`,
+        receive: `${mqttTopicPrefix}/${deviceId}/jobs/rcv`,
+        update: `${mqttTopicPrefix}/${deviceId}/jobs/update`,
       },
       shadow: {
         update: {
@@ -81,7 +61,7 @@ export class NrfDevice {
 
     const that = this;
 
-    this.sensors = Array.from(sensors.entries()).map(
+    this.sensors = Array.from((sensors || {}).entries()).map(
       ([name, sensor]): Service =>
         createService(name, sensor, (timestamp, message) => that.sendMessage(timestamp, message)),
     );
@@ -123,7 +103,7 @@ export class NrfDevice {
           return reject(error);
         }
         this.log.success(
-          `subscribed to "${
+          `Subscribed to "${
             granted
               .map(({ topic }: any) => topic)
               .join(', ')
