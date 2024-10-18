@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import { ConnectMode, DeviceCredentials } from './index';
+import { CertificateType, DeviceCredentials } from './index';
 import { Log } from './models/Log';
 import { formatCredentialsFilePath, storeDeviceCredentials } from './utils';
 
@@ -8,7 +8,7 @@ export interface DeviceRequestParams {
 }
 
 export interface CreateDeviceRequestParams extends DeviceRequestParams {
-  connectMode: ConnectMode;
+  certificateType: CertificateType;
 }
 
 export interface OnboardDeviceRequestParams extends DeviceRequestParams {
@@ -67,7 +67,7 @@ export class RestApiClient {
     }
     const { clientId, ...credentials } = res?.data as CredentialsResponse;
     storeDeviceCredentials(
-      formatCredentialsFilePath(clientId, 'onboard'),
+      formatCredentialsFilePath(clientId, 'self-signed'),
       credentials,
       this.log,
     );
@@ -76,7 +76,7 @@ export class RestApiClient {
 
   // As of Oct 2024 there is no endpoint for creating non-JITP certificates. This is why only the JITP certificate request is offered here.
   // See utils.ts for local generation of non-JITP certificates.
-  public async createJitpCertificate({ deviceId, connectMode }: CreateDeviceRequestParams) {
+  public async createJitpCertificate({ deviceId, certificateType }: CreateDeviceRequestParams) {
     let res;
     try {
       res = await this.getRestApiConn().post(
@@ -89,7 +89,7 @@ export class RestApiClient {
       this.log.error(`JITP certificate for device ${deviceId} failed to create. Error: ${err}`);
     }
     storeDeviceCredentials(
-      formatCredentialsFilePath(deviceId, connectMode),
+      formatCredentialsFilePath(deviceId, certificateType),
       res?.data as DeviceCredentials,
       this.log,
     );

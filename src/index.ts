@@ -18,43 +18,41 @@ import {
 } from './sensors';
 
 export type DeviceType = 'generic' | 'team';
-export type ConnectMode = 'onboard' | 'jitp-associate' | 'jitp-connect-only';
+export type CertificateType = 'self-signed' | 'jitp';
 export interface DeviceCredentials {
   caCert: string;
   clientCert: string;
   privateKey: string;
 }
-export interface DeviceConfig {
+interface ConfigCommon {
   deviceId: string;
   deviceType: DeviceType;
+  certificateType: CertificateType;
+  deviceCredentials?: DeviceCredentials;
+  appFwVersion: string;
+  appType: string;
+  preventNewJitpDeviceAssociation: boolean;
+  jobExecutionFailureScenario?: JobExecutionFailureScenario;
+  verbose: boolean;
+}
+export interface DeviceConfig extends ConfigCommon {
   deviceCredentials: DeviceCredentials;
   mqttEndpoint: string;
   mqttTopicPrefix: string;
   mqttMessagesTopicPrefix: string;
-  appFwVersion: string;
-  appType: string;
-  connectMode: ConnectMode;
-  jobExecutionFailureScenario?: JobExecutionFailureScenario;
   sensors: Map<string, ISensor>;
 }
-export interface SimulatorConfig {
+export interface SimulatorConfig extends ConfigCommon {
   apiKey: string;
   apiHost: string;
-  deviceId: string;
-  deviceType: DeviceType;
-  connectMode: ConnectMode;
-  deviceCredentials: DeviceCredentials;
   services?: string;
-  appFwVersion: string;
-  appType: string;
-  jobExecutionFailureScenario?: JobExecutionFailureScenario;
-  verbose: boolean;
 }
 
 export const run = async (simConfig: SimulatorConfig): Promise<void> => {
   const {
     deviceType,
-    connectMode,
+    certificateType,
+    preventNewJitpDeviceAssociation,
     apiKey,
     apiHost,
     verbose,
@@ -71,7 +69,7 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
   const mqttEndpoint = `mqtt${stage === 'prod' ? '' : `.${stage}`}.nrfcloud.com`;
   let deviceId = simConfig.deviceId;
   if (deviceId) {
-    simConfig.deviceCredentials = getLocallyStoredDeviceCredentials(deviceId, connectMode, log);
+    simConfig.deviceCredentials = getLocallyStoredDeviceCredentials(deviceId, certificateType, log);
     if (!simConfig.deviceCredentials) {
       throw new Error(`No locally stored device credentials were found for the device id you specified: ${deviceId}.`);
     }
@@ -99,7 +97,7 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
       // a JITP device is not onboarded (associated with a team) until it first connects to nRF Cloud.
       //
       // MQTT Team devices are always onboarded, so we can check for onboarding here.
-      if (connectMode === 'onboard') {
+      if (certificateType === 'self-signed') {
         await restApiClient.onboardDevice({
           deviceId,
           certificate: simConfig.deviceCredentials.clientCert,
@@ -117,8 +115,8 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
       deviceId = clientId;
       simConfig.deviceCredentials = credentials;
     } else {
-      if (connectMode.startsWith('jitp')) {
-        simConfig.deviceCredentials = await restApiClient.createJitpCertificate({ deviceId, connectMode });
+      if (certificateType === 'jitp') {
+        simConfig.deviceCredentials = await restApiClient.createJitpCertificate({ deviceId, certificateType });
       } else {
         simConfig.deviceCredentials = createSelfSignedDeviceCertificate({ deviceId, verbose });
         // This will create a new device for the team if the device does not already exist. Otherwise, it will just rotate the certificate.
@@ -221,11 +219,13 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
     mqttEndpoint,
     appFwVersion,
     appType,
-    connectMode,
+    certificateType,
+    preventNewJitpDeviceAssociation,
     mqttTopicPrefix,
     mqttMessagesTopicPrefix: `${mqttTopicPrefix}/m`,
     jobExecutionFailureScenario,
     sensors,
+    verbose,
   };
 
   nrfDevice(

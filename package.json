@@ -1,7 +1,7 @@
 {
   "name": "@nrfcloud/device-simulator-v2",
-  "version": "3.0.0",
-  "description": "AWS IoT Thing simulator for nRF91",
+  "version": "4.0.0",
+  "description": "nRF Cloud device simulator: a tool for turning your laptop into a device that connects to nRF Cloud, and simulating various device behaviors.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

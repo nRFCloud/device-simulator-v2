@@ -2,7 +2,7 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { ConnectMode, DeviceCredentials, SimulatorConfig } from './index';
+import { CertificateType, DeviceCredentials, SimulatorConfig } from './index';
 import { Log } from './models/Log';
 
 export const generateDeviceId = () => `nrfsim-${Math.floor(Math.random() * 1000000000000000000000)}`;
@@ -14,8 +14,8 @@ const getCredentialsDirPath = () => {
   }
   return credentialsDir;
 };
-export const formatCredentialsFilePath = (deviceId: string, connectMode: ConnectMode) =>
-  path.join(getCredentialsDirPath(), `${deviceId}${connectMode.startsWith('jitp') ? '-jitp' : ''}.json`);
+export const formatCredentialsFilePath = (deviceId: string, certificateType: CertificateType) =>
+  path.join(getCredentialsDirPath(), `${deviceId}${certificateType === 'jitp' ? '-jitp' : ''}.json`);
 
 export const createSelfSignedDeviceCertificate = ({
   deviceId,
@@ -48,7 +48,7 @@ export const createSelfSignedDeviceCertificate = ({
   const csrPath = path.join(tempDir, 'device.csr');
   const caCertPath = path.join(tempDir, 'ca.crt');
   const privateKeyPath = path.join(tempDir, 'ca.key');
-  const credentialsFilePath = formatCredentialsFilePath(deviceId!, 'onboard');
+  const credentialsFilePath = formatCredentialsFilePath(deviceId!, 'self-signed');
 
   try {
     // Write temp files used to generate client cert.
@@ -104,8 +104,8 @@ export const storeDeviceCredentials = (filePath: string, credentials: DeviceCred
   log.info(`\nDevice certificates saved to ${filePath}`);
 };
 
-export const getLocallyStoredDeviceCredentials = (deviceId: string, connectMode: ConnectMode, log: Log) => {
-  const credentialsFilePath = formatCredentialsFilePath(deviceId, connectMode);
+export const getLocallyStoredDeviceCredentials = (deviceId: string, certificateType: CertificateType, log: Log) => {
+  const credentialsFilePath = formatCredentialsFilePath(deviceId, certificateType);
   if (!fs.existsSync(credentialsFilePath)) {
     throw new Error(`Device credentials for ${deviceId} not found.`);
   }

@@ -28,9 +28,13 @@ const getConfig = (env: any, args: string[]) =>
     )
     .addOption(
       new Option(
-        '-m, --connect-mode <connectMode>',
-        'Specifies how you want to connect your device to nRF Cloud. Just-In-Time-Provisioning (JITP) options are discouraged, and mainly for internal Nordic Semiconductor use. MQTT Team devices are always onboarded.',
-      ).choices(['onboard', 'jitp-associate', 'jitp-connect-only']).default('onboard'),
+        '-c, --certificate-type <certificateType>',
+        'Specifies whether you want a self-signed certificate or a Just-In-Time-Provisioning (JITP) certificate. The latter is discouraged, and is mainly for internal Nordic Semiconductor use.',
+      ).choices(['self-signed', 'jitp']).default('self-signed'),
+    )
+    .option(
+      '-p, --prevent-association <preventNewJitpDeviceAssociation>',
+      'Specifies that when your device with a Just-In-Time-Provisioning (JITP) certificate connects to the MQTT broker (before it is ever associated with your team), it should only connect, i.e., not get associated. This option is only applicable when the "-c jitp" option is specified and the device has not already been added to (associated with) your team. This is mainly for internal Nordic Semiconductor use to test JITP issues.',
     )
     .addOption(new Option(
       '-s, --services <services>',
@@ -46,7 +50,7 @@ const getConfig = (env: any, args: string[]) =>
       'Specifies the type of shadow to initialize based on the nRF Cloud schema: `mss` for the nRF Cloud multi-service sample, or `atv2` for the Asset Tracker v2 application. For more info see the nRF Connect SDK docs at docs.nordicsemi.com.',
     ).choices(['mss', 'atv2']))
     .addOption(new Option(
-      '-p, --job-execution-failure-scenario <jobExecutionFailureScenario>',
+      '-x, --job-execution-failure-scenario <jobExecutionFailureScenario>',
       'Specifies a job execution failure scenario during a FOTA update. View the "Simulate a FOTA Job Execution Failure Scenario" section of the README for more details.',
     ).choices(['0', '1', '2', '3', '4', '5']))
     .option('-v, --verbose', 'output debug info', false)

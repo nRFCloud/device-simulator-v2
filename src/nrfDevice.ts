@@ -29,8 +29,9 @@ export const nrfDevice = (
     appFwVersion,
     mqttTopicPrefix,
     mqttMessagesTopicPrefix,
+    preventNewJitpDeviceAssociation,
     appType,
-    connectMode,
+    certificateType,
     sensors,
     jobExecutionFailureScenario,
   } = config;
@@ -39,7 +40,8 @@ export const nrfDevice = (
     log.prettify('DEVICE CONFIG', [
       ['DEVICE ID', deviceId],
       ['DEVICE TYPE', deviceType === 'generic' ? 'Generic' : 'MQTT Team'],
-      ['CONNECT MODE', connectMode],
+      ['CERTIFICATE TYPE', certificateType],
+      ['PREVENT NEW JITP DEVICE ASSOCIATION', certificateType === 'jitp' ? preventNewJitpDeviceAssociation.toString() : 'N/A'],
       ['APP FW VERSION', appFwVersion],
       ['APP TYPE', appType || 'None Set'],
       ['SENSORS', Array.from(sensors.keys()).join(', ')],
@@ -75,7 +77,7 @@ export const nrfDevice = (
 
     if (!onConnectExecuted && !onConnectExecuting) {
       onConnectExecuting = true;
-      if (connectMode === 'jitp-associate' && !jitpDeviceAssociated) {
+      if (certificateType === 'jitp' && !preventNewJitpDeviceAssociation && !jitpDeviceAssociated) {
         await restApiClient.associateDevice({ deviceId });
         jitpDeviceAssociated = true;
       }
@@ -126,7 +128,7 @@ export const nrfDevice = (
   });
 
   client.on('close', () => {
-    if (connectMode === 'jitp-associate') {
+    if (certificateType === 'jitp') {
       jitpDeviceInitialDisconnect = true;
       log.info('Initial disconnect when a JITP device is connecting for the first time. This is expected.');
     } else {
