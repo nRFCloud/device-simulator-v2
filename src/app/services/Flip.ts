@@ -1,7 +1,7 @@
-import { ISensor } from '../../sensors/Sensor';
-import { Sample } from '../../sensors/FakeAccelerometer';
-import { AppMessage } from '../appMessage';
 import { SendMessage } from '../../nrfDevice';
+import { Sample } from '../../sensors/FakeAccelerometer';
+import { ISensor } from '../../sensors/Sensor';
+import { AppMessage } from '../appMessage';
 import { Service } from './Service';
 
 const APPID = 'FLIP';
@@ -24,6 +24,7 @@ const convertToInt8 = (data: Uint8Array): Int8Array => {
 export class Flip implements Service {
   private currentOrientation = Orientation.NORMAL;
   private orientationChange = false;
+  messageId = 1;
 
   constructor(
     private readonly sensor: ISensor,
@@ -38,9 +39,10 @@ export class Flip implements Service {
       this.updateOrientation(sample);
       if (this.orientationChange) {
         this.orientationChange = false;
-        const message = <AppMessage>{
+        const message = <AppMessage> {
           appId: APPID,
           messageType: 'DATA',
+          messageId: this.messageId++,
           data: this.orientation,
         };
         this.sendMessage(timestamp, message);

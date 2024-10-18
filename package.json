@@ -1,19 +1,15 @@
 {
   "name": "@nrfcloud/device-simulator-v2",
-  "version": "2.3.0",
-  "description": "AWS IoT Thing simulator for nRF91",
+  "version": "4.0.0",
+  "description": "nRF Cloud device simulator: a tool for turning your laptop into a device that connects to nRF Cloud, and simulating various device behaviors.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": "./dist/cli.js",
   "scripts": {
     "build": "tsc && cp -r ./data dist/",
-    "clean": "rm -rf .ez-cache",
     "deploy": "yarn build && yarn publish",
     "deploy:beta": "yarn build && yarn publish --tag beta",
-    "fix": "yarn prettier",
-    "lint": "yarn run tslint && yarn run prettier:lint",
-    "prettier": "prettier --write \"./src/*.ts\"",
-    "prettier:lint": "prettier --list-different \"./src/*.ts\"",
+    "fix": "dprint fmt",
+    "lint": "dprint check && yarn run tslint",
     "schemas2ts": "json2ts schemas/message.schema.json src/app/appMessage.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "tslint": "tslint --project ./tsconfig.json"
@@ -29,26 +25,24 @@
   },
   "homepage": "https://github.com/nRFCloud/device-simulator-v2#readme",
   "devDependencies": {
-    "@commitlint/cli": "^9.0.1",
-    "@commitlint/config-angular": "^9.0.1",
     "@nrfcloud/tslint-config": "^3.11.1",
-    "@types/aws-iot-device-sdk": "^2.2.4",
+    "@types/aws-iot-device-sdk": "^2.2.8",
     "@types/jest": "^26.0.4",
-    "@types/node": "^14.0.20",
+    "@types/node": "^18.19.56",
     "@types/uuid": "^8.0.0",
+    "dprint": "^0.47.2",
     "husky": "^4.2.5",
     "json-schema-to-typescript": "^9.1.1",
     "lint-staged": "^10.2.11",
-    "prettier": "^2.0.5",
     "tslint": "^6.1.2",
-    "typescript": "^3.9.6"
+    "typescript": "^5.5.4"
   },
   "dependencies": {
-    "aws-iot-device-sdk": "^2.2.12",
+    "aws-iot-device-sdk": "^2.2.15",
     "aws-sdk": "^2.712.0",
     "axios": "^0.19.2",
     "colors": "^1.4.0",
-    "commander": "^6.2.0",
+    "commander": "^12.1.0",
     "event-stream": "^4.0.1",
     "ez-cache": "^1.1.0",
     "tcomb": "^3.2.29",
@@ -83,7 +77,7 @@
   "lint-staged": {
     "*.ts": [
       "tslint --project ./tsconfig.json --fix",
-      "prettier --write",
+      "dprint fmt",
       "git add"
     ]
   }

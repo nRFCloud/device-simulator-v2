@@ -1,31 +1,33 @@
+import { SendMessage } from '../../nrfDevice';
 import { ISensor } from '../../sensors/Sensor';
 import { AppMessage } from '../appMessage';
-import { SendMessage } from '../../nrfDevice';
 import { Service } from './Service';
 
 export class Gnss implements Service {
-	constructor(
-		private readonly sensor: ISensor,
-		private readonly sendMessage: SendMessage,
-	) { }
+  messageId = 1;
 
-	async start() {
+  constructor(
+    private readonly sensor: ISensor,
+    private readonly sendMessage: SendMessage,
+  ) {}
 
-		this.sensor.on('data', (timestamp: number, data: any) => {
-			const message = <AppMessage>{
-				appId: 'GNSS',
-				messageType: 'DATA',
-				data: data,
-			};
-			this.sendMessage(timestamp, message);
-		});
+  async start() {
+    this.sensor.on('data', (timestamp: number, data: any) => {
+      const message = <AppMessage> {
+        appId: 'GNSS',
+        messageType: 'DATA',
+        messageId: this.messageId++,
+        data,
+      };
+      this.sendMessage(timestamp, message);
+    });
 
-		if (!this.sensor.isStarted()) {
-			await this.sensor.start();
-		}
-	}
+    if (!this.sensor.isStarted()) {
+      await this.sensor.start();
+    }
+  }
 
-	async stop() {
-		await this.sensor.stop();
-	}
+  async stop() {
+    await this.sensor.stop();
+  }
 }

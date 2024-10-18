@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
-import { ISensor } from './Sensor';
 import * as fs from 'fs';
 import * as readline from 'readline';
+import { ISensor } from './Sensor';
 
 class WaitDuration {
   private readonly _duration: number;
@@ -147,9 +147,7 @@ export class FakeAccelerometer extends EventEmitter implements ISensor {
   async start(): Promise<void> {
     this.doRun = true;
 
-    const fileExists = await new Promise(resolve =>
-      fs.exists(this.movementSensorRecording, resolve),
-    );
+    const fileExists = await new Promise(resolve => fs.exists(this.movementSensorRecording, resolve));
 
     if (!fileExists) {
       throw new Error(
