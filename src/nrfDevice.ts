@@ -132,7 +132,7 @@ export const nrfDevice = (
     if (certificateType === 'JITP') {
       jitpDeviceInitialDisconnect = true;
       log.info(
-        'Device disconnected. This behavior is expected for new JITP devices as they present their certificate to the broker and are disconnected until the certificate is registered.',
+        'Device disconnected. This behavior is expected for new JITP devices when they present their certificate to the broker and are disconnected until the certificate is registered.',
       );
     } else {
       log.error(`Device disconnected. Make sure device id ${deviceId} matches the one for the certificate.`);

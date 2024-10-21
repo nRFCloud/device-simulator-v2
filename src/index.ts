@@ -45,7 +45,7 @@ export interface DeviceConfig extends ConfigCommon {
 export interface SimulatorConfig extends ConfigCommon {
   apiKey: string;
   apiHost: string;
-  services?: string;
+  sensors?: string[];
 }
 
 export const run = async (simConfig: SimulatorConfig): Promise<void> => {
@@ -146,8 +146,8 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
 
   const sensors = new Map<string, ISensor>();
 
-  if (simConfig.services) {
-    simConfig.services.split(',').map((service: string) => {
+  if (simConfig.sensors) {
+    simConfig.sensors.map((service: string) => {
       const sensorDataFilePath = (filename: string) => path.resolve(__dirname, 'data', 'sensors', filename);
 
       switch (service) {

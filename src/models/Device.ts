@@ -46,7 +46,7 @@ export class NrfDevice {
     this.listeners = {};
     this.client = client;
     this.topics = {
-      d2c: `${mqttMessagesTopicPrefix}d/${deviceId}/d2c`,
+      d2c: `${mqttMessagesTopicPrefix}/d/${deviceId}/d2c`,
       jobs: {
         request: `${mqttTopicPrefix}/${deviceId}/jobs/req`,
         receive: `${mqttTopicPrefix}/${deviceId}/jobs/rcv`,
@@ -90,7 +90,9 @@ export class NrfDevice {
       ts,
     };
     this.log.debug(
-      `${new Date(ts).toISOString()} >>> attempting to publish payload ${JSON.stringify(_payload, null, 2)}`,
+      `${new Date(ts).toISOString()} >>> Attempting to publish payload ${
+        JSON.stringify(_payload, null, 2)
+      } to topic ${this.topics.d2c}`,
     );
     await this.publish(this.topics.d2c, _payload);
   }

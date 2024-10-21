@@ -17,7 +17,7 @@ Or you can run it directly using [npx](https://docs.npmjs.com/cli/v8/commands/np
 ```
 npx @nrfcloud/device-simulator-v2 --help
 ```
-Examples that follow use the `node dist/cli.js` command.
+Examples that follow use the `node dist/cli.js` command. If you want nicely formatted JSON output, you can pipe the output to `jq` after [installing it](https://stedolan.github.io/jq/download/).
 
 ## Documentation
 The [nRF Cloud documentation](https://docs.nordicsemi.com/bundle/nrf-cloud/page/index.html) is a good place to start if you are unfamiliar with the nRF Cloud APIs, types of devices and certificates, device onboarding, and other concepts mentioned in this simulator.
@@ -127,42 +127,4 @@ curl -X DELETE $API_HOST/v1/fota-jobs/<your-jobId> -H "Authorization: Bearer $AP
 curl -X DELETE $API_HOST/v1/firmwares/$BUNDLE_ID -H "Authorization: Bearer $API_KEY"
 # $DEVICE_OWNERSHIP_CODE only needed if used a JITP device
 curl -X DELETE $API_HOST/v1/devices/$DEVICE_ID -d $DEVICE_OWNERSHIP_CODE -H "Authorization: Bearer $API_KEY" -H "Content-Type: text/plain"
-```
-## Contributing
-```sh
-# install deps
-yarn
-
-# install jq
-https://stedolan.github.io/jq/download/
-
-# modify your files
-
-# compile
-yarn build
-
-# test
-node dist/cli.js <options>
-```
-
-### Publishing
-To publish a new version to npm, follow this recipe:
-```bash
-
-# commit all files
-git add .
-git commit -am "<feat|bug|chore|refactor>: <commit message>"
-
-# publish to npm. this will build, ask for a new version, and publish 
-# to the npm repo if you run `yarn deploy:beta, it will deploy to the beta tag
-yarn deploy[:beta]
-# updates the version in the package.json, this line:
-#  "version": "2.2.7",
-
-# tag the new version
-git tag v2.2.7
-
-# push changes and new tag to github
-git push origin HEAD
-git push origin v2.2.7
 ```

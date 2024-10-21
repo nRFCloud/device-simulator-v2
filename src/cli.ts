@@ -3,6 +3,7 @@ import { Option, program } from 'commander';
 import { run, SimulatorConfig } from './index';
 import { Log } from './models/Log';
 
+const sensorOptions = ['gps', 'gnss', 'acc', 'temp', 'device', 'rsrp', 'location', 'log', 'alert'];
 const getConfig = (env: any, args: string[]) =>
   program
     .requiredOption(
@@ -37,10 +38,24 @@ const getConfig = (env: any, args: string[]) =>
       'Specifies that when your device with a Just-In-Time-Provisioning (JITP) certificate connects to the MQTT broker (before it is ever associated with your team), it should only connect, i.e., not get associated. This option is only applicable when the "-c jitp" option is specified and the device has not already been added to (associated with) your team. This is mainly for internal Nordic Semiconductor use to test JITP issues.',
       false,
     )
-    .addOption(new Option(
-      '-s, --sensors <sensors>',
-      'A list of sensors you want your device to simulate. You may list as many as you like, and in any order. See https://github.com/nRFCloud/application-protocols/tree/v1/schemas/deviceToCloud for more information about sensor messages.',
-    ).choices(['gps', 'gnss', 'acc', 'temp', 'device', 'rsrp', 'location', 'log', 'alert']))
+    .addOption(
+      new Option(
+        '-s, --sensors <sensors>',
+        `A comma-separated list of sensors you want your device to simulate. Valid choices: ${
+          sensorOptions.join(', ')
+        }. See https://github.com/nRFCloud/application-protocols for more information about sensor messages.`,
+      )
+        .argParser((value) => {
+          const values = value.split(',');
+          values.forEach((val) => {
+            if (!sensorOptions.includes(val)) {
+              throw new Error(`Invalid choice: ${val}. Allowed choices are: ${sensorOptions.join(', ')}`);
+            }
+          });
+          return values;
+        })
+        .default([]),
+    )
     .option(
       '-f, --app-fw-version <appFwVersion>',
       'Version of the app firmware',
