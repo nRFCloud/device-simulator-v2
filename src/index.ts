@@ -18,7 +18,7 @@ import {
 } from './sensors';
 
 export type DeviceType = 'Generic' | 'Team';
-export type CertificateType = 'self-signed' | 'JITP';
+export type CertificateType = 'Self-Signed' | 'JITP' | 'Non-JITP (AWS-Signed)';
 export interface DeviceCredentials {
   caCert: string;
   clientCert: string;
@@ -97,7 +97,7 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
       // a JITP device is not onboarded (associated with a team) until it first connects to nRF Cloud.
       //
       // MQTT Team devices are always onboarded, so we can check for onboarding here.
-      if (certificateType === 'self-signed') {
+      if (certificateType === 'Self-Signed') {
         await restApiClient.onboardDevice({
           deviceId,
           certificate: simConfig.deviceCredentials.clientCert,

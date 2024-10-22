@@ -31,16 +31,19 @@ export const nrfDevice = (
     mqttMessagesTopicPrefix,
     preventAssociation,
     appType,
-    certificateType,
     sensors,
     jobExecutionFailureScenario,
   } = config;
   let {
     deviceType,
+    certificateType,
   } = config;
 
-  if (deviceId.startsWith('mqtt-team-')) {
+  const isTeamDevice = deviceId.startsWith('mqtt-team-');
+
+  if (isTeamDevice) {
     deviceType = 'Team';
+    certificateType = 'Non-JITP (AWS-Signed)';
   }
 
   log.info(

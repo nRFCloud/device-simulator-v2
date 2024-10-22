@@ -31,7 +31,7 @@ const getConfig = (env: any, args: string[]) =>
       new Option(
         '-c, --certificate-type <certificateType>',
         'Specifies the type of certificate you want created for your new device: self-signed certificate or one for Just-In-Time-Provisioning (JITP). The latter is discouraged, and is mainly for internal Nordic Semiconductor use.',
-      ).choices(['self-signed', 'JITP']).default('self-signed'),
+      ).choices(['Self-Signed', 'JITP']).default('Self-Signed'),
     )
     .option(
       '-p, --prevent-association <preventAssociation>',
