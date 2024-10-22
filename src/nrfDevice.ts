@@ -24,7 +24,6 @@ export const nrfDevice = (
 ): any => {
   const {
     deviceId,
-    deviceType,
     deviceCredentials,
     mqttEndpoint,
     appFwVersion,
@@ -36,6 +35,13 @@ export const nrfDevice = (
     sensors,
     jobExecutionFailureScenario,
   } = config;
+  let {
+    deviceType,
+  } = config;
+
+  if (deviceId.startsWith('mqtt-team-')) {
+    deviceType = 'Team';
+  }
 
   log.info(
     log.prettify('DEVICE CONFIG', [
