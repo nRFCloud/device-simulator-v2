@@ -102,11 +102,12 @@ export const nrfDevice = (
           shadowInitialized = true;
         }
 
+        device.registerListener(device.topics.c2d, async () => {});
+        await device.subscribe(device.topics.c2d);
+
         if (!jitpDeviceInitialDisconnect) {
           log.info('Requesting new FOTA jobs by sending an empty message to the /jobs/req topic...');
         }
-        device.registerListener(device.topics.c2d, async () => {});
-        await device.subscribe(device.topics.c2d);
         await jobsManager.waitForJobs();
       }
     }
