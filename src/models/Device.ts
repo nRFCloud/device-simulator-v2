@@ -12,6 +12,7 @@ type DeviceListeners = {
 
 type DeviceTopics = {
   d2c: string;
+  c2d: string;
   jobs: {
     request: string;
     receive: string;
@@ -47,6 +48,7 @@ export class NrfDevice {
     this.client = client;
     this.topics = {
       d2c: `${mqttMessagesTopicPrefix}/d/${deviceId}/d2c`,
+      c2d: `${mqttMessagesTopicPrefix}/d/${deviceId}/c2d/#`,
       jobs: {
         request: `${mqttTopicPrefix}/${deviceId}/jobs/req`,
         receive: `${mqttTopicPrefix}/${deviceId}/jobs/rcv`,

@@ -105,6 +105,8 @@ export const nrfDevice = (
         if (!jitpDeviceInitialDisconnect) {
           log.info('Requesting new FOTA jobs by sending an empty message to the /jobs/req topic...');
         }
+        device.registerListener(device.topics.c2d, async () => {});
+        await device.subscribe(device.topics.c2d);
         await jobsManager.waitForJobs();
       }
     }
@@ -121,6 +123,9 @@ export const nrfDevice = (
   client.on('message', (topic: string, payload: any) => {
     log.incoming(topic, payload || {});
     const p = payload ? JSON.parse(payload.toString()) : {};
+    if (topic.lastIndexOf('/c2d') > 0) {
+      topic = device.topics.c2d;
+    }
 
     if (device.listeners[topic]) {
       device.listeners[topic]({
