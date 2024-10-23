@@ -86,7 +86,7 @@ export const storeDeviceCredentials = (filePath: string, credentials: DeviceCred
 export const getLocallyStoredDeviceCredentials = (deviceId: string, log: Log) => {
   const credentialsFilePath = formatCredentialsFilePath(deviceId);
   if (fs.existsSync(credentialsFilePath)) {
-    log.success(`\nUsing locally stored device credentials for ${deviceId}.`);
+    log.success(`\nUsing locally stored device credentials for device '${deviceId}'.`);
     return JSON.parse(fs.readFileSync(credentialsFilePath, 'utf8')) as DeviceCredentials;
   }
 };

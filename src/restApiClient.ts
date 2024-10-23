@@ -84,9 +84,9 @@ export class RestApiClient {
         // No need to support custom ownership code as it is not used in the simulator. Just appease the endpoint with a dummy value.
         '123456',
       );
-      this.log.success(`JITP certificate for device ${deviceId} successfully created.`);
+      this.log.success(`JITP certificate for device '${deviceId}' successfully created.`);
     } catch (err) {
-      this.log.error(`JITP certificate for device ${deviceId} failed to create: ${err}`);
+      this.log.error(`JITP certificate for device '${deviceId}' failed to create: ${err}`);
     }
     storeDeviceCredentials(
       formatCredentialsFilePath(deviceId),
@@ -101,9 +101,9 @@ export class RestApiClient {
       await this.getRestApiConn().post(`v1/devices/${deviceId}`, {
         certificate,
       });
-      this.log.success(`Device ${deviceId} successfully onboarded to nRF Cloud.`);
+      this.log.success(`Device '${deviceId}' successfully onboarded to nRF Cloud.`);
     } catch (err) {
-      this.log.error(`Device ${deviceId} failed to onboard to nRF Cloud: ${err}`);
+      this.log.error(`Device '${deviceId}' failed to onboard to nRF Cloud: ${err}`);
     }
   }
 
@@ -124,7 +124,7 @@ export class RestApiClient {
         // No need to support custom ownership code as it is not used in the simulator. Just appease the endpoint with a dummy value.
         '123456',
       );
-      this.log.success(`JITP device ${deviceId} successfully associated.`);
+      this.log.success(`JITP device '${deviceId}' successfully associated.`);
     } catch (err) {
       throw new Error(`JITP device ${deviceId} failed to associate: ${err}`);
     }

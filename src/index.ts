@@ -114,13 +114,13 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
       }
       if (deviceType === 'Team') {
         throw new Error(
-          `You provided device credentials for device ID '${deviceId}' of type 'Team' (an MQTT Team device),
+          `You provided device credentials for device '${deviceId}' of type 'Team' (an MQTT Team device),
         but this device could not be found for your team. Please verify the device id and type.`,
         );
       }
     } else if (preventAssociation) {
       log.info(
-        `Device ID '${deviceId}' is already associated with team '${teamName}' (${teamId}). The "--prevent-association" flag is ignored.`,
+        `Device '${deviceId}' is already associated with team '${teamName}' (${teamId}). The "--prevent-association" flag is ignored.`,
       );
     }
   } else {

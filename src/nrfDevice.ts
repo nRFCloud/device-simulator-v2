@@ -150,7 +150,7 @@ export const nrfDevice = (
         'Device disconnected. This behavior is expected for new JITP devices when they present their certificate to the broker and are disconnected until the certificate is registered.',
       );
     } else {
-      log.error(`Device disconnected. Make sure device id ${deviceId} matches the one for the certificate.`);
+      log.error(`Device disconnected. Make sure device ID '${deviceId}' matches the one for the certificate.`);
     }
   });
 
