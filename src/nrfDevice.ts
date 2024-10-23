@@ -1,133 +1,118 @@
-import { device } from 'aws-iot-device-sdk';
-
-import { mqttClient } from './mqttClient';
-import { ISensor } from './sensors/Sensor';
 import { AppMessage } from './app/appMessage';
-import { DeviceConfig, NrfDevice } from './models/Device';
+import { DeviceConfig, DeviceCredentials } from './index';
+import { NrfDevice } from './models/Device';
 import { NrfJobsManager } from './models/Job';
 import { Log, Logger } from './models/Log';
-import { AxiosInstance, AxiosResponse } from 'axios';
+import { mqttClient } from './mqttClient';
+import { RestApiClient } from './restApiClient';
+import { exponentialBackoff } from './utils';
 
 export type SendMessage = (timestamp: number, message: AppMessage) => void;
 
+const prepCredentials = (deviceCredentials: DeviceCredentials) => {
+  return {
+    clientCert: Buffer.from(deviceCredentials.clientCert.replace(/\\n/g, '\n')),
+    caCert: Buffer.from(deviceCredentials.caCert.replace(/\\n/g, '\n')),
+    privateKey: Buffer.from(deviceCredentials.privateKey.replace(/\\n/g, '\n')),
+  };
+};
+
 export const nrfDevice = (
   config: DeviceConfig,
-  sensors: Map<string, ISensor>,
-  apiConn: AxiosInstance,
-  onConnect?: (deviceId: string, client?: device) => Promise<void>,
+  restApiClient: RestApiClient,
   log: Logger = new Log(true),
 ): any => {
   const {
     deviceId,
-    caCert,
-    clientCert,
-    privateKey,
-    endpoint,
+    deviceCredentials,
+    mqttEndpoint,
     appFwVersion,
-    mqttMessagesPrefix,
+    mqttTopicPrefix,
+    mqttMessagesTopicPrefix,
+    preventAssociation,
     appType,
-    stage,
-    tenantId,
-    jobExecutionPath,
+    sensors,
+    jobExecutionFailureScenario,
   } = config;
+  let {
+    deviceType,
+    certificateType,
+  } = config;
+
+  const isTeamDevice = deviceId.startsWith('mqtt-team-');
+
+  if (isTeamDevice) {
+    deviceType = 'Team';
+    certificateType = 'Non-JITP (AWS-Signed)';
+  }
+
+  log.info(
+    log.prettify('DEVICE CONFIG', [
+      ['DEVICE ID', deviceId],
+      ['DEVICE TYPE', deviceType],
+      ['CERTIFICATE TYPE', certificateType],
+      ['PREVENT NEW JITP DEVICE ASSOCIATION', certificateType === 'JITP' ? preventAssociation.toString() : 'N/A'],
+      ['APP FW VERSION', appFwVersion],
+      ['APP TYPE', appType || 'None Set'],
+      ['SENSORS', Array.from(sensors.keys()).join(', ') || 'None Set'],
+      ['JOB EXECUTION FAILURE SCENARIO', jobExecutionFailureScenario?.toString() || 'None Set (Normal Operations)'],
+    ]),
+  );
 
   let onConnectExecuted = false;
   let onConnectExecuting = false;
+  let jitpDeviceAssociated = false;
+  let jitpDeviceInitialDisconnect = false;
   let shadowInitialized = false;
-  log.success(`connecting to "${endpoint}"...`);
 
   const client = mqttClient({
     id: deviceId,
-    caCert,
-    clientCert,
-    privateKey,
-    endpoint,
+    ...prepCredentials(deviceCredentials),
+    mqttEndpoint,
   });
 
   const device = new NrfDevice(
     deviceId,
-    mqttMessagesPrefix,
-    stage,
-    tenantId,
+    mqttTopicPrefix,
+    mqttMessagesTopicPrefix,
     client,
     sensors,
     log,
   );
 
-  const jobsManager = new NrfJobsManager(device, log, jobExecutionPath);
+  const jobsManager = new NrfJobsManager(device, log, jobExecutionFailureScenario);
 
-  const notifyOfConnection = async (eventName: string) => {
-    // run callback
-    if (onConnect && !onConnectExecuted && !onConnectExecuting) {
-      onConnectExecuting = true;
-      log.debug(`TRIGGERING ONCONNECT CALLBACK ON "${eventName}"`);
-      await onConnect(deviceId);
+  const handleConnect = async (eventName: string) => {
+    log.info(`Handling MQTT ${eventName} event to ${mqttEndpoint}...`);
 
-      // wait for a couple seconds
-      await new Promise<void>((resolve) => {
-        let halfSecondsElapsed = 1;
-        const totalDelay = 10; // 10 half seconds
-        log.info('waiting for aws IoT to associate device...');
-        const intervalId = setInterval(() => {
-          log.debug('.'.repeat(totalDelay - halfSecondsElapsed));
-          halfSecondsElapsed++;
-
-          if (halfSecondsElapsed >= totalDelay) {
-            clearInterval(intervalId);
-            resolve();
-          }
-        }, 500);
-      });
+    if (!onConnectExecuted && !onConnectExecuting) {
+      if (certificateType === 'JITP' && !preventAssociation && !jitpDeviceAssociated) {
+        onConnectExecuting = true;
+        await exponentialBackoff(async () => restApiClient.associateDevice({ deviceId }), 5, 5000, 30000);
+        jitpDeviceAssociated = true;
+      }
       onConnectExecuted = true;
     }
 
-    if (!onConnect || onConnectExecuted) {
-      let deviceAssociated = false;
-      let didHaveError = false;
+    if (onConnectExecuted) {
+      if (deviceType === 'Team') {
+        const topicsTeamAll = `${mqttTopicPrefix}/#`;
+        await device.subscribe(`${topicsTeamAll}`);
+      } else {
+        if (appType && !shadowInitialized) {
+          log.info(`Initializing shadow for appType '${appType}'...`);
+          await device.initShadow(appFwVersion, appType);
+          shadowInitialized = true;
+        }
 
-      // listen for jobs, if associated
-      log.debug(`checking to see if device ${deviceId} has been onboarded...`);
+        device.registerListener(device.topics.c2d, async () => {});
+        await device.subscribe(device.topics.c2d);
 
-      await apiConn
-        .get(`v1/devices/${deviceId}`)
-        .then(async (res: AxiosResponse) => {
-          if (res?.data?.tenantId === tenantId) {
-            log.success(
-              `confirmed that "${deviceId}" has been onboarded with account "${tenantId}"!`,
-            );
-            deviceAssociated = true;
-
-            //Init shadow
-            if (appType && !shadowInitialized) {
-              log.info(`Initializing ${deviceId} shadow...`);
-              await device.initShadow(appFwVersion, appType);
-            }
-
-            shadowInitialized = true;
-            log.info('listening for new jobs...');
-            await jobsManager.waitForJobs();
-          }
-        })
-        .catch((err) => {
-          const code = err?.response?.data?.code;
-          if (code !== 40410) {
-            log.error(
-              `Error getting data for device "${deviceId}". Cannot initialize jobs listener. Error: "${
-                err?.response?.data
-                  ? JSON.stringify(err.response.data, null, 2)
-                  : err
-              }"`,
-            );
-            didHaveError = true;
-          }
-        })
-        .finally(() => {
-          if (!deviceAssociated && !didHaveError) {
-            log.info(
-              `Cannot initialize jobs listener until the device "${deviceId}" is onboarded to your account. You can onboard the device by running "npx @nrfcloud/device-simulator-v2 -k <api key> -d ${deviceId} -a preconnect".`,
-            );
-          }
-        });
+        if (!jitpDeviceInitialDisconnect) {
+          log.info('Requesting new FOTA jobs by sending an empty message to the /jobs/req topic...');
+        }
+        await jobsManager.waitForJobs();
+      }
     }
   };
 
@@ -136,13 +121,15 @@ export const nrfDevice = (
   });
 
   client.on('connect', async () => {
-    log.success('connected');
-    await notifyOfConnection('connect');
+    await handleConnect('connect');
   });
 
   client.on('message', (topic: string, payload: any) => {
     log.incoming(topic, payload || {});
     const p = payload ? JSON.parse(payload.toString()) : {};
+    if (topic.lastIndexOf('/c2d') > 0) {
+      topic = device.topics.c2d;
+    }
 
     if (device.listeners[topic]) {
       device.listeners[topic]({
@@ -150,17 +137,25 @@ export const nrfDevice = (
         payload: p,
       });
     } else {
-      throw new Error(`No listener registered for topic ${topic}!`);
+      if (deviceType === 'Generic') {
+        throw new Error(`No listener registered for topic ${topic}!`);
+      }
     }
   });
 
   client.on('close', () => {
-    log.error('disconnect');
+    if (certificateType === 'JITP') {
+      jitpDeviceInitialDisconnect = true;
+      log.info(
+        'Device disconnected. This behavior is expected for new JITP devices when they present their certificate to the broker and are disconnected until the certificate is registered.',
+      );
+    } else {
+      log.error(`Device disconnected. Make sure device ID '${deviceId}' matches the one for the certificate.`);
+    }
   });
 
   client.on('reconnect', async () => {
-    log.success('reconnect');
-    await notifyOfConnection('reconnect');
+    await handleConnect('reconnect');
   });
 
   return {

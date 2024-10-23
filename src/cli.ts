@@ -1,164 +1,82 @@
 #!/usr/bin/env node
-import * as program from 'commander';
-import { readFile } from 'fs/promises';
-import * as path from 'path';
-
+import { Option, program } from 'commander';
+import { run, SimulatorConfig } from './index';
 import { Log } from './models/Log';
-import { SimulatorConfig, run } from './index';
 
-function validateAppTypeJSONInput(input: any) {
-  if (typeof input.state !== 'object') {
-    new Log(false).error(
-      'appType custom shadow is missing object value for "state" key',
-    );
-    return false;
-  }
-
-  if (typeof input.state.reported !== 'object') {
-    new Log(false).error(
-      'appType custom shadow "state" object is missing object value for "reported" key',
-    );
-    return false;
-  }
-
-  return true;
-}
-
-const handleAppType = async (input: any, _: unknown) => {
-  if (input === 'mss' || input === 'atv2') {
-    return input;
-  }
-
-  if (input[0] !== '[' && input[0] !== '{' && !input.includes('.json')) {
-    new Log(false).error(
-      'Input for appType may only be "mss", "atv2", JSON-encoded object, or path to a json file.',
-    );
-    process.exit();
-  }
-
-  if (input.includes('.json')) {
-    //Adding an additional '../' to the input since it's being called from dist and not src
-    const file = path.join(__dirname, '../' + input);
-    try {
-      input = await readFile(file, 'utf8');
-    } catch (err) {
-      new Log(false).error(`Error opening file: ${err}`);
-      process.exit();
-    }
-  }
-
-  try {
-    input = JSON.parse(input);
-    if (!validateAppTypeJSONInput(input)) {
-      new Log(false).info(
-        `Expected input: '{"state":{"reported":{...}, "desired":{...}}}', "desired" is optional.`,
-      );
-      process.exit();
-    }
-  } catch (err) {
-    new Log(false).error('Error parsing JSON:' + (err as any).message);
-    process.exit();
-  }
-  return input;
-};
-
-const handleJobExecution = (input: string, _: unknown) => {
-  const validPath = /^[0-5]$/;
-  if (!validPath.test(input)) {
-    new Log(false).error(
-      'Input for jobExecutionPath must be a number between 0 and 5',
-    );
-    process.exit();
-  }
-  return input;
-};
-
-const handleOnboardingType = (input: string, _: unknown) => {
-  if (input === 'preconnect' || input === 'jitp') {
-    return input;
-  }
-
-  new Log(false).error(
-    'Input for onboard must be blank, "jitp" or "preconnect"',
-  );
-  process.exit();
-};
-
-const getConfig = (env: any, args: string[]): SimulatorConfig =>
+const sensorOptions = ['gps', 'gnss', 'acc', 'temp', 'device', 'rsrp', 'location', 'log', 'alert'];
+const getConfig = (env: any, args: string[]) =>
   program
     .requiredOption(
       '-k, --api-key <apiKey>',
-      'API key for nRF Cloud',
+      'nRF Cloud REST API Key. May be set with the API_KEY environment variable.',
       env.API_KEY,
     )
     .option(
-      '-c, --certs-response <certsResponse>',
-      'JSON returned by call to the Device API endpoint: POST /devices/{deviceid}/certificates',
-      env.CERTS_RESPONSE,
+      '-h, --api-host <apiHost>',
+      'nRF Cloud API Host. May be set with the API_HOST environment variable.',
+      env.API_HOST ? env.API_HOST : 'https://api.nrfcloud.com',
     )
     .option(
-      '-e, --endpoint <endpoint>',
-      'AWS IoT MQTT endpoint',
-      env.MQTT_ENDPOINT,
+      '-d, --device-id <deviceId>',
+      'ID of the device. May be set with the DEVICE_ID environment variable. If you pass a device ID, an attempt is made to find locally stored device credentials in an adjacent "credentials" folder that is auto-created for you. Otherwise, a new device is created and added to your team, with device credentials stored locally for easy reuse.',
+      env.DEVICE_ID,
     )
-    .option('-d, --device-id <deviceId>', 'ID of the device', env.DEVICE_ID)
-    .option(
-      '-o, --device-ownership-code <deviceOwnershipCode>',
-      'PIN/ownership code of the device',
-      env.DEVICE_OWNERSHIP_CODE || '123456',
+    .addOption(
+      new Option(
+        '-t, --device-type <deviceType>',
+        'Specifies the type of device you want created. In most cases you will use the default "Generic" device. An "MQTT Team" device is mainly for debugging, or for use in an MQTT bridge. See https://docs.nordicsemi.com for more information.',
+      ).choices(['Generic', 'Team']).default('Generic'),
+    )
+    .addOption(
+      new Option(
+        '-c, --certificate-type <certificateType>',
+        'Specifies the type of certificate you want created for your new device: self-signed certificate or one for Just-In-Time-Provisioning (JITP). The latter is discouraged, and is mainly for internal Nordic Semiconductor use.',
+      ).choices(['Self-Signed', 'JITP']).default('Self-Signed'),
     )
     .option(
-      '-m, --mqtt-messages-prefix <mqttMessagesPrefix>',
-      'The prefix for the MQTT unique to this tenant for sending and receiving device messages',
-      env.MQTT_MESSAGES_PREFIX,
+      '-p, --prevent-association',
+      'Specifies that when your device with a Just-In-Time-Provisioning (JITP) certificate connects to the MQTT broker (before it is ever associated with your team), it should only connect, i.e., not get associated. This option is only applicable when the "-c jitp" option is specified and the device has not already been added to (associated with) your team. This is mainly for internal Nordic Semiconductor use to test JITP issues.',
+      false,
     )
-    .option(
-      '-s, --services <services>',
-      'Comma-delimited list of services to enable. Any of: [gps,gnss,acc,temp,device,rsrp,location,log,alert]',
+    .addOption(
+      new Option(
+        '-s, --sensors <sensors>',
+        `A comma-separated list of sensors you want your device to simulate. Valid choices: ${
+          sensorOptions.join(', ')
+        }. See https://github.com/nRFCloud/application-protocols for more information about sensor messages.`,
+      )
+        .argParser((value) => {
+          const values = value.split(',');
+          values.forEach((val) => {
+            if (!sensorOptions.includes(val)) {
+              throw new Error(`Invalid choice: ${val}. Allowed choices are: ${sensorOptions.join(', ')}`);
+            }
+          });
+          return values;
+        })
+        .default([]),
     )
     .option(
       '-f, --app-fw-version <appFwVersion>',
       'Version of the app firmware',
       '1',
     )
-    .option(
-      '-h, --api-host <apiHost>',
-      'API host for nRF Cloud',
-      env.API_HOST ? env.API_HOST : 'https://api.nrfcloud.com',
-    )
-    .option(
-      '-a, --onboard <onboardingType>',
-      'Onboard the device with "jitp", or "preconnect"',
-      handleOnboardingType,
-    )
-    .option('-v, --verbose', 'output debug info', false)
-    .option(
-      '-t, --app-type <appType>',
-      'Specifies the shadow to use. For custom shadow, pass a JSON-encoded shadow object or relative path to json file. Otherwise, pass "mss" or "atv2" to automatically generate a conformal shadow',
-      handleAppType,
-    )
-    .option(
-      '-p, --job-execution-path <jobExecutionPath>',
-      'Specifies an unhappy job execution path for a fota update. View the "Use an unhappy path for FOTA execution" section of the README for more details.',
-      handleJobExecution,
-    )
+    .addOption(new Option(
+      '-a, --app-type <appType>',
+      'The type of shadow to initialize: `mss` for the nRF Cloud multi-service sample, or `atv2` for the Asset Tracker v2 application. For more info see the nRF Connect SDK docs at https://docs.nordicsemi.com.',
+    ).choices(['mss', 'atv2']))
+    .addOption(new Option(
+      '-x, --job-execution-failure-scenario <jobExecutionFailureScenario>',
+      'A job execution failure scenario during a FOTA update. View the "Simulate a FOTA Job Execution Failure Scenario" section of the README for more details.',
+    ).choices(['0', '1', '2', '3', '4', '5']))
+    .option('-v, --verbose', 'Show output debug info.', false)
     .parse(args)
-    .opts() as SimulatorConfig;
+    .opts();
 
 let verbose: boolean;
 
 (async (): Promise<void> => {
   const config = getConfig(process.env, process.argv);
-  verbose = !!config.verbose;
-  const hostSplit = config.apiHost!.split('.');
-  let stage = hostSplit.length === 3 ? 'prod' : hostSplit[1];
-
-  // dev is default stage for sub accounts (ie https://api.coha.nrfcloud.com)
-  if (['dev', 'beta', 'prod'].includes(stage) === false) {
-    stage = 'dev';
-  }
-
-  config.stage = stage;
-  config.appType = await config.appType;
-  return run(config);
+  verbose = config.verbose;
+  return run(config as SimulatorConfig);
 })().catch((err) => new Log(verbose).error(err));

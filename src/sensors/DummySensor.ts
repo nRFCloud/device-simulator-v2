@@ -4,7 +4,7 @@ import { ISensor } from './Sensor';
 export class DummySensor extends EventEmitter implements ISensor {
   private readonly dummyData: Uint8Array;
   private readonly interval: number;
-  private tick?: NodeJS.Timer;
+  private dummySensorIntervalId: any = null;
   private started: boolean;
 
   constructor(dummyData: Uint8Array, interval: number) {
@@ -15,7 +15,7 @@ export class DummySensor extends EventEmitter implements ISensor {
   }
 
   async start(): Promise<void> {
-    this.tick = setInterval(() => {
+    this.dummySensorIntervalId = setInterval(() => {
       this.emit('data', Date.now(), this.dummyData);
     }, this.interval);
     this.started = true;
@@ -26,8 +26,8 @@ export class DummySensor extends EventEmitter implements ISensor {
   }
 
   private cleanUp() {
-    if (this.tick) {
-      clearInterval(this.tick);
+    if (this.dummySensorIntervalId) {
+      clearInterval(this.dummySensorIntervalId);
     }
   }
 

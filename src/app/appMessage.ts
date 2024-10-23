@@ -9,15 +9,15 @@
  * Message format for simulator app
  */
 
-
 export interface AppMessage {
-	appId: "GPS" | "FLIP" | "TEMP" | "DEVICE" | "GNSS" | "RSRP" | "MCELL" | "SCELL" | "WIFI" | "LOG" | "ALERT";
-	messageType: "HELLO" | "START" | "STOP" | "INT" | "GET" | "STATUS" | "DATA" | "OK" | "EVENT";
-	/**
-	 * This number is incremented by one for each message transmitted
-	 */
-	messageId?: number;
-	timeStamp?: string;
-	data?: string | Object;
-	[k: string]: any;
+  appId: 'GPS' | 'FLIP' | 'TEMP' | 'DEVICE' | 'GNSS' | 'RSRP' | 'MCELL' | 'SCELL' | 'WIFI' | 'LOG' | 'ALERT';
+  messageType: 'HELLO' | 'START' | 'STOP' | 'INT' | 'GET' | 'STATUS' | 'DATA' | 'OK' | 'EVENT';
+  /**
+   * This number is incremented by one for each message transmitted
+   */
+  messageId?: number;
+  // Unix timestamp in milliseconds
+  ts?: string;
+  data?: string | Object;
+  [k: string]: any;
 }
