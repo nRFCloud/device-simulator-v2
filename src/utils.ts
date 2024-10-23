@@ -85,15 +85,10 @@ export const storeDeviceCredentials = (filePath: string, credentials: DeviceCred
 
 export const getLocallyStoredDeviceCredentials = (deviceId: string, log: Log) => {
   const credentialsFilePath = formatCredentialsFilePath(deviceId);
-  if (!fs.existsSync(credentialsFilePath)) {
-    throw new Error(
-      `You set device id ${deviceId} but credentials could not be found at their expected location: ${
-        formatCredentialsFilePath(deviceId)
-      }. If you lost the credentials, simply unset the device id and new credentials will be generated for you.`,
-    );
+  if (fs.existsSync(credentialsFilePath)) {
+    log.success(`\nUsing locally stored device credentials for ${deviceId}.`);
+    return JSON.parse(fs.readFileSync(credentialsFilePath, 'utf8')) as DeviceCredentials;
   }
-  log.success(`\nUsing locally stored device credentials for ${deviceId}.`);
-  return JSON.parse(fs.readFileSync(credentialsFilePath, 'utf8')) as DeviceCredentials;
 };
 
 export const timeoutAsync = promisify((ms: number, cb: (err: unknown) => void) => setTimeout(cb, ms));

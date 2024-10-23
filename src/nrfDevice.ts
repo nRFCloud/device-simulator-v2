@@ -100,7 +100,7 @@ export const nrfDevice = (
         await device.subscribe(`${topicsTeamAll}`);
       } else {
         if (appType && !shadowInitialized) {
-          log.info(`Initializing shadow for appType ${appType}...`);
+          log.info(`Initializing shadow for appType '${appType}'...`);
           await device.initShadow(appFwVersion, appType);
           shadowInitialized = true;
         }

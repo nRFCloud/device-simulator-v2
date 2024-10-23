@@ -2,7 +2,12 @@ import { JobExecutionFailureScenario } from './models/Job';
 import { Log } from './models/Log';
 import { nrfDevice } from './nrfDevice';
 import { RestApiClient } from './restApiClient';
-import { createSelfSignedDeviceCertificate, generateDeviceId, getLocallyStoredDeviceCredentials } from './utils';
+import {
+  createSelfSignedDeviceCertificate,
+  formatCredentialsFilePath,
+  generateDeviceId,
+  getLocallyStoredDeviceCredentials,
+} from './utils';
 import path = require('path');
 import {
   FakeAccelerometer,
@@ -71,7 +76,11 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
   if (deviceId) {
     simConfig.deviceCredentials = getLocallyStoredDeviceCredentials(deviceId, log);
     if (!simConfig.deviceCredentials) {
-      throw new Error(`No locally stored device credentials were found for the device id you specified: ${deviceId}.`);
+      log.info(
+        `You set device ID '${deviceId}' but credentials could not be found at their expected location: ${
+          formatCredentialsFilePath(deviceId)
+        }. New credentials will be auto-generated.`,
+      );
     }
   } else {
     if (deviceType !== 'Team') {
@@ -105,13 +114,13 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
       }
       if (deviceType === 'Team') {
         throw new Error(
-          `You provided device credentials for device ${deviceId} of type 'Team' (an MQTT Team device),
+          `You provided device credentials for device ID '${deviceId}' of type 'Team' (an MQTT Team device),
         but this device could not be found for your team. Please verify the device id and type.`,
         );
       }
     } else if (preventAssociation) {
       log.info(
-        `The device ${deviceId} is already associated with the team ${teamName} (${teamId}). The "--prevent-association" flag is ignored.`,
+        `Device ID '${deviceId}' is already associated with team '${teamName}' (${teamId}). The "--prevent-association" flag is ignored.`,
       );
     }
   } else {
