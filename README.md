@@ -128,3 +128,26 @@ curl -X DELETE $API_HOST/v1/firmwares/$BUNDLE_ID -H "Authorization: Bearer $API_
 # $DEVICE_OWNERSHIP_CODE only needed if used a JITP device
 curl -X DELETE $API_HOST/v1/devices/$DEVICE_ID -d $DEVICE_OWNERSHIP_CODE -H "Authorization: Bearer $API_KEY" -H "Content-Type: text/plain"
 ```
+
+## Publishing
+To publish a new version to npm, follow this recipe:
+```bash
+
+# commit all files
+git add .
+git commit -am "<feat|bug|chore|refactor>: <commit message>"
+
+# publish to npm. this will build, ask for a new version, and publish 
+# to the npm repo if you run `yarn deploy:beta, it will deploy to the beta tag
+yarn deploy[:beta]
+# updates the version in the package.json, this line:
+#  "version": "2.2.7",
+
+# tag the new version
+git tag v2.2.7
+
+# push changes and new tag to github
+git push origin HEAD
+git push origin v2.2.7
+```
+
