@@ -1,4 +1,4 @@
-import { red, yellow, green, dim, magenta, cyan } from 'colors';
+import { cyan, dim, green, magenta, red, yellow } from 'colors';
 
 type BasicLogHandler = (message: string) => void;
 type DeviceTrafficHandler = (topic: string, payload: any) => void;
@@ -13,42 +13,52 @@ export interface Logger {
   debug: BasicLogHandler;
   outgoing: DeviceTrafficHandler;
   incoming: DeviceTrafficHandler;
-  prettify: (header: string, body: MessageEntry[])  => string;
+  prettify: (header: string, body: MessageEntry[]) => string;
 }
 
 export class Log implements Logger {
   constructor(private readonly verbose: boolean) {}
-  error(message: string) { this.log(red(message)); }
-  info(message: string) { this.log(yellow(message)); }
-  success(message: string) { this.log(green(message)); }
-  debug(message: string) { this.verbose && this.log(dim(message)); }
+  error(message: string) {
+    this.log(red(message));
+  }
+  info(message: string) {
+    this.log(yellow(message));
+  }
+  success(message: string) {
+    this.log(green(message));
+  }
+  debug(message: string) {
+    this.verbose && this.log(dim(message));
+  }
   outgoing(topic: string, payload: any) {
     this.log(cyan(this.prettify(
-        'MESSAGE SENT', [
-          ['TOPIC', topic],
-          ['MESSAGE', this.prettyPayload(payload)],
-        ]),
-      ),
-    );
+      'MESSAGE SENT',
+      [
+        ['TOPIC', topic],
+        ['MESSAGE', this.prettyPayload(payload)],
+      ],
+    )));
   }
   incoming(topic: string, payload: any) {
     this.log(magenta(this.prettify(
-        'MESSAGE RECEIVED', [
-          ['TOPIC', topic],
-          ['MESSAGE', this.prettyPayload(payload)],
-        ]),
-      ),
-    );
+      'MESSAGE RECEIVED',
+      [
+        ['TOPIC', topic],
+        ['MESSAGE', this.prettyPayload(payload)],
+      ],
+    )));
   }
   prettify(header: string, body: MessageEntry[]): string {
     return `
-************** ${header} ***********
+======================= ${header} =======================
 ${body.map(([key, val]) => `${key?.length ? `${key}: ${val}` : ''}`).join('\n')}
-**************${'*'.repeat(header.length + 2)}***********
+=======================${'='.repeat(header.length + 2)}=======================
 `;
   }
-  private log(coloredMessage: string) { console.log(`${coloredMessage}\n`); }
-  private prettyPayload(payload: object|string|Buffer): string {
+  private log(coloredMessage: string) {
+    console.log(`${coloredMessage}\n`);
+  }
+  private prettyPayload(payload: object | string | Buffer): string {
     const isBuffer = (payload as Buffer)?.buffer;
 
     try {
@@ -59,7 +69,6 @@ ${body.map(([key, val]) => `${key?.length ? `${key}: ${val}` : ''}`).join('\n')}
       }
 
       return JSON.stringify(payload, null, 2);
-
     } catch (err) {
       this.debug(`Error unwrapping payload. Error: "${err}". Payload: ${payload}`);
       // squelch error, this tells us payload is not valid JSON, just return payload

@@ -1,42 +1,44 @@
+import { SendMessage } from '../../nrfDevice';
 import { ISensor } from '../../sensors/Sensor';
 import { AppMessage } from '../appMessage';
-import { SendMessage } from '../../nrfDevice';
 import { Service } from './Service';
 
 const APPID = ['MCELL', 'SCELL', 'WIFI'];
 
-
 export class Location implements Service {
-    constructor(
-        private readonly sensor: ISensor,
-        private readonly sendMessage: SendMessage,
-    ) { }
+  messageId = 1;
 
-    async start() {
-        await this.sendHello();
+  constructor(
+    private readonly sensor: ISensor,
+    private readonly sendMessage: SendMessage,
+  ) {}
 
-        this.sensor.on('data', (timestamp: number, data: any) => {
-            const message = <AppMessage>{
-                appId: APPID[Math.floor(Math.random() * 100) % 3],
-                messageType: 'DATA',
-                data: data,
-            };
-            this.sendMessage(timestamp, message);
-        });
+  async start() {
+    await this.sendHello();
 
-        if (!this.sensor.isStarted()) {
-            await this.sensor.start();
-        }
+    this.sensor.on('data', (timestamp: number, data: any) => {
+      const message = <AppMessage> {
+        appId: APPID[Math.floor(Math.random() * 100) % 3],
+        messageType: 'DATA',
+        messageId: this.messageId++,
+        data,
+      };
+      this.sendMessage(timestamp, message);
+    });
+
+    if (!this.sensor.isStarted()) {
+      await this.sensor.start();
     }
+  }
 
-    private async sendHello() {
-        await this.sendMessage(Date.now(), {
-            appId: 'MCELL',
-            messageType: 'HELLO',
-        });
-    }
+  private async sendHello() {
+    await this.sendMessage(Date.now(), {
+      appId: 'MCELL',
+      messageType: 'HELLO',
+    });
+  }
 
-    async stop() {
-        await this.sensor.stop();
-    }
+  async stop() {
+    await this.sensor.stop();
+  }
 }

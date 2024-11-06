@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
-import { ISensor } from './Sensor';
 import * as fs from 'fs';
 import * as readline from 'readline';
+import { ISensor } from './Sensor';
 
 export class FakeDevice extends EventEmitter implements ISensor {
   private readonly samples: string[] = [];

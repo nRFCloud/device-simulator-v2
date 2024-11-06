@@ -1,11 +1,13 @@
+import { SendMessage } from '../../nrfDevice';
 import { ISensor } from '../../sensors/Sensor';
 import { AppMessage } from '../appMessage';
-import { SendMessage } from '../../nrfDevice';
 import { Service } from './Service';
 
 const APPID = 'TEMP';
 
 export class Temp implements Service {
+  messageId = 1;
+
   constructor(
     private readonly sensor: ISensor,
     private readonly sendMessage: SendMessage,
@@ -15,9 +17,10 @@ export class Temp implements Service {
     await this.sendHello();
 
     this.sensor.on('data', (timestamp: number, data: any) => {
-      const message = <AppMessage>{
+      const message = <AppMessage> {
         appId: APPID,
         messageType: 'DATA',
+        messageId: this.messageId++,
         data: String.fromCharCode.apply(null, data),
       };
       this.sendMessage(timestamp, message);

@@ -1,333 +1,251 @@
-import { device } from 'aws-iot-device-sdk';
-import { AxiosInstance } from 'axios/index';
-import axios from 'axios';
-import { execSync } from 'child_process';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-
-import { simulator } from './simulator';
+import { JobExecutionFailureScenario } from './models/Job';
 import { Log } from './models/Log';
+import { nrfDevice } from './nrfDevice';
+import { RestApiClient } from './restApiClient';
+import {
+  createSelfSignedDeviceCertificate,
+  formatCredentialsFilePath,
+  generateDeviceId,
+  getLocallyStoredDeviceCredentials,
+} from './utils';
+import path = require('path');
+import {
+  FakeAccelerometer,
+  FakeAlert,
+  FakeDevice,
+  FakeGnss,
+  FakeGps,
+  FakeLocation,
+  FakeLog,
+  FakeRsrp,
+  FakeThermometer,
+  ISensor,
+} from './sensors';
 
-const cache = require('ez-cache')();
-let conn: AxiosInstance;
-
-export const getConn = (
-  apiHost: string,
-  apiKey: string,
-  verbose: boolean,
-): AxiosInstance => {
-  if (!conn) {
-    // create a connection to the device API
-    conn = axios.create({
-      baseURL: apiHost,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    conn.interceptors.request.use((config: any) => {
-      new Log(!!verbose).debug(config);
-      return config;
-    });
-  }
-
-  return conn;
-};
-
-export const generateDeviceId = () =>
-  `nrfsim-${Math.floor(Math.random() * 1000000000000000000000)}`;
-
-export type DeviceDefaults = {
-  endpoint: string;
-  mqttMessagesPrefix: string;
-  certsResponse: string;
-  tenantId: string;
-};
-
-export type SimulatorConfig = {
-  certsResponse: string;
-  endpoint: string;
-  appFwVersion: string;
+export type DeviceType = 'Generic' | 'Team';
+export type CertificateType = 'Self-Signed' | 'JITP' | 'Non-JITP (AWS-Signed)';
+export interface DeviceCredentials {
+  caCert: string;
+  clientCert: string;
+  privateKey: string;
+}
+interface ConfigCommon {
   deviceId: string;
-  mqttMessagesPrefix: string;
-  stage: string;
-  tenantId: string;
+  deviceType: DeviceType;
+  certificateType: CertificateType;
+  deviceCredentials?: DeviceCredentials;
+  appFwVersion: string;
   appType: string;
-  services?: string;
-  apiKey?: string;
-  apiHost?: string;
-  deviceOwnershipCode?: string;
-  verbose?: boolean;
-  onboard?: string;
-  jobExecutionPath?: any;
-  onConnect?: (deviceId: string, client?: device) => Promise<void>;
-};
+  preventAssociation: boolean;
+  jobExecutionFailureScenario?: JobExecutionFailureScenario;
+  verbose: boolean;
+}
+export interface DeviceConfig extends ConfigCommon {
+  deviceCredentials: DeviceCredentials;
+  mqttEndpoint: string;
+  mqttTopicPrefix: string;
+  mqttMessagesTopicPrefix: string;
+  sensors: Map<string, ISensor>;
+}
+export interface SimulatorConfig extends ConfigCommon {
+  apiKey: string;
+  apiHost: string;
+  sensors?: string[];
+}
 
-export const associateDevice = ({
-  deviceId,
-  deviceOwnershipCode,
-  apiHost,
-  apiKey,
-  verbose,
-}: Partial<SimulatorConfig>): Promise<void> =>
-  getConn(apiHost as string, apiKey as string, !!verbose).put(
-    `/v1/association/${deviceId}`,
-    deviceOwnershipCode,
-  );
+export const run = async (simConfig: SimulatorConfig): Promise<void> => {
+  const {
+    deviceType,
+    certificateType,
+    preventAssociation,
+    apiKey,
+    apiHost,
+    verbose,
+  } = simConfig;
 
-export const onboardDevice = ({
-  deviceId,
-  certsResponse,
-  apiHost,
-  apiKey,
-  verbose,
-}: Partial<SimulatorConfig>) => {
-  let certificate = JSON.parse(certsResponse as string).clientCert;
-  return getConn(
-    apiHost as string,
-    apiKey as string,
-    !!verbose,
-  ).post(`v1/devices/${deviceId}`, { certificate });
-};
-
-export const getDefaults = async ({
-  deviceId,
-  endpoint,
-  mqttMessagesPrefix,
-  certsResponse,
-  apiHost,
-  apiKey,
-  deviceOwnershipCode,
-  verbose,
-  onboard,
-}: Partial<SimulatorConfig>): Promise<DeviceDefaults> => {
-  const conn = getConn(apiHost!, apiKey!, !!verbose);
   const log = new Log(!!verbose);
-
-  const defaults: DeviceDefaults = {
-    endpoint: endpoint || '',
-    mqttMessagesPrefix: mqttMessagesPrefix || '',
-    certsResponse: certsResponse || '',
-    tenantId: '',
-  };
-
-  const cacheFile = cache.getFilePath(deviceId);
-
-  const cachedDefaults: DeviceDefaults = cache.exists(cacheFile)
-    ? await cache.get(cacheFile)
-    : {};
-
-  if (!(endpoint && mqttMessagesPrefix)) {
-    log.debug(`Grabbing mqttEndpoint and messagesPrefix...`);
-    let defaultEndpoint = cachedDefaults.endpoint || '',
-      defaultMqttMessagesPrefix = cachedDefaults.mqttMessagesPrefix || '';
-
-    if (!(defaultEndpoint && defaultMqttMessagesPrefix)) {
-      log.debug('Fetching endpoints from device API.\n');
-      const { data } = await conn.get(`/v1/account`);
-      defaultMqttMessagesPrefix = data.mqttTopicPrefix + 'm/';
-      defaultEndpoint = data.mqttEndpoint;
+  const restApiClient = new RestApiClient(apiHost, apiKey, !!verbose);
+  const hostSplit = simConfig.apiHost.split('.');
+  const stage = hostSplit.length === 3 ? 'prod' : hostSplit[1];
+  const teamData = await restApiClient.fetchTeamInfo();
+  const teamId = teamData.team.tenantId;
+  const teamName = teamData.team.name;
+  const mqttTopicPrefix = `${stage}/${teamId}`;
+  const mqttEndpoint = `mqtt${stage === 'prod' ? '' : `.${stage}`}.nrfcloud.com`;
+  let deviceId = simConfig.deviceId;
+  if (deviceId) {
+    simConfig.deviceCredentials = getLocallyStoredDeviceCredentials(deviceId, log);
+    if (!simConfig.deviceCredentials) {
+      log.info(
+        `You set device ID '${deviceId}' but credentials could not be found at their expected location: ${
+          formatCredentialsFilePath(deviceId)
+        }. New credentials will be auto-generated.`,
+      );
     }
-
-    if (!endpoint) {
-      defaults.endpoint = defaultEndpoint;
-    }
-
-    if (!mqttMessagesPrefix) {
-      defaults.mqttMessagesPrefix = defaultMqttMessagesPrefix;
+  } else {
+    if (deviceType !== 'Team') {
+      // MQTT Team devices are automatically assigned, by the REST API, a device id formatted as "mqtt-team-<teamId>-<deviceId>".
+      // So, skip generating a device id for MQTT Team devices.
+      deviceId = generateDeviceId();
     }
   }
 
-  if (!certsResponse) {
-    log.debug('Grabbing cert...');
-    let defaultJsonCert = cachedDefaults.certsResponse || '';
+  if (!apiKey) {
+    throw new Error(
+      'Your API key is required. Either pass it as the `-k` argument, or set the API_KEY environment variable.',
+    );
+  }
 
-    if (!defaultJsonCert) {
-      if (onboard === 'jitp') {
-        log.debug('Fetching cert from device API.\n');
-        const { data } = await conn.post(
-          `/v1/devices/${deviceId}/certificates`,
-          deviceOwnershipCode,
+  if (simConfig.deviceCredentials) {
+    // Check to see if the device is already onboarded by this team. If not, onboard it.
+    const res = await restApiClient.fetchDevice(deviceId);
+    if (res.status !== 200) {
+      // User provided device credentials, but the device was not found for this team.
+      //
+      // JITP device connection mode is handled in the nrfDevice.ts file's connection handler because
+      // a JITP device is not onboarded (associated with a team) until it first connects to nRF Cloud.
+      //
+      // MQTT Team devices are always onboarded, so we can check for onboarding here.
+      if (certificateType === 'Self-Signed') {
+        await restApiClient.onboardDevice({
+          deviceId,
+          certificate: simConfig.deviceCredentials.clientCert,
+        });
+      }
+      if (deviceType === 'Team') {
+        throw new Error(
+          `You provided device credentials for device '${deviceId}' of type 'Team' (an MQTT Team device),
+        but this device could not be found for your team. Please verify the device id and type.`,
         );
-
-        defaultJsonCert = JSON.stringify(data);
+      }
+    } else if (preventAssociation) {
+      log.info(
+        `Device '${deviceId}' is already associated with team '${teamName}' (${teamId}). The "--prevent-association" flag is ignored.`,
+      );
+    }
+  } else {
+    // Run simulator with new device credentials.
+    if (deviceType === 'Team') {
+      const { clientId, ...credentials } = await restApiClient.createMqttTeamDevice();
+      deviceId = clientId;
+      simConfig.deviceCredentials = credentials;
+    } else {
+      if (certificateType === 'JITP') {
+        simConfig.deviceCredentials = await restApiClient.createJitpCertificate({ deviceId, certificateType });
       } else {
-        log.debug('Generating self signed device certs.\n');
-
-        const privateKey = execSync(
-          `openssl ecparam -name prime256v1 -genkey`,
-        ).toString();
-
-        const subject =
-          '/C=NO/ST=Norway/L=Trondheim/O=Nordic Semiconductor/OU=Test Devices';
-        const caCert = execSync(
-          `echo "${privateKey}" | openssl req -x509 -extensions v3_ca -new -nodes -key /dev/stdin -sha256 -days 1024 -subj "${subject}"`,
-        ).toString();
-
-        let privateKey2 = execSync(
-          `openssl ecparam -name prime256v1 -genkey`,
-        ).toString();
-        let deviceCSR = execSync(
-          `echo "${privateKey2}" | openssl pkcs8 -topk8 -nocrypt -in /dev/stdin`,
-        ).toString();
-        deviceCSR = execSync(
-          `echo "${deviceCSR}" | openssl req -new -key /dev/stdin -subj "${subject}/CN=${deviceId}"`,
-        ).toString();
-
-        const tempDir = os.tmpdir();
-        const csrPath = path.join(tempDir, 'device.csr');
-        const caCertPath = path.join(tempDir, 'ca.crt');
-        const privateKeyPath = path.join(tempDir, 'ca.key');
-        const awsCa =
-          '-----BEGIN CERTIFICATE-----\nMIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF\nADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6\nb24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL\nMAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv\nb3QgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALJ4gHHKeNXj\nca9HgFB0fW7Y14h29Jlo91ghYPl0hAEvrAIthtOgQ3pOsqTQNroBvo3bSMgHFzZM\n9O6II8c+6zf1tRn4SWiw3te5djgdYZ6k/oI2peVKVuRF4fn9tBb6dNqcmzU5L/qw\nIFAGbHrQgLKm+a/sRxmPUDgH3KKHOVj4utWp+UhnMJbulHheb4mjUcAwhmahRWa6\nVOujw5H5SNz/0egwLX0tdHA114gk957EWW67c4cX8jJGKLhD+rcdqsq08p8kDi1L\n93FcXmn/6pUCyziKrlA4b9v7LWIbxcceVOF34GfID5yHI9Y/QCB/IIDEgEw+OyQm\njgSubJrIqg0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC\nAYYwHQYDVR0OBBYEFIQYzIU07LwMlJQuCFmcx7IQTgoIMA0GCSqGSIb3DQEBCwUA\nA4IBAQCY8jdaQZChGsV2USggNiMOruYou6r4lK5IpDB/G/wkjUu0yKGX9rbxenDI\nU5PMCCjjmCXPI6T53iHTfIUJrU6adTrCC2qJeHZERxhlbI1Bjjt/msv0tadQ1wUs\nN+gDS63pYaACbvXy8MWy7Vu33PqUXHeeE6V/Uq2V8viTO96LXFvKWlJbYK8U90vv\no/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU\n5MsI+yMRQ+hDKXJioaldXgjUkK642M4UwtBV8ob2xJNDd2ZhwLnoQdeXeGADbkpy\nrqXRfboQnoZsG4q5WTP468SQvvG5\n-----END CERTIFICATE-----\n';
-
-        try {
-          // Write inputs to temporary files
-          fs.writeFileSync(csrPath, deviceCSR);
-          fs.writeFileSync(caCertPath, caCert);
-          fs.writeFileSync(privateKeyPath, privateKey);
-          deviceCSR = execSync(
-            `openssl x509 -req -in "${csrPath}" -CA "${caCertPath}" -CAkey "${privateKeyPath}" -CAcreateserial -days 10950 -sha256`,
-          ).toString();
-        } catch (err) {
-          console.error(err);
-        } finally {
-          fs.unlinkSync(csrPath);
-          fs.unlinkSync(caCertPath);
-          fs.unlinkSync(privateKeyPath);
-        }
-        defaultJsonCert = JSON.stringify({
-          clientId: deviceId,
-          privateKey: privateKey2,
-          caCert: awsCa,
-          clientCert: deviceCSR,
+        simConfig.deviceCredentials = createSelfSignedDeviceCertificate({ deviceId, verbose });
+        // This will create a new device for the team if the device does not already exist. Otherwise, it will just rotate the certificate.
+        await restApiClient.onboardDevice({
+          deviceId,
+          certificate: simConfig.deviceCredentials.clientCert,
         });
       }
     }
-
-    defaults.certsResponse = defaultJsonCert;
   }
-
-  let tenantId = defaults.mqttMessagesPrefix.split('/')[1];
-
-  if (!tenantId) {
-    const { data } = await conn.get(`/v1/account`);
-    tenantId = data.team.tenantId;
-  }
-
-  if (!tenantId) {
-    throw new Error(
-      `Cannot continue without tenantId! defaults: ${JSON.stringify(defaults)}`,
-    );
-  }
-
-  defaults.tenantId = tenantId;
-  await cache.set(cacheFile, defaults);
-  return defaults;
-};
-
-export const run = async (config: SimulatorConfig): Promise<void> => {
-  const {
-    deviceId,
-    apiKey,
-    apiHost,
-    certsResponse,
-    endpoint,
-    mqttMessagesPrefix,
-    deviceOwnershipCode,
-    onboard,
-    verbose,
-  } = config;
-
-  const log = new Log(!!verbose);
-  config.deviceId = deviceId || generateDeviceId();
-
-  // grab the defaults from the API
-  if (!(apiKey && apiHost)) {
-    log.error(
-      `ERROR: apiKey: (passed val: "${apiKey}") and apiHost (passed val: "${apiHost}") are required`,
-    );
-    return;
-  }
-
-  log.debug(
-    log.prettify('INITIAL CONFIG', [
-      ['DEVICE ID', config.deviceId],
-      ['DEVICE PIN', config.deviceOwnershipCode!],
-      ['API HOST', config.apiHost!],
-      ['API KEY', config.apiKey!],
-      ['TENANT ID', config.tenantId],
-      ['STAGE', config.stage],
-    ]),
-  );
-
-  const defaults: DeviceDefaults = await getDefaults({
-    deviceId: config.deviceId,
-    deviceOwnershipCode,
-    mqttMessagesPrefix,
-    certsResponse,
-    endpoint,
-    apiHost,
-    apiKey,
-    verbose,
-    onboard,
-  });
-
-  config.certsResponse = defaults.certsResponse;
-  config.mqttMessagesPrefix = defaults.mqttMessagesPrefix;
-  config.endpoint = defaults.endpoint;
-  config.tenantId = defaults.tenantId;
 
   log.info(
-    log.prettify('CONFIG', [
-      ['DEVICE ID', config.deviceId],
-      ['DEVICE PIN', config.deviceOwnershipCode!],
-      ['API HOST', config.apiHost!],
-      ['API KEY', config.apiKey!],
-      ['TENANT ID', config.tenantId],
-      ['STAGE', config.stage],
+    log.prettify('API CONFIG', [
+      ['API HOST', simConfig.apiHost],
+      ['MQTT ENDPOINT', mqttEndpoint],
+      ['TEAM NAME', teamName],
+      ['TEAM ID', teamId],
+      ['API KEY', `${apiKey.substring(0, 8)}*******************`],
     ]),
   );
 
-  log.success('starting simulator...');
+  const sensors = new Map<string, ISensor>();
 
-  if (onboard) {
-    config.onConnect = async (deviceId) => {
-      log.info(
-        `ATTEMPTING TO ONBOARD ${config.deviceId} USING ${onboard} CERTS WITH API KEY ${config.apiKey} VIA ${config.apiHost}`,
-      );
+  if (simConfig.sensors) {
+    simConfig.sensors.map((service: string) => {
+      const sensorDataFilePath = (filename: string) => path.resolve(__dirname, 'data', 'sensors', filename);
 
-      try {
-        if (onboard === 'jitp') {
-          // wait to ensure the device is available in AWS IoT so it can be associated
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          await associateDevice({
-            deviceId,
-            deviceOwnershipCode,
-            apiHost,
-            apiKey,
-            verbose,
-          });
-        } else {
-          await onboardDevice({
-            deviceId,
-            apiHost,
-            apiKey,
-            certsResponse: config.certsResponse,
-            verbose,
-          });
-        }
-
-        log.success('DEVICE ONBOARDED!');
-      } catch (err) {
-        log.error(`Failed to onboard: ${err}`);
+      switch (service) {
+        case 'gps':
+          sensors.set(
+            service,
+            new FakeGps(sensorDataFilePath('gps-default.txt'), ['GPGGA'], true),
+          );
+          break;
+        case 'location':
+          sensors.set(
+            service,
+            new FakeLocation(sensorDataFilePath('location.txt'), true, 10000),
+          );
+          break;
+        case 'gnss':
+          sensors.set(
+            service,
+            new FakeGnss(sensorDataFilePath('gnss.json'), true, 10000),
+          );
+          break;
+        case 'acc':
+          sensors.set(
+            service,
+            new FakeAccelerometer(
+              sensorDataFilePath('accelerometer.txt'),
+              true,
+              1000,
+            ),
+          );
+          break;
+        case 'temp':
+          sensors.set(
+            service,
+            new FakeThermometer(
+              sensorDataFilePath('temperature.txt'),
+              true,
+              7000,
+            ),
+          );
+          break;
+        case 'device':
+          sensors.set(
+            service,
+            new FakeDevice(sensorDataFilePath('device.txt'), true, 5000),
+          );
+          break;
+        case 'rsrp':
+          sensors.set(
+            service,
+            new FakeRsrp(sensorDataFilePath('rsrp.txt'), true, 20000),
+          );
+          break;
+        case 'log':
+          sensors.set(
+            service,
+            new FakeLog(sensorDataFilePath('log.json'), true, 5000),
+          );
+          break;
+        case 'alert':
+          sensors.set(
+            service,
+            new FakeAlert(sensorDataFilePath('alert.json'), true, 10000),
+          );
+          break;
       }
-    };
+    });
   }
 
-  simulator(config).catch((err) => {
-    log.error(err);
-  });
+  const { appFwVersion, appType, jobExecutionFailureScenario, deviceCredentials } = simConfig;
+  const deviceConfig: DeviceConfig = {
+    deviceCredentials,
+    deviceId,
+    deviceType,
+    mqttEndpoint,
+    appFwVersion,
+    appType,
+    certificateType,
+    preventAssociation,
+    mqttTopicPrefix,
+    mqttMessagesTopicPrefix: `${mqttTopicPrefix}/m`,
+    jobExecutionFailureScenario,
+    sensors,
+    verbose,
+  };
+
+  nrfDevice(
+    deviceConfig,
+    restApiClient,
+    log,
+  );
 };

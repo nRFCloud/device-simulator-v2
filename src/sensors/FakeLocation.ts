@@ -1,79 +1,74 @@
 import { EventEmitter } from 'events';
-import { ISensor } from './Sensor';
 import * as fs from 'fs';
+import { ISensor } from './Sensor';
 
 export class FakeLocation extends EventEmitter implements ISensor {
+  private readonly LocationSentences: Object[] = [];
+  private sentenceIndex: number = 0;
+  private started = false;
+  private locationEmitterIntervalId: any = null;
 
-	private readonly LocationSentences: Object[] = [];
-	private sentenceIndex: number = 0;
-	private started = false;
-	private locationEmitterIntervalId: any = null;
+  constructor(
+    private readonly locationReading: string,
+    private readonly loop: boolean = false,
+    private readonly defaultSampleRate: number,
+  ) {
+    super();
+  }
 
-	constructor(
-		private readonly locationReading: string,
-		private readonly loop: boolean = false,
-		private readonly defaultSampleRate: number,
-	) {
-		super();
-	}
+  private readLocationData() {
+    const data = JSON.parse(fs.readFileSync(this.locationReading, 'utf8'));
+    this.LocationSentences.push(...data.locations);
+    this.cleanUpAndStartEmitting();
+  }
 
-	private readLocationData() {
-		const data = JSON.parse(fs.readFileSync(this.locationReading, 'utf8'));
-		this.LocationSentences.push(...data.locations);
-		this.cleanUpAndStartEmitting();
-	}
+  private emitGPSData() {
+    this.emit(
+      'data',
+      Date.now(),
+      this.LocationSentences[this.sentenceIndex],
+    );
 
+    if (this.sentenceIndex === this.LocationSentences.length - 1) {
+      if (this.loop) {
+        this.sentenceIndex = 0;
+      } else {
+        this.stop();
+      }
+    } else {
+      this.sentenceIndex++;
+    }
+  }
 
-	private emitGPSData() {
+  async start(): Promise<void> {
+    const fileExists = await new Promise(resolve => fs.exists(this.locationReading, resolve));
 
-		this.emit(
-			'data',
-			Date.now(),
-			this.LocationSentences[this.sentenceIndex]
-		);
+    if (!fileExists) {
+      throw new Error(
+        `Recording with filename '${this.locationReading}' does not exist.`,
+      );
+    }
 
-		if (this.sentenceIndex === this.LocationSentences.length - 1) {
-			if (this.loop) {
-				this.sentenceIndex = 0;
-			} else {
-				this.stop();
-			}
-		} else {
-			this.sentenceIndex++;
-		}
-	}
+    this.started = true;
 
-	async start(): Promise<void> {
-		const fileExists = await new Promise(resolve =>
-			fs.exists(this.locationReading, resolve),
-		);
+    this.readLocationData();
+  }
 
-		if (!fileExists) {
-			throw new Error(
-				`Recording with filename '${this.locationReading}' does not exist.`,
-			);
-		}
+  private cleanUpAndStartEmitting() {
+    if (this.LocationSentences) {
+      this.locationEmitterIntervalId = setInterval(() => {
+        this.emitGPSData();
+      }, this.defaultSampleRate);
+    }
+  }
 
-		this.started = true;
+  stop() {
+    clearInterval(this.locationEmitterIntervalId);
+    this.started = false;
+    this.emit('stopped');
+  }
 
-		this.readLocationData();
-	}
-
-	private cleanUpAndStartEmitting() {
-		if (this.LocationSentences) {
-			this.locationEmitterIntervalId = setInterval(() => {
-				this.emitGPSData();
-			}, this.defaultSampleRate);
-		}
-	}
-
-	stop() {
-		clearInterval(this.locationEmitterIntervalId);
-		this.started = false;
-		this.emit('stopped');
-	}
-
-	isStarted(): boolean {
-		return this.started;
-	}
+  isStarted(): boolean {
+    return this.started;
+  }
 }
