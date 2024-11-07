@@ -11,6 +11,7 @@ This is a software device simulator that shows how to use the [nRF Cloud APIs](h
 git clone git@github.com:nRFCloud/device-simulator-v2.git 
 cd device-simulator-v2
 yarn
+yarn build
 node dist/cli.js --help
 ```
 Or you can run it directly using [npx](https://docs.npmjs.com/cli/v8/commands/npx):
