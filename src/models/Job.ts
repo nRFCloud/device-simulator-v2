@@ -69,7 +69,7 @@ const getPathName = (scenario: JobExecutionFailureScenario): string => {
     [JobExecutionFailureScenario.DownloadInProgressHang]: 'Hang on IN_PROGRESS state',
     [JobExecutionFailureScenario.DownloadTimeout]: 'End with a TIME_OUT',
     [JobExecutionFailureScenario.DownloadFailed]: 'End by FAILING',
-    [$enum.handleUnexpected]: `Unexpected failure scenario: ${scenario}`,
+    [$enum.handleUnexpected]: `None Set (Normal Operations)`,
   });
 };
 
