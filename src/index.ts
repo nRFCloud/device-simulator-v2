@@ -71,15 +71,20 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
   const teamId = teamData.team.tenantId;
   const teamName = teamData.team.name;
   const mqttTopicPrefix = `${stage}/${teamId}`;
-  const mqttEndpoint = `mqtt${stage === 'prod' ? '' : `.${stage}`}.nrfcloud.com`;
+  const mqttEndpoint = `mqtt${
+    stage === 'prod' ? '' : `.${stage}`
+  }.nrfcloud.com`;
   let deviceId = simConfig.deviceId;
   if (deviceId) {
-    simConfig.deviceCredentials = getLocallyStoredDeviceCredentials(deviceId, log);
+    simConfig.deviceCredentials = getLocallyStoredDeviceCredentials(
+      deviceId,
+      log,
+    );
     if (!simConfig.deviceCredentials) {
       log.info(
-        `You set device ID '${deviceId}' but credentials could not be found at their expected location: ${
-          formatCredentialsFilePath(deviceId)
-        }. New credentials will be auto-generated.`,
+        `You set device ID '${deviceId}' but credentials could not be found at their expected location: ${formatCredentialsFilePath(
+          deviceId,
+        )}. New credentials will be auto-generated.`,
       );
     }
   } else {
@@ -99,7 +104,7 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
   if (simConfig.deviceCredentials) {
     // Check to see if the device is already onboarded by this team. If not, onboard it.
     const res = await restApiClient.fetchDevice(deviceId);
-    if (res.status !== 200) {
+    if (res.status === 404) {
       // User provided device credentials, but the device was not found for this team.
       //
       // JITP device connection mode is handled in the nrfDevice.ts file's connection handler because
@@ -126,14 +131,22 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
   } else {
     // Run simulator with new device credentials.
     if (deviceType === 'Team') {
-      const { clientId, ...credentials } = await restApiClient.createMqttTeamDevice();
+      const {
+        clientId,
+        ...credentials
+      } = await restApiClient.createMqttTeamDevice();
       deviceId = clientId;
       simConfig.deviceCredentials = credentials;
     } else {
       if (certificateType === 'JITP') {
-        simConfig.deviceCredentials = await restApiClient.createJitpCertificate({ deviceId, certificateType });
+        simConfig.deviceCredentials = await restApiClient.createJitpCertificate(
+          { deviceId, certificateType },
+        );
       } else {
-        simConfig.deviceCredentials = createSelfSignedDeviceCertificate({ deviceId, verbose });
+        simConfig.deviceCredentials = createSelfSignedDeviceCertificate({
+          deviceId,
+          verbose,
+        });
         // This will create a new device for the team if the device does not already exist. Otherwise, it will just rotate the certificate.
         await restApiClient.onboardDevice({
           deviceId,
@@ -157,7 +170,8 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
 
   if (simConfig.sensors) {
     simConfig.sensors.map((service: string) => {
-      const sensorDataFilePath = (filename: string) => path.resolve(__dirname, 'data', 'sensors', filename);
+      const sensorDataFilePath = (filename: string) =>
+        path.resolve(__dirname, 'data', 'sensors', filename);
 
       switch (service) {
         case 'gps':
@@ -226,7 +240,12 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
     });
   }
 
-  const { appFwVersion, appType, jobExecutionFailureScenario, deviceCredentials } = simConfig;
+  const {
+    appFwVersion,
+    appType,
+    jobExecutionFailureScenario,
+    deviceCredentials,
+  } = simConfig;
   const deviceConfig: DeviceConfig = {
     deviceCredentials,
     deviceId,
@@ -243,9 +262,5 @@ export const run = async (simConfig: SimulatorConfig): Promise<void> => {
     verbose,
   };
 
-  nrfDevice(
-    deviceConfig,
-    restApiClient,
-    log,
-  );
+  nrfDevice(deviceConfig, restApiClient, log);
 };
