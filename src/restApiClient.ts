@@ -32,7 +32,11 @@ export class RestApiClient {
   private static conn: AxiosInstance;
   private readonly log: Log;
 
-  constructor(private readonly apiHost: string, private readonly apiKey: string, private readonly verbose: boolean) {
+  constructor(
+    private readonly apiHost: string,
+    private readonly apiKey: string,
+    private readonly verbose: boolean,
+  ) {
     this.log = new Log(verbose);
   }
 
@@ -58,9 +62,7 @@ export class RestApiClient {
   public async createMqttTeamDevice() {
     let res;
     try {
-      res = await this.getRestApiConn().post(
-        `v1/devices/mqtt-team`,
-      );
+      res = await this.getRestApiConn().post(`v1/devices/mqtt-team`);
       this.log.success(`MQTT Team device successfully created.`);
     } catch (err) {
       this.log.error(`JITP device failed to create: ${err}`);
@@ -84,9 +86,13 @@ export class RestApiClient {
         // No need to support custom ownership code as it is not used in the simulator. Just appease the endpoint with a dummy value.
         '123456',
       );
-      this.log.success(`JITP certificate for device '${deviceId}' successfully created.`);
+      this.log.success(
+        `JITP certificate for device '${deviceId}' successfully created.`,
+      );
     } catch (err) {
-      this.log.error(`JITP certificate for device '${deviceId}' failed to create: ${err}`);
+      this.log.error(
+        `JITP certificate for device '${deviceId}' failed to create: ${err}`,
+      );
     }
     storeDeviceCredentials(
       formatCredentialsFilePath(deviceId),
@@ -96,25 +102,46 @@ export class RestApiClient {
     return res?.data as DeviceCredentials;
   }
 
-  public async onboardDevice({ deviceId, certificate }: OnboardDeviceRequestParams) {
+  public async onboardDevice({
+    deviceId,
+    certificate,
+  }: OnboardDeviceRequestParams) {
     try {
       await this.getRestApiConn().post(`v1/devices/${deviceId}`, {
         certificate,
       });
-      this.log.success(`Device '${deviceId}' successfully onboarded to nRF Cloud.`);
+      this.log.success(
+        `Device '${deviceId}' successfully onboarded to nRF Cloud.`,
+      );
     } catch (err) {
-      this.log.error(`Device '${deviceId}' failed to onboard to nRF Cloud: ${err}`);
+      this.log.error(
+        `Device '${deviceId}' failed to onboard to nRF Cloud: ${err}`,
+      );
     }
   }
 
   public async fetchTeamInfo(): Promise<TeamInfo> {
-    const res = await this.getRestApiConn().get(`v1/account`);
-    return res.data as TeamInfo;
+    try {
+      const res = await this.getRestApiConn().get(`v1/account`);
+      return res.data as TeamInfo;
+    } catch (err) {
+      this.log.error(`Failed to fetch team info: ${err}`);
+      throw err;
+    }
   }
 
   public async fetchDevice(deviceId: string) {
-    const res = await this.getRestApiConn().get(`v1/devices/${deviceId}`);
-    return res.data;
+    try {
+      const res = await this.getRestApiConn().get(`v1/devices/${deviceId}`);
+      return { status: 200, data: res.data };
+    } catch (err) {
+      if (err.response?.status === 404) {
+        this.log.debug(`Device '${deviceId}' not found (404)`);
+        return { status: 404, data: null };
+      }
+      this.log.error(`Failed to fetch device '${deviceId}': ${err}`);
+      throw err;
+    }
   }
 
   public async associateDevice({ deviceId }: DeviceRequestParams) {
