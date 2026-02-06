@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosError, AxiosInstance } from 'axios';
 import { CertificateType, DeviceCredentials } from './index';
 import { Log } from './models/Log';
 import { formatCredentialsFilePath, storeDeviceCredentials } from './utils';
@@ -135,7 +135,7 @@ export class RestApiClient {
       const res = await this.getRestApiConn().get(`v1/devices/${deviceId}`);
       return { status: 200, data: res.data };
     } catch (err) {
-      if (err.response?.status === 404) {
+      if ((err as AxiosError).response?.status === 404) {
         this.log.debug(`Device '${deviceId}' not found (404)`);
         return { status: 404, data: null };
       }
