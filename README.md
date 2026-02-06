@@ -48,7 +48,11 @@ You can create a new device, onboard it, and start sending sensor data all in on
 
 ```
 node dist/cli.js -k <api key> -s gps,acc,temp
+node dist/cli.js -k {USER_API_KEY from /#/account} -d {UNIQUE_DEVICE_NAME ex: nrfsim-...21 numbers... ex: 
+nrfsim-790673782190580456800} -h https://api.nrfcloud.com -x 5 -s gps,gnss,acc,temp,device,rsrp,location,log,alert
 ```
+
+If you receive a certificate error when running, it's likely your device name is not unique. Please update to a new un-used name.
 
 ## Use of simulated sensors
 
