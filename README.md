@@ -47,12 +47,13 @@ The [nRF Cloud documentation](https://docs.nordicsemi.com/bundle/nrf-cloud/page/
 You can create a new device, onboard it, and start sending sensor data all in one command, which is a typical way to use the simulator:
 
 ```
-node dist/cli.js -k <api key> -s gps,acc,temp
 node dist/cli.js -k {USER_API_KEY from /#/account} -d {UNIQUE_DEVICE_NAME ex: nrfsim-...21 numbers... ex: 
 nrfsim-790673782190580456800} -h https://api.nrfcloud.com -x 5 -s gps,gnss,acc,temp,device,rsrp,location,log,alert
 ```
 
 If you receive a certificate error when running, it's likely your device name is not unique. Please update to a new un-used name.
+
+Note- your USER_API_KEY must match the user you are testing the simulator against. If you regularly log in to app.nrfcloud.com with different users, be sure you're using the correct key.
 
 ## Use of simulated sensors
 
